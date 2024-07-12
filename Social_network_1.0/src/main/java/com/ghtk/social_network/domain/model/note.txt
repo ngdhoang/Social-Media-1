@@ -1,0 +1,1 @@
+khoi tao nhung model can thiet types or interface

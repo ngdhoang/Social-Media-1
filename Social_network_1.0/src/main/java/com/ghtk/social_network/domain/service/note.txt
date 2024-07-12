@@ -1,0 +1,2 @@
+services: chịu trách nhiệm tương tác với models và thực thi những hành động liên của chúng.
+Ví dụ: implement method kiểm tra cho phép thêm sản phẩm vào giỏ hàng nếu tồn kho sản phẩm > 0

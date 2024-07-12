@@ -1,0 +1,2 @@
+repositories: tất cả types và interfaces liên quan đến repository
+(một repository chịu trách nhiệm lấy data từ nhiều nơi khác nhau về, như web services, database, hay một file bất kì...)

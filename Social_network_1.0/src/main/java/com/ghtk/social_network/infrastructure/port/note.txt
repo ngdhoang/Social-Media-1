@@ -1,0 +1,1 @@
+luu tru nhung thu lien qua den client (vi du: dto nhan tu 1 repository)
