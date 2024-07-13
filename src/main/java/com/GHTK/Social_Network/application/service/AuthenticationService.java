@@ -1,6 +1,7 @@
 package com.GHTK.Social_Network.application.service;
 
 import com.GHTK.Social_Network.application.port.input.AuthenticationPortInput;
+import com.GHTK.Social_Network.application.port.output.AuthenticationPort;
 import com.GHTK.Social_Network.domain.entity.user.ERole;
 import com.GHTK.Social_Network.domain.entity.user.Token;
 import com.GHTK.Social_Network.domain.entity.user.User;
@@ -25,7 +26,7 @@ public class AuthenticationService implements AuthenticationPortInput {
 
   private final PasswordEncoder passwordEncoder;
 
-  private final AuthenticationRepositoryPortImpl authenticationRepositoryPort;
+  private final AuthenticationPort authenticationRepositoryPort;
 
   @Override
   public AuthenticationResponse authenticate(AuthenticationRequest authenticationRequest) {
