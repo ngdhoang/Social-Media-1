@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.security.service;
 
 import com.GHTK.Social_Network.domain.entity.user.User;
-import com.GHTK.Social_Network.domain.repository.UserRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
