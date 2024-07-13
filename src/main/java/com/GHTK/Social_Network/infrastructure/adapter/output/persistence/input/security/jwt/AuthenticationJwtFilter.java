@@ -1,7 +1,7 @@
-package com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt;
+package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.input.security.jwt;
 
 import com.GHTK.Social_Network.domain.repository.TokenRepository;
-import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsServiceImpl;
+import com.GHTK.Social_Network.infrastructure.adapter.output.persistence.input.security.service.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

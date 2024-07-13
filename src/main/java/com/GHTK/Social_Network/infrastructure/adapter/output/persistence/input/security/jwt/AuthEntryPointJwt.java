@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt;
+package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.input.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,10 +1,10 @@
-package com.GHTK.Social_Network.infrastructure.adapter.input;
+package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.input;
 
+import com.GHTK.Social_Network.infrastructure.adapter.output.persistence.input.security.service.LogoutService;
 import com.GHTK.Social_Network.infrastructure.payload.requests.AuthenticationRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.RegisterRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import com.GHTK.Social_Network.application.service.AuthenticationService;
-import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.LogoutService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,7 +25,7 @@ public class AuthenticationController {
     try {
       return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authenticationService.authenticate(authenticationRequest));
     } catch (Exception e) {
-      return ResponseHandler.generateErrorResponse(e);
+      return ResponseHandler.generateErrorResponse(e, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -34,7 +34,7 @@ public class AuthenticationController {
     try {
       return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authenticationService.register(registerRequest));
     } catch (Exception e) {
-      return ResponseHandler.generateErrorResponse(e);
+      return ResponseHandler.generateErrorResponse(e, HttpStatus.BAD_REQUEST);
     }
   }
 }

@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.infrastructure.adapter.input.security.service;
+package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.input.security.service;
 
 import com.GHTK.Social_Network.domain.entity.user.User;
 import lombok.AllArgsConstructor;

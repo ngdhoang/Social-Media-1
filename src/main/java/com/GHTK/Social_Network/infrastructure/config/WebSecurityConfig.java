@@ -1,8 +1,8 @@
 package com.GHTK.Social_Network.infrastructure.config;
 
-import com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt.AuthEntryPointJwt;
-import com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt.AuthenticationJwtFilter;
-import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsServiceImpl;
+import com.GHTK.Social_Network.infrastructure.adapter.output.persistence.input.security.jwt.AuthEntryPointJwt;
+import com.GHTK.Social_Network.infrastructure.adapter.output.persistence.input.security.jwt.AuthenticationJwtFilter;
+import com.GHTK.Social_Network.infrastructure.adapter.output.persistence.input.security.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
