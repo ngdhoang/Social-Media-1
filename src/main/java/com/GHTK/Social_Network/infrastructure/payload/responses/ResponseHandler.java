@@ -18,12 +18,11 @@ public class ResponseHandler {
 
     return new ResponseEntity<Object>(body, status);
   }
-
-  public static ResponseEntity<Object> generateErrorResponse(Exception e){
-    return ResponseHandler.generateResponse(MESSAGE_FAIL, HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+  public static ResponseEntity<Object> generateErrorResponse(Exception e, HttpStatus status){
+    return ResponseHandler.generateResponse(MESSAGE_FAIL, status, e.getMessage());
   }
 
-  public static ResponseEntity<Object> generateErrorResponse(String e){
-    return ResponseHandler.generateResponse(MESSAGE_FAIL, HttpStatus.INTERNAL_SERVER_ERROR, e);
+  public static ResponseEntity<Object> generateErrorResponse(String e, HttpStatus status){
+    return ResponseHandler.generateResponse(MESSAGE_FAIL, status, e);
   }
 }

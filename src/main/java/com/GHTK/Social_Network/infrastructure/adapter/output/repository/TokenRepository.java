@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.domain.repository;
+package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
 
 import com.GHTK.Social_Network.domain.entity.user.Token;
 import org.springframework.data.jpa.repository.JpaRepository;

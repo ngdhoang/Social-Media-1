@@ -1,25 +1,22 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
-import com.GHTK.Social_Network.application.port.output.AuthenticationPort;
+import com.GHTK.Social_Network.application.port.output.AuthPort;
 import com.GHTK.Social_Network.domain.entity.user.Token;
 import com.GHTK.Social_Network.domain.entity.user.User;
-import com.GHTK.Social_Network.domain.repository.TokenRepository;
-import com.GHTK.Social_Network.domain.repository.UserRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.TokenRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class AuthenticationRepositoryPortImpl implements AuthenticationPort {
+@AllArgsConstructor
+public class AuthRepositoryPortImpl implements AuthPort {
   private final TokenRepository tokenRepository;
 
   private final UserRepository userRepository;
-
-  public AuthenticationRepositoryPortImpl(TokenRepository tokenRepository, UserRepository userRepository) {
-    this.tokenRepository = tokenRepository;
-    this.userRepository = userRepository;
-  }
 
   @Override
   public List<Token> findAllValidTokenByUser(Long id) {
@@ -27,7 +24,7 @@ public class AuthenticationRepositoryPortImpl implements AuthenticationPort {
   }
 
   @Override
-  public void save(Token token) {
+  public void saveToken(Token token) {
     tokenRepository.save(token);
   }
 
@@ -42,7 +39,22 @@ public class AuthenticationRepositoryPortImpl implements AuthenticationPort {
   }
 
   @Override
-  public void save(User user) {
+  public void saveUser(User user) {
     userRepository.save(user);
+  }
+
+  @Override
+  public Boolean existsUserByUserEmail(String userEmail) {
+    return userRepository.existsByUserEmail(userEmail);
+  }
+
+  @Override
+  public void changePassword(String newPassword, Long id) {
+    userRepository.updatePassword(newPassword, id);
+  }
+
+  @Override
+  public Optional<Token> findByToken(String jwt) {
+    return tokenRepository.findByToken(jwt);
   }
 }

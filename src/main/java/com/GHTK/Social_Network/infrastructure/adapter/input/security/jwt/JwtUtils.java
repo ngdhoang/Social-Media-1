@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -16,14 +17,14 @@ import java.util.function.Function;
 
 @Service
 public class JwtUtils {
-//  @Value("${application.GHTK.Social_Network.authentication.infrastructure.adapters.output.security.jwt.secretKey}")
-  final private String secretKey = "538E635266556A586E3272357538782F413F44284735466250645367566B5970";
+  @Value("${application.GHTK.JwtUtils.secretKey}")
+  private String secretKey;
 
-//  @Value("${application.GHTK.Social_Network.authentication.infrastructure.adapters.output.security.jwt.jwtExpiration}")
-  final private long jwtExpiration = 86400000;
+  @Value("${application.GHTK.JwtUtils.jwtExpiration}")
+  private long jwtExpiration;
 
-//  @Value("${application.GHTK.Social_Network.authentication.infrastructure.adapters.output.security.jwt.refreshExpiration}")
-  final private long refreshExpiration = 60480000;
+  @Value("${application.GHTK.JwtUtils.refreshExpiration}")
+  private long refreshExpiration;
   public String extractUserEmail(String jwt) {
     return extractClaim(jwt, Claims::getSubject);
   }

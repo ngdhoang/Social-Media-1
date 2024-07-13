@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class AuthenticationRequest {
+public class AuthRequest {
   @NotBlank(message = "email cannot blank")
   @Size(max = 50)
   @Email(message = "Email invalidate")
