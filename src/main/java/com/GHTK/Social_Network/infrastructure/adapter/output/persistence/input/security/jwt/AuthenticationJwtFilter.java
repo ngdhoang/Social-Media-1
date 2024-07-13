@@ -40,7 +40,7 @@ public class AuthenticationJwtFilter extends OncePerRequestFilter {
       }
       final String jwt = authHeader.substring(7);
       final String userEmail = jwtUtils.extractUserEmail(jwt);
-      if (userEmail == null || SecurityContextHolder.getContext().getAuthentication() == null) {
+      if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
         var isTokenValid = tokenRepository.findByToken(jwt)
                 .map(t -> !t.isExpired() && !t.isRevoked())

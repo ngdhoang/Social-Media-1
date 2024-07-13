@@ -27,7 +27,7 @@ public class AuthenticationRepositoryPortImpl implements AuthenticationPort {
   }
 
   @Override
-  public void save(Token token) {
+  public void saveToken(Token token) {
     tokenRepository.save(token);
   }
 
@@ -42,7 +42,7 @@ public class AuthenticationRepositoryPortImpl implements AuthenticationPort {
   }
 
   @Override
-  public void save(User user) {
+  public void saveUser(User user) {
     userRepository.save(user);
   }
 }

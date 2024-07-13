@@ -2,6 +2,7 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.input;
 
 import com.GHTK.Social_Network.infrastructure.adapter.output.persistence.input.security.service.LogoutService;
 import com.GHTK.Social_Network.infrastructure.payload.requests.AuthenticationRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.ChangePasswordRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.RegisterRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import com.GHTK.Social_Network.application.service.AuthenticationService;
@@ -37,4 +38,13 @@ public class AuthenticationController {
       return ResponseHandler.generateErrorResponse(e, HttpStatus.BAD_REQUEST);
     }
   }
+
+  @PostMapping("/change-password")
+    public ResponseEntity<Object> changePassword(@RequestBody @Valid ChangePasswordRequest changePasswordRequest) {
+        try {
+          return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authenticationService.changePassword(changePasswordRequest));
+        } catch (Exception e) {
+          return ResponseHandler.generateErrorResponse(e, HttpStatus.BAD_REQUEST);
+        }
+    }
 }
