@@ -20,11 +20,20 @@ public interface UserRepository extends JpaRepository<User, Long> {
   @Transactional
   @Query("""
       UPDATE User u
-      SET u.password = :hashedPassword
-      WHERE u.userId = :id
+      SET u.password = ?1
+      WHERE u.userId = ?2
   """)
   void updatePassword(
-          @Param("hashedPassword") String hashedPassword,
-          @Param("id") Long id
+          String hashedPassword,
+          Long id
   );
+
+  @Modifying
+  @Transactional
+  @Query("""
+      UPDATE User u
+      SET u.isProfilePublic = ?1
+      WHERE u.userId = ?2
+  """)
+  void changeStateProfile(Boolean state, Long userId);
 }

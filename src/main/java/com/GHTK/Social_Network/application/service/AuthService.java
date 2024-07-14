@@ -36,7 +36,7 @@ public class AuthService implements AuthPortInput {
 
   private final AuthPort authenticationRepositoryPort;
 
-  private User getUserFromRequest() {
+  private User getUserAuth() {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     String username;
 
@@ -97,7 +97,7 @@ public class AuthService implements AuthPortInput {
 
   @Override
   public ChangePasswordResponse changePassword(ChangePasswordRequest changePasswordRequest) {
-    User user = getUserFromRequest();
+    User user = getUserAuth();
 
     if (changePasswordRequest.getOldPassword().equals(changePasswordRequest.getNewPassword()))
       throw new CustomException("Old password and new password must be different", HttpStatus.CONFLICT);

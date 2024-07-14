@@ -40,6 +40,8 @@ public class User {
 
   private String workPlace;
 
+  private Boolean isProfilePublic = true;
+
   @Enumerated(EnumType.STRING)
   private EStatusUser statusUser;
 
