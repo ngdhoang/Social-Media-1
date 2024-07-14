@@ -59,12 +59,12 @@ public class WebSecurityConfig {
                     .anyRequest().authenticated()
             )
             .authenticationProvider(daoAuthenticationProvider())
-            .addFilterBefore(authJwtFilter, UsernamePasswordAuthenticationFilter.class)
-            .oauth2Login(
-										login -> login
-														.defaultSuccessUrl("/home")
-														.failureUrl("/authentication?error=true")
-						);
+            .addFilterBefore(authJwtFilter, UsernamePasswordAuthenticationFilter.class);
+//            .oauth2Login(
+//										login -> login
+//														.defaultSuccessUrl("/home")
+//														.failureUrl("/authentication?error=true")
+//						);
     return http.build();
   }
 }
