@@ -7,6 +7,9 @@ import com.GHTK.Social_Network.domain.entity.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ProfileMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,8 +22,17 @@ public class ProfileService implements ProfilePortInput {
 
   private final AuthPort authenticationRepositoryPort;
 
+  private final RedisTemplate<String, ProfileDto> profileDtoRedisTemplate;
+
   private User getUserAuth() {
-    Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    if (authentication == null || !authentication.isAuthenticated() ||
+            authentication instanceof AnonymousAuthenticationToken) {
+      return User.builder().userId(0L).build();
+    }
+
+    Object principal = authentication.getPrincipal();
     String username;
 
     if (principal instanceof UserDetails) {
@@ -37,6 +49,12 @@ public class ProfileService implements ProfilePortInput {
 
   @Override
   public ProfileDto getProfile(Long id) {
+    if (Boolean.TRUE.equals(profileDtoRedisTemplate.hasKey(String.valueOf(id)))) {
+      if (!profileDtoRedisTemplate.opsForValue().get(String.valueOf(id)).getIsProfilePublic() && !getUserAuth().getUserId().equals(id)) {
+        return null;
+      }
+      return profileDtoRedisTemplate.opsForValue().get(String.valueOf(id));
+    }
     User user = profilePort.takeProfileById(id);
 
     if (user == null) {
@@ -47,6 +65,7 @@ public class ProfileService implements ProfilePortInput {
 
     ProfileDto profileDto = ProfileMapper.INSTANCE.userToProfileDto(user);
     if (isProfilePublic || user.getUserId().equals(getUserAuth().getUserId())) {
+      profileDtoRedisTemplate.opsForValue().set(String.valueOf(id), profileDto);
       return profileDto;
     }
     return null;
@@ -55,11 +74,23 @@ public class ProfileService implements ProfilePortInput {
   @Override
   public Boolean updateProfile(ProfileDto profileDto) {
     profileDto.setProfileId(getUserAuth().getUserId());
-    return profilePort.updateProfile(ProfileMapper.INSTANCE.profileToUser(profileDto));
+    Boolean isUpdateProfile = profilePort.updateProfile(ProfileMapper.INSTANCE.profileToUser(profileDto));
+    if (isUpdateProfile) {
+      profileDtoRedisTemplate.opsForValue().set(String.valueOf(profileDto.getProfileId()), profileDto);
+    }
+    return isUpdateProfile;
   }
 
   @Override
   public Boolean setStateProfile(Integer state) {
-    return profilePort.setStateProfileById(state.intValue(), getUserAuth().getUserId());
+    Boolean isSetStateProfile = profilePort.setStateProfileById(state, getUserAuth().getUserId());
+    if (isSetStateProfile) {
+      ProfileDto profileDto = profileDtoRedisTemplate.opsForValue().get(String.valueOf(getUserAuth().getUserId()));
+      if (profileDto != null) {
+        profileDto.setIsProfilePublic(state == 1);
+      }
+      profileDtoRedisTemplate.opsForValue().set(String.valueOf(profileDto.getProfileId()), profileDto);
+    }
+    return isSetStateProfile;
   }
 }

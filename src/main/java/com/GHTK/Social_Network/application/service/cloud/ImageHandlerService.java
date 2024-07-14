@@ -24,4 +24,9 @@ public class ImageHandlerService implements ImageHandlerPortInput {
   public String uploadImageComment(String base64) {
     return null;
   }
+
+  @Override
+  public String uploadImageUser(String base64) {
+    return "";
+  }
 }

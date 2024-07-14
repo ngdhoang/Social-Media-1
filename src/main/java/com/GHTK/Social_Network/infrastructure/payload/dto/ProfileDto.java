@@ -23,4 +23,6 @@ public class ProfileDto {
   private String schoolName;
 
   private String workPlace;
+
+  private Boolean isProfilePublic;
 }

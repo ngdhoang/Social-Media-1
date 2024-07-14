@@ -10,9 +10,9 @@ import org.mapstruct.factory.Mappers;
 public interface ProfileMapper {
   ProfileMapper INSTANCE = Mappers.getMapper(ProfileMapper.class);
 
-  @Mapping(source = "userId", target = "profileId")
+  @Mapping(source = "profileId", target = "userId")
   User profileToUser(ProfileDto profile);
 
-  @Mapping(source = "profileId", target = "userId")
+  @Mapping(source = "userId", target = "profileId")
   ProfileDto userToProfileDto(User user);
 }

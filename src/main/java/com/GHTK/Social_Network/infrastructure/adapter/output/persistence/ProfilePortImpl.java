@@ -27,6 +27,7 @@ public class ProfilePortImpl implements ProfilePort {
       savedUser.setHomeTown(user.getHomeTown());
       savedUser.setSchoolName(user.getSchoolName());
       savedUser.setWorkPlace(user.getWorkPlace());
+      savedUser.setIsProfilePublic(user.getIsProfilePublic());
       userRepository.save(savedUser);
       return true;
     }
