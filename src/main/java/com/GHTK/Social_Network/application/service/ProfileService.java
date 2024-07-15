@@ -1,10 +1,14 @@
 package com.GHTK.Social_Network.application.service;
 
+import com.GHTK.Social_Network.application.port.input.ImageHandlerPortInput;
 import com.GHTK.Social_Network.application.port.input.ProfilePortInput;
 import com.GHTK.Social_Network.application.port.output.AuthPort;
+import com.GHTK.Social_Network.application.port.output.ImageHandlerPort;
 import com.GHTK.Social_Network.application.port.output.ProfilePort;
+import com.GHTK.Social_Network.application.service.cloud.ImageHandlerService;
 import com.GHTK.Social_Network.domain.entity.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ProfileMapper;
+import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -20,9 +24,13 @@ import org.springframework.stereotype.Service;
 public class ProfileService implements ProfilePortInput {
   private final ProfilePort profilePort;
 
+  private final RedisTemplate<String, ProfileDto> profileDtoRedisTemplate;
+
   private final AuthPort authenticationRepositoryPort;
 
-  private final RedisTemplate<String, ProfileDto> profileDtoRedisTemplate;
+  private final ImageHandlerPort imageHandlerPort;
+
+  private final ImageHandlerPortInput imageHandlerPortInput;
 
   private User getUserAuth() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -72,17 +80,17 @@ public class ProfileService implements ProfilePortInput {
   }
 
   @Override
-  public Boolean updateProfile(ProfileDto profileDto) {
+  public ProfileDto updateProfile(ProfileDto profileDto) {
     profileDto.setProfileId(getUserAuth().getUserId());
     Boolean isUpdateProfile = profilePort.updateProfile(ProfileMapper.INSTANCE.profileToUser(profileDto));
     if (isUpdateProfile) {
       profileDtoRedisTemplate.opsForValue().set(String.valueOf(profileDto.getProfileId()), profileDto);
     }
-    return isUpdateProfile;
+    return getProfile(profileDto.getProfileId());
   }
 
   @Override
-  public Boolean setStateProfile(Integer state) {
+  public ProfileDto setStateProfile(Integer state) {
     Boolean isSetStateProfile = profilePort.setStateProfileById(state, getUserAuth().getUserId());
     if (isSetStateProfile) {
       ProfileDto profileDto = profileDtoRedisTemplate.opsForValue().get(String.valueOf(getUserAuth().getUserId()));
@@ -91,6 +99,20 @@ public class ProfileService implements ProfilePortInput {
       }
       profileDtoRedisTemplate.opsForValue().set(String.valueOf(profileDto.getProfileId()), profileDto);
     }
-    return isSetStateProfile;
+    return getProfile(getUserAuth().getUserId());
+  }
+
+  @Override
+  public ProfileDto updateAvatarProfile(ImageDto imageDto) {
+    String url = imageHandlerPortInput.uploadImageToCloud(imageDto.getImage());
+    Boolean check = imageHandlerPort.saveAvatar(url, getUserAuth().getUserId());
+    if (check) {
+      ProfileDto profileDto = profileDtoRedisTemplate.opsForValue().get(String.valueOf(getUserAuth().getUserId()));
+      profileDto.setAvatar(url);
+      profileDtoRedisTemplate.opsForValue().set(String.valueOf(profileDto.getProfileId()), profileDto);
+      return profileDto;
+    } else {
+      throw new RuntimeException("Error updating avatar");
+    }
   }
 }

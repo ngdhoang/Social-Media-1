@@ -74,7 +74,7 @@ public class AuthService implements AuthPortInput {
   @Override
   public AuthResponse register(RegisterRequest registerRequest) {
     if (authenticationRepositoryPort.existsUserByUserEmail(registerRequest.getUserEmail())) {
-      throw new CustomException("This Gmail already exists", HttpStatus.BAD_GATEWAY);
+      throw new CustomException("This Gmail already exists", HttpStatus.CONFLICT);
     }
     User users = new User(
             registerRequest.getFirstName(),
