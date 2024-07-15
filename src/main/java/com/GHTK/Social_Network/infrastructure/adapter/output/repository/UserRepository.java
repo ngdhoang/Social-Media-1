@@ -48,10 +48,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
   @Query("""
               select u from User u 
-              where (u.firstName like concat('%', ?1, '%')) 
-              or u.lastName like concat('%', ?1, '%')
-              or concat(u.firstName, ' ', u.lastName) like concat('%', ?1, '%')
-              or u.userEmail like concat('%', ?1, '%')
+              where lower(u.firstName) like lower(concat('%', ?1, '%')) 
+              or lower(u.lastName) like lower(concat('%', ?1, '%'))
+              or lower(concat(u.firstName, ' ', u.lastName)) like lower(concat('%', ?1, '%'))
+              or lower(concat(u.firstName, u.lastName)) like lower(concat('%', ?1, '%'))
+              or lower(u.userEmail) like lower(concat('%', ?1, '%'))
           """)
   List<User> searchUsersByNameOrEmail(String name);
 }

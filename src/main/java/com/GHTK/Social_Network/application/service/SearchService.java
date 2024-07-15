@@ -19,7 +19,7 @@ public class SearchService implements SearchPortInput {
   @Override
   public List<SearchDto> searchPublic(String keyword, Integer scope) {
     if (keyword != null) {
-      keyword = keyword.toLowerCase().replaceAll("^\\s+", "");
+      keyword = keyword.replaceAll("^\\s+", "");
     }
 
     List<SearchDto> results = new ArrayList<>();
