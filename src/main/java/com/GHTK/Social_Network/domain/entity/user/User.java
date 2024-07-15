@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.domain.entity.user;
 
+import com.GHTK.Social_Network.domain.entity.FriendShip;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -57,6 +58,10 @@ public class User {
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<Token> tokens;
+
+  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
+          cascade = CascadeType.ALL)
+  private List<FriendShip> friendShips;
 
   public User(String firstName, String lastName, String userEmail, String password) {
     this.firstName = firstName;

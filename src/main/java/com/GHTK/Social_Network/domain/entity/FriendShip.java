@@ -1,6 +1,7 @@
 package com.GHTK.Social_Network.domain.entity;
 
 import com.GHTK.Social_Network.domain.entity.user.EStatusUser;
+import com.GHTK.Social_Network.domain.entity.user.User;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -16,4 +17,7 @@ public class FriendShip {
 
   private LocalDate createAt;
 
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 }

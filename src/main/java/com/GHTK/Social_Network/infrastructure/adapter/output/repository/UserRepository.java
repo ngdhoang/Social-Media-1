@@ -35,5 +35,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
       SET u.isProfilePublic = ?1
       WHERE u.userId = ?2
   """)
-  void changeStateProfile(Boolean state, Long userId);
+  int changeStateProfile(Boolean state, Long userId);
 }

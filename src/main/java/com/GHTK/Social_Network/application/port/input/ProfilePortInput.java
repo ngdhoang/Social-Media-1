@@ -1,11 +1,13 @@
 package com.GHTK.Social_Network.application.port.input;
 
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
+import com.GHTK.Social_Network.infrastructure.payload.requests.ProfileStateRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateProfileRequest;
 
 public interface ProfilePortInput {
   ProfileDto getProfile(Long id);
 
-  Boolean updateProfile(ProfileDto profileDto);
+  ProfileDto updateProfile(UpdateProfileRequest updateProfileRequest);
 
-  Boolean setStateProfile(Integer state);
+  ProfileDto setStateProfile(ProfileStateRequest profileStateDto);
 }
