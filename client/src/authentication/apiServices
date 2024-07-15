@@ -1,0 +1,20 @@
+import axios from "axios";
+import { baseApiUrl } from "../env";
+
+export const headerApi = {
+  headers: {
+    Authorization: "Bearer " + localStorage.getItem("jwt"),
+  },
+};
+
+export const authApi = {
+  login(data) {
+    return axios.post(`${baseApiUrl}/auth/authentication`, data);
+  },
+  register(data) {
+    return axios.post(`${baseApiUrl}/auth/register`, data);
+  },
+  jwtValidate() {
+    return axios.get(`${baseApiUrl}/auth/jwt-validate`, headerApi);
+  },
+};
