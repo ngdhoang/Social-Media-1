@@ -10,6 +10,6 @@ import org.mapstruct.factory.Mappers;
 public interface SearchMapper {
   SearchMapper INSTANCE = Mappers.getMapper(SearchMapper.class);
 
-  @Mapping(source = "userId", target = "userId")
+  @Mapping(source = "userEmail", target = "email")
   SearchDto UserToSearchDto(User user);
 }
