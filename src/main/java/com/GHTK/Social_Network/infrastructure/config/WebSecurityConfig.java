@@ -55,7 +55,7 @@ public class WebSecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unAuthorizationHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(request -> request
-                    .requestMatchers("/api/auth/**", "api/profile/view", "/api/search").permitAll()
+                    .requestMatchers("/api/auth/**", "api/profile", "/api/search").permitAll()
                     .anyRequest().authenticated()
             )
             .authenticationProvider(daoAuthenticationProvider())

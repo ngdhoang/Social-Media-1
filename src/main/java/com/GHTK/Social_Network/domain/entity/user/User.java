@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.domain.entity.user;
 
+import com.GHTK.Social_Network.domain.entity.FriendShip;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -31,11 +31,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
   @Modifying
   @Transactional
   @Query("""
-              update User u
-              set u.isProfilePublic = ?1
-              where u.userId = ?2
-          """)
-  void changeStateProfile(Boolean state, Long userId);
+          update User u
+                  set u.isProfilePublic = ?1
+                  where u.userId = ?2
+            """)
+  int changeStateProfile(Boolean state, Long userId);
 
   @Modifying
   @Transactional
@@ -55,4 +55,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
               or lower(u.userEmail) like lower(concat('%', ?1, '%'))
           """)
   List<User> searchUsersByNameOrEmail(String name);
+
 }

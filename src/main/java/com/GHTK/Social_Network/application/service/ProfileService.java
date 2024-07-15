@@ -5,11 +5,12 @@ import com.GHTK.Social_Network.application.port.input.ProfilePortInput;
 import com.GHTK.Social_Network.application.port.output.AuthPort;
 import com.GHTK.Social_Network.application.port.output.ImageHandlerPort;
 import com.GHTK.Social_Network.application.port.output.ProfilePort;
-import com.GHTK.Social_Network.application.service.cloud.ImageHandlerService;
 import com.GHTK.Social_Network.domain.entity.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ProfileMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
+import com.GHTK.Social_Network.infrastructure.payload.requests.ProfileStateRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateProfileRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -80,17 +81,19 @@ public class ProfileService implements ProfilePortInput {
   }
 
   @Override
-  public ProfileDto updateProfile(ProfileDto profileDto) {
-    profileDto.setProfileId(getUserAuth().getUserId());
-    Boolean isUpdateProfile = profilePort.updateProfile(ProfileMapper.INSTANCE.profileToUser(profileDto));
+  public ProfileDto updateProfile(UpdateProfileRequest updateProfileRequest) {
+    Long userId = getUserAuth().getUserId();
+    Boolean isUpdateProfile = profilePort.updateProfile(updateProfileRequest, userId);
+    User profileDto = profilePort.takeProfileById(userId);
     if (isUpdateProfile) {
-      profileDtoRedisTemplate.opsForValue().set(String.valueOf(profileDto.getProfileId()), profileDto);
+      profileDtoRedisTemplate.opsForValue().set(String.valueOf(userId), ProfileMapper.INSTANCE.userToProfileDto(profileDto));
     }
-    return getProfile(profileDto.getProfileId());
+    return profileDtoRedisTemplate.opsForValue().get(String.valueOf(userId));
   }
 
   @Override
-  public ProfileDto setStateProfile(Integer state) {
+  public ProfileDto setStateProfile(ProfileStateRequest profileStateRequest) {
+    Integer state = profileStateRequest.getIsProfilePublic();
     Boolean isSetStateProfile = profilePort.setStateProfileById(state, getUserAuth().getUserId());
     if (isSetStateProfile) {
       ProfileDto profileDto = profileDtoRedisTemplate.opsForValue().get(String.valueOf(getUserAuth().getUserId()));
@@ -99,7 +102,7 @@ public class ProfileService implements ProfilePortInput {
       }
       profileDtoRedisTemplate.opsForValue().set(String.valueOf(profileDto.getProfileId()), profileDto);
     }
-    return getProfile(getUserAuth().getUserId());
+    return profileDtoRedisTemplate.opsForValue().get(String.valueOf(getUserAuth().getUserId()));
   }
 
   @Override

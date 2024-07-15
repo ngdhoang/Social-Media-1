@@ -3,6 +3,7 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 import com.GHTK.Social_Network.application.port.output.ProfilePort;
 import com.GHTK.Social_Network.domain.entity.user.User;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
+import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateProfileRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,17 +18,17 @@ public class ProfilePortImpl implements ProfilePort {
   }
 
   @Override
-  public Boolean updateProfile(User user) {
-    User savedUser = userRepository.findById(user.getUserId()).orElse(null);
+  public Boolean updateProfile(UpdateProfileRequest updateProfileRequest, Long userId) {
+    User savedUser = userRepository.findById(userId).orElse(null);
     if (savedUser != null) {
-      savedUser.setFirstName(user.getFirstName());
-      savedUser.setLastName(user.getLastName());
-      savedUser.setDob(user.getDob());
-      savedUser.setPhoneNumber(user.getPhoneNumber());
-      savedUser.setHomeTown(user.getHomeTown());
-      savedUser.setSchoolName(user.getSchoolName());
-      savedUser.setWorkPlace(user.getWorkPlace());
-      savedUser.setIsProfilePublic(user.getIsProfilePublic());
+      savedUser.setFirstName(updateProfileRequest.getFirstName());
+      savedUser.setLastName(updateProfileRequest.getLastName());
+      savedUser.setDob(updateProfileRequest.getDob());
+      savedUser.setPhoneNumber(updateProfileRequest.getPhoneNumber());
+      savedUser.setHomeTown(updateProfileRequest.getHomeTown());
+      savedUser.setSchoolName(updateProfileRequest.getSchoolName());
+      savedUser.setWorkPlace(updateProfileRequest.getWorkPlace());
+      savedUser.setIsProfilePublic(updateProfileRequest.getIsProfilePublic());
       userRepository.save(savedUser);
       return true;
     }
@@ -37,12 +38,7 @@ public class ProfilePortImpl implements ProfilePort {
   @Override
   public Boolean setStateProfileById(Integer i, Long userId) {
     Boolean state = i == 1;
-    try {
-      userRepository.changeStateProfile(state, userId);
-      return true;
-    } catch (Exception e) {
-      e.printStackTrace();
-      return false;
-    }
+    int rowsUpdated = userRepository.changeStateProfile(state, userId);
+    return rowsUpdated > 0;
   }
 }

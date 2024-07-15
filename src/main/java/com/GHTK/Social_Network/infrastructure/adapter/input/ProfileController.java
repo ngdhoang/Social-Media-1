@@ -3,6 +3,8 @@ package com.GHTK.Social_Network.infrastructure.adapter.input;
 import com.GHTK.Social_Network.application.port.input.ProfilePortInput;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
+import com.GHTK.Social_Network.infrastructure.payload.requests.ProfileStateRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateProfileRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,18 +31,18 @@ public class ProfileController {
   }
 
   @PutMapping("")
-  public ResponseEntity<Object> updateProfile(@RequestBody ProfileDto profileDto) {
+  public ResponseEntity<Object> updateProfile(@RequestBody UpdateProfileRequest updateProfileRequest) {
     try {
-      return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.updateProfile(profileDto));
-    } catch (Exception e) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.updateProfile(updateProfileRequest));
+  } catch (Exception e) {
       return ResponseHandler.generateErrorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  @GetMapping("/update/state")
-  public ResponseEntity<Object> updateProfile(@RequestParam("s") Integer state) {
+  @PutMapping("state")
+  public ResponseEntity<Object> updateProfile(@RequestBody ProfileStateRequest profileStateRequest) {
     try {
-      return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.setStateProfile(state));
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.setStateProfile(profileStateRequest));
     } catch (Exception e) {
       return ResponseHandler.generateErrorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
