@@ -28,6 +28,7 @@ public class ProfilePortImpl implements ProfilePort {
       savedUser.setSchoolName(user.getSchoolName());
       savedUser.setWorkPlace(user.getWorkPlace());
       savedUser.setIsProfilePublic(user.getIsProfilePublic());
+      System.out.println(savedUser);
       userRepository.save(savedUser);
       return true;
     }
@@ -37,12 +38,7 @@ public class ProfilePortImpl implements ProfilePort {
   @Override
   public Boolean setStateProfileById(Integer i, Long userId) {
     Boolean state = i == 1;
-    try {
-      userRepository.changeStateProfile(state, userId);
-      return true;
-    } catch (Exception e) {
-      e.printStackTrace();
-      return false;
-    }
+    int rowsUpdated = userRepository.changeStateProfile(state, userId);
+    return rowsUpdated > 0;
   }
 }

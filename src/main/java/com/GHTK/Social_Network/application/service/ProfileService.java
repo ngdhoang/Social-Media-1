@@ -6,6 +6,8 @@ import com.GHTK.Social_Network.application.port.output.ProfilePort;
 import com.GHTK.Social_Network.domain.entity.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ProfileMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
+import com.GHTK.Social_Network.infrastructure.payload.requests.ProfileStateRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateProfileRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -61,6 +63,8 @@ public class ProfileService implements ProfilePortInput {
       return null;
     }
 
+
+
     Boolean isProfilePublic = user.getIsProfilePublic();
 
     ProfileDto profileDto = ProfileMapper.INSTANCE.userToProfileDto(user);
@@ -72,17 +76,28 @@ public class ProfileService implements ProfilePortInput {
   }
 
   @Override
-  public Boolean updateProfile(ProfileDto profileDto) {
-    profileDto.setProfileId(getUserAuth().getUserId());
+  public ProfileDto updateProfile(UpdateProfileRequest updateProfileRequest) {
+//    profileDto.setProfileId(getUserAuth().getUserId());
+//    Boolean isUpdateProfile = profilePort.updateProfile(ProfileMapper.INSTANCE.profileToUser(profileDto));
+//    if (isUpdateProfile) {
+//      profileDtoRedisTemplate.opsForValue().set(String.valueOf(profileDto.getProfileId()), profileDto);
+//    }
+//    return profileDtoRedisTemplate.opsForValue().get(String.valueOf(profileDto.getProfileId()));
+    Long userId = getUserAuth().getUserId();
+    ProfileDto profileDto = getProfile(userId);
+    if (profileDto == null) {
+      profileDto = profilePort.takeProfileById(userId) == null ? new ProfileDto() : ProfileMapper.INSTANCE.userToProfileDto(profilePort.takeProfileById(userId));
+    }
     Boolean isUpdateProfile = profilePort.updateProfile(ProfileMapper.INSTANCE.profileToUser(profileDto));
     if (isUpdateProfile) {
       profileDtoRedisTemplate.opsForValue().set(String.valueOf(profileDto.getProfileId()), profileDto);
     }
-    return isUpdateProfile;
+    return profileDtoRedisTemplate.opsForValue().get(String.valueOf(profileDto.getProfileId()));
   }
 
   @Override
-  public Boolean setStateProfile(Integer state) {
+  public ProfileDto setStateProfile(ProfileStateRequest profileStateRequest) {
+    Integer state = profileStateRequest.getIsProfilePublic();
     Boolean isSetStateProfile = profilePort.setStateProfileById(state, getUserAuth().getUserId());
     if (isSetStateProfile) {
       ProfileDto profileDto = profileDtoRedisTemplate.opsForValue().get(String.valueOf(getUserAuth().getUserId()));
@@ -91,6 +106,6 @@ public class ProfileService implements ProfilePortInput {
       }
       profileDtoRedisTemplate.opsForValue().set(String.valueOf(profileDto.getProfileId()), profileDto);
     }
-    return isSetStateProfile;
+    return profileDtoRedisTemplate.opsForValue().get(String.valueOf(getUserAuth().getUserId()));
   }
 }
