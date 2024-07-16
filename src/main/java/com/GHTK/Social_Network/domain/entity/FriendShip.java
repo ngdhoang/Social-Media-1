@@ -33,7 +33,7 @@ public class FriendShip {
     @Column(nullable = false)
     private Long userInitiatorId;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userInitiatorId", referencedColumnName = "UserId", insertable = false, updatable = false)
     private User user;
 

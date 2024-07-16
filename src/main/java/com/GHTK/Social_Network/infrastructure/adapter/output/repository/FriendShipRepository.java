@@ -1,24 +1,41 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
 
+import com.GHTK.Social_Network.domain.entity.EFriendshipStatus;
 import com.GHTK.Social_Network.domain.entity.FriendShip;
 import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public interface FriendShipRepository extends JpaRepository<FriendShip, Long> {
 
-//    @Query(value = """
-//            select f from FriendShip f
-//            where (f.userReceiveId = :userId or f.userInitiatorId = :userId)
-//            and f.friendshipStatus = :status
-//            order by :orderBy :sortBy
-//            limit :limit offset :offset
-//            """)
-//    FriendShip[] getFriendShip(@Param("userId") Long userId, @Param("status") String status, @Param("limit") Integer limit, @Param("offset") Integer offset, @Param("orderBy") String orderBy, @Param("sortBy") String sortBy);
+    @Query("""
+            select f from FriendShip f
+            where f.userReceiveId = :userId or f.userInitiatorId = :userId
+                and (:status is null and f.friendshipStatus <> 'BLOCK') or f.friendshipStatus = :status
+            """)
+    List<FriendShip> getListFriend(
+            @Param("userId") Long userId,
+            @Param("status") EFriendshipStatus status,
+            Pageable pageable);
+
+
+    @Query("""
+            select f from FriendShip f
+            where f.userInitiatorId = :userId
+                and f.friendshipStatus = 'BLOCK'
+            """)
+    List<FriendShip> getListBlock(
+            @Param("userId") Long userId,
+            Pageable pageable);
 
     @Query(value = """
             select f from FriendShip f
