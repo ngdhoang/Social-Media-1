@@ -19,41 +19,25 @@ public class ProfileController {
 
   @GetMapping("")
   public ResponseEntity<Object> getProfile(@RequestParam("i") Long id) {
-    try {
-      ProfileDto profileDto = profilePort.getProfile(id);
-      if (profileDto == null) {
-        return ResponseHandler.generateErrorResponse("Profile not found or private", HttpStatus.NOT_FOUND);
-      }
-      return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profileDto);
-    } catch (Exception e) {
-      return ResponseHandler.generateErrorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    ProfileDto profileDto = profilePort.getProfile(id);
+    if (profileDto == null) {
+      return ResponseHandler.generateErrorResponse("Profile not found or private", HttpStatus.NOT_FOUND);
     }
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profileDto);
   }
 
   @PutMapping("")
   public ResponseEntity<Object> updateProfile(@RequestBody UpdateProfileRequest updateProfileRequest) {
-    try {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.updateProfile(updateProfileRequest));
-  } catch (Exception e) {
-      return ResponseHandler.generateErrorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
   }
 
-  @PutMapping("state")
+  @PutMapping("/state")
   public ResponseEntity<Object> updateProfile(@RequestBody ProfileStateRequest profileStateRequest) {
-    try {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.setStateProfile(profileStateRequest));
-    } catch (Exception e) {
-      return ResponseHandler.generateErrorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
   }
 
   @PutMapping("/change-avatar")
   public ResponseEntity<Object> updateAvatarProfile(@RequestBody ImageDto imageDto) {
-    try {
-      return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.updateAvatarProfile(imageDto));
-    } catch (Exception e) {
-      return ResponseHandler.generateErrorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.updateAvatarProfile(imageDto));
   }
 }

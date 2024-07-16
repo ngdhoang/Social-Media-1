@@ -6,6 +6,7 @@ import com.GHTK.Social_Network.application.port.output.AuthPort;
 import com.GHTK.Social_Network.application.port.output.ImageHandlerPort;
 import com.GHTK.Social_Network.application.port.output.ProfilePort;
 import com.GHTK.Social_Network.domain.entity.user.User;
+import com.GHTK.Social_Network.infrastructure.exception.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ProfileMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
@@ -13,6 +14,7 @@ import com.GHTK.Social_Network.infrastructure.payload.requests.ProfileStateReque
 import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateProfileRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -83,11 +85,10 @@ public class ProfileService implements ProfilePortInput {
   @Override
   public ProfileDto updateProfile(UpdateProfileRequest updateProfileRequest) {
     Long userId = getUserAuth().getUserId();
-    Boolean isUpdateProfile = profilePort.updateProfile(updateProfileRequest, userId);
+    profilePort.updateProfile(updateProfileRequest, userId);
     User profileDto = profilePort.takeProfileById(userId);
-    if (isUpdateProfile) {
-      profileDtoRedisTemplate.opsForValue().set(String.valueOf(userId), ProfileMapper.INSTANCE.userToProfileDto(profileDto));
-    }
+    profileDtoRedisTemplate.opsForValue().set(String.valueOf(userId), ProfileMapper.INSTANCE.userToProfileDto(profileDto));
+
     return profileDtoRedisTemplate.opsForValue().get(String.valueOf(userId));
   }
 
@@ -115,7 +116,7 @@ public class ProfileService implements ProfilePortInput {
       profileDtoRedisTemplate.opsForValue().set(String.valueOf(profileDto.getProfileId()), profileDto);
       return profileDto;
     } else {
-      throw new RuntimeException("Error updating avatar");
+      throw new CustomException("Error updating avatar", HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

@@ -35,7 +35,6 @@ public class WebSecurityConfig {
     return auth.getAuthenticationManager();
   }
 
-
   public DaoAuthenticationProvider daoAuthenticationProvider() {
     DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
     daoAuthenticationProvider.setUserDetailsService(userDetailsService);

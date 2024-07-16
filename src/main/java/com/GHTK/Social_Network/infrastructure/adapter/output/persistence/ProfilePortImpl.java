@@ -18,21 +18,18 @@ public class ProfilePortImpl implements ProfilePort {
   }
 
   @Override
-  public Boolean updateProfile(UpdateProfileRequest updateProfileRequest, Long userId) {
+  public void updateProfile(UpdateProfileRequest updateProfileRequest, Long userId) {
     User savedUser = userRepository.findById(userId).orElse(null);
-    if (savedUser != null) {
-      savedUser.setFirstName(updateProfileRequest.getFirstName());
-      savedUser.setLastName(updateProfileRequest.getLastName());
-      savedUser.setDob(updateProfileRequest.getDob());
-      savedUser.setPhoneNumber(updateProfileRequest.getPhoneNumber());
-      savedUser.setHomeTown(updateProfileRequest.getHomeTown());
-      savedUser.setSchoolName(updateProfileRequest.getSchoolName());
-      savedUser.setWorkPlace(updateProfileRequest.getWorkPlace());
-      savedUser.setIsProfilePublic(updateProfileRequest.getIsProfilePublic());
-      userRepository.save(savedUser);
-      return true;
-    }
-    return false;
+
+    savedUser.setFirstName(updateProfileRequest.getFirstName());
+    savedUser.setLastName(updateProfileRequest.getLastName());
+    savedUser.setDob(updateProfileRequest.getDob());
+    savedUser.setPhoneNumber(updateProfileRequest.getPhoneNumber());
+    savedUser.setHomeTown(updateProfileRequest.getHomeTown());
+    savedUser.setSchoolName(updateProfileRequest.getSchoolName());
+    savedUser.setWorkPlace(updateProfileRequest.getWorkPlace());
+    savedUser.setIsProfilePublic(updateProfileRequest.getIsProfilePublic());
+    userRepository.save(savedUser);
   }
 
   @Override

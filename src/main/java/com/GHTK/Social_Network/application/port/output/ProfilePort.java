@@ -6,7 +6,7 @@ import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateProfileRequ
 public interface ProfilePort {
   User takeProfileById(Long id);
 
-  Boolean updateProfile(UpdateProfileRequest updateProfileRequest, Long userId);
+  void updateProfile(UpdateProfileRequest updateProfileRequest, Long userId);
 
   Boolean setStateProfileById(Integer i, Long userId);
 }
