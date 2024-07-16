@@ -30,14 +30,15 @@ public class ProfileController {
   }
 
   @PutMapping("")
-  public ResponseEntity<Object> updateProfile(@RequestBody UpdateProfileRequest updateProfileRequest) {    try {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.updateProfile(updateProfileRequest));
+  public ResponseEntity<Object> updateProfile(@RequestBody UpdateProfileRequest updateProfileRequest) {
+    try {
+      return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.updateProfile(updateProfileRequest));
   } catch (Exception e) {
       return ResponseHandler.generateErrorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  @GetMapping("state")
+  @PutMapping("state")
   public ResponseEntity<Object> updateProfile(@RequestBody ProfileStateRequest profileStateRequest) {    try {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.setStateProfile(profileStateRequest));
     } catch (Exception e) {
