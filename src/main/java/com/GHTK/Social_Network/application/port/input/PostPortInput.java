@@ -2,15 +2,14 @@ package com.GHTK.Social_Network.application.port.input;
 
 
 import com.GHTK.Social_Network.infrastructure.payload.dto.PostDto;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.PostCreateRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import java.util.List;
 
 public interface PostPortInput {
         Page<PostDto> findAllPostByUserId(Long userId,Pageable pageable);
 
-        void createPost (PostDto postDto);
+        PostDto createPost (PostCreateRequest postCreateRequest);
 
         void updatePostByPostId(Long postId,PostDto postDto);
 

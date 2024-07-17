@@ -4,12 +4,17 @@ import com.GHTK.Social_Network.infrastructure.payload.requests.AuthRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.ChangePasswordRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.RegisterRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.AuthResponse;
-import com.GHTK.Social_Network.infrastructure.payload.responses.ChangePasswordResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
+import jakarta.mail.MessagingException;
+
+import java.io.UnsupportedEncodingException;
 
 public interface AuthPortInput {
   AuthResponse authenticate(AuthRequest authRequest);
 
-  AuthResponse register(RegisterRequest registerRequest);
+  MessageResponse register(RegisterRequest registerRequest) throws MessagingException, UnsupportedEncodingException;
 
-  ChangePasswordResponse changePassword(ChangePasswordRequest changePasswordRequest);
+  MessageResponse changePassword(ChangePasswordRequest changePasswordRequest);
+
+  MessageResponse checkOtp(RegisterRequest registerRequest, int attemptCount, Long timeInterval);
 }

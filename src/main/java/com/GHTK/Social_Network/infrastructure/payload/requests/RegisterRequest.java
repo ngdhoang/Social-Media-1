@@ -33,4 +33,6 @@ public class RegisterRequest {
   private String confirmPassword;
 
   private String code;
+
+  private String otp;
 }

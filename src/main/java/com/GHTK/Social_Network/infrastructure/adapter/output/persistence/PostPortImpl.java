@@ -21,8 +21,9 @@ public class PostPortImpl implements PostPort {
     }
 
     @Override
-    public void savePost(Post post) {
-        postRepository.save(post) ;
+    public Post savePost(PostDto postDto) {
+        Post post = PostMapper.INSTANCE.postDtoToPost(postDto);
+        return postRepository.save(post) ;
     }
 
     @Override

@@ -1,5 +1,11 @@
 package com.GHTK.Social_Network.domain.entity;
 
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+import java.time.LocalDate;
+
 import com.GHTK.Social_Network.domain.entity.user.User;
 import jakarta.persistence.*;
 import lombok.Getter;

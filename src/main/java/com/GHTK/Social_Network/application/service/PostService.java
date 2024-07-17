@@ -5,21 +5,18 @@ import com.GHTK.Social_Network.application.port.output.AuthPort;
 import com.GHTK.Social_Network.application.port.output.PostPort;
 import com.GHTK.Social_Network.domain.entity.Post;
 import com.GHTK.Social_Network.domain.entity.user.User;
-import com.GHTK.Social_Network.infrastructure.exception.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.PostMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.PostDto;
-import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.PostCreateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PostService implements PostPortInput {
@@ -58,10 +55,18 @@ public class PostService implements PostPortInput {
     }
 
     @Override
-    public void createPost(PostDto postDto) {
-        Post post = PostMapper.INSTANCE.postDtoToPost(postDto);
-        postPort.savePost(post);
+    public PostDto createPost(PostCreateRequest postCreateRequest) {
+        PostDto postDto = PostMapper.INSTANCE.postDtoToPostCreateRequest(postCreateRequest);
+        Post post = postPort.savePost(postDto);
+        return PostMapper.INSTANCE.postToPostDto(post);
     }
+
+//    @Override
+//    public PostDto createPost(PostDto postDto) {
+//        PostCreateRequest postCreateRequest = PostMapper.INSTANCE.postDtoToPost(postDto);
+//       return postPort.savePost(post);
+//
+//    }
 
     @Override
     public void updatePostByPostId(Long postId, PostDto postDto) {

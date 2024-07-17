@@ -6,7 +6,7 @@ import javax.annotation.processing.Generated;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2024-07-16T15:28:29+0700",
+    date = "2024-07-17T12:13:30+0700",
     comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.2 (Oracle Corporation)"
 )
 public class ProfileMapperImpl implements ProfileMapper {
@@ -23,6 +23,7 @@ public class ProfileMapperImpl implements ProfileMapper {
         user.firstName( profile.getFirstName() );
         user.lastName( profile.getLastName() );
         user.userEmail( profile.getUserEmail() );
+        user.avatar( profile.getAvatar() );
         user.dob( profile.getDob() );
         user.phoneNumber( profile.getPhoneNumber() );
         user.homeTown( profile.getHomeTown() );
@@ -45,6 +46,7 @@ public class ProfileMapperImpl implements ProfileMapper {
         profileDto.setLastName( user.getLastName() );
         profileDto.setFirstName( user.getFirstName() );
         profileDto.setUserEmail( user.getUserEmail() );
+        profileDto.setAvatar( user.getAvatar() );
         profileDto.setDob( user.getDob() );
         profileDto.setPhoneNumber( user.getPhoneNumber() );
         profileDto.setHomeTown( user.getHomeTown() );

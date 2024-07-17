@@ -10,7 +10,7 @@ import java.util.List;
 public interface PostPort {
     Page<Post> getAllPostByUserId(Long userId,Pageable pageable);
 
-    void savePost (Post post);
+    Post savePost (PostDto post);
 
     void updatePostByPostId(Post post);
 

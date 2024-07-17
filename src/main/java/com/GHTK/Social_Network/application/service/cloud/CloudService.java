@@ -1,9 +1,12 @@
 package com.GHTK.Social_Network.application.service.cloud;
 
+import com.GHTK.Social_Network.application.port.input.CloudServicePortInput;
+import com.GHTK.Social_Network.application.port.input.ImageHandlerPortInput;
+import com.GHTK.Social_Network.infrastructure.exception.CustomException;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.codec.binary.Base64;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,42 +15,76 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class CloudService {
+public class CloudService implements CloudServicePortInput {
   private final Cloudinary cloudinary;
 
-  public boolean isBase64(String input) {
-    try {
-      String base64String = input.split(",")[1].trim();
+  private final ImageHandlerPortInput imageHandlerPortInput;
 
-      byte[] decodedBytes = java.util.Base64.getDecoder().decode(base64String);
-      String reencodedString = java.util.Base64.getEncoder().encodeToString(decodedBytes);
-
-      return reencodedString.equals(base64String);
-    } catch (ArrayIndexOutOfBoundsException | IllegalArgumentException e) {
-      return false;
-    }
-  }
-
+  @Override
   public String uploadPictureByBase64(String base64String) {
     try {
-      byte[] decodedBytes = Base64.decodeBase64(base64String.split(",")[1].trim());
-      MultipartFile multipartFile = new BASE64DecodedMultipartFile(decodedBytes);
+      if (!imageHandlerPortInput.isBase64(base64String)) {
+        throw new CustomException("Input not base64", HttpStatus.BAD_REQUEST);
+      }
+      MultipartFile multipartFile = imageHandlerPortInput.convertBase64ToMultipartFile(base64String);
       return uploadPictureByFile(multipartFile);
     } catch (Exception e) {
       throw new RuntimeException("Failed to decode base64 string or create MultipartFile", e);
     }
   }
 
+  @Override
   public String uploadPictureByFile(MultipartFile file) {
     try {
       Map data = this.cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
       if (data.containsKey("url")) {
         return (String) data.get("url");
       } else {
-        throw new RuntimeException("Failed to upload image to Cloudinary. Response: " + data.toString());
+        throw new RuntimeException("Failed to upload image to Cloudinary. Response: " + data);
       }
     } catch (IOException e) {
       throw new RuntimeException("Failed to read file bytes or upload to Cloudinary", e);
+    }
+  }
+
+  @Override
+  public String uploadPictureSetSize(String base64String, Long size) {
+      if (!imageHandlerPortInput.isBase64(base64String)) {
+        throw new CustomException("Input not base64", HttpStatus.BAD_REQUEST);
+      }
+
+      if (!imageHandlerPortInput.checkSizeValid(base64String, ImageHandlerPortInput.MAX_SIZE_NOT_VALID)) {
+        throw new CustomException("Size not valid", HttpStatus.BAD_REQUEST);
+      }
+
+      if (!imageHandlerPortInput.isImage(base64String)) {
+        throw new CustomException("Image not base64", HttpStatus.BAD_REQUEST);
+      }
+
+      MultipartFile multipartFile = imageHandlerPortInput.compressImage(base64String, size);
+      return uploadPictureByFile(multipartFile);
+  }
+
+  private String extractPublicIdFromUrl(String imageUrl) {
+    String withoutExtension = imageUrl.substring(0, imageUrl.lastIndexOf('.'));
+
+    return withoutExtension.substring(withoutExtension.lastIndexOf('/') + 1);
+  }
+
+  @Override
+  public boolean deletePictureByUrl(String url) {
+    try {
+      // Extract public ID from URL
+      String publicId = extractPublicIdFromUrl(url);
+
+      // Delete the image
+      Map result = cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+
+      // Check if deletion was successful
+      return "ok".equals(result.get("result"));
+    } catch (IOException e) {
+      e.printStackTrace();
+      return false;
     }
   }
 }
