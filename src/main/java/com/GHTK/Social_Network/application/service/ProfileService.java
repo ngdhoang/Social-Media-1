@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.application.service;
 
+import com.GHTK.Social_Network.application.port.input.CloudServicePortInput;
 import com.GHTK.Social_Network.application.port.input.ImageHandlerPortInput;
 import com.GHTK.Social_Network.application.port.input.ProfilePortInput;
 import com.GHTK.Social_Network.application.port.output.AuthPort;
@@ -33,7 +34,7 @@ public class ProfileService implements ProfilePortInput {
 
   private final ImageHandlerPort imageHandlerPort;
 
-  private final ImageHandlerPortInput imageHandlerPortInput;
+  private final CloudServicePortInput cloudServicePortInput;
 
   private User getUserAuth() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -108,7 +109,7 @@ public class ProfileService implements ProfilePortInput {
 
   @Override
   public ProfileDto updateAvatarProfile(ImageDto imageDto) {
-    String url = imageHandlerPortInput.uploadImageToCloud(imageDto.getImage());
+    String url = cloudServicePortInput.uploadPictureSetSize(imageDto.getImage(), ImageHandlerPortInput.MAX_SIZE_AVATAR);
     Boolean check = imageHandlerPort.saveAvatar(url, getUserAuth().getUserId());
     if (check) {
       ProfileDto profileDto = profileDtoRedisTemplate.opsForValue().get(String.valueOf(getUserAuth().getUserId()));

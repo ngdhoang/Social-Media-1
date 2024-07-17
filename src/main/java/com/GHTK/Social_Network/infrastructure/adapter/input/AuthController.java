@@ -42,13 +42,15 @@ public class AuthController {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.changePassword(changePasswordRequest));
   }
 
+//  @PostMapping("/forgot-password")
+//  public ResponseEntity<Object> forgotPassword(@RequestBody @Valid ChangePasswordRequest changePasswordRequest) {
+//    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.forgotPassword(changePasswordRequest));
+//  }
+
   @PostMapping("/check-otp")
   public ResponseEntity<Object> checkOtp(@RequestBody @Valid RegisterRequest registerRequest) {
-    try {
-      return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.checkOtp(registerRequest, 3, 100000L));
-    } catch (Exception e) {
-      return ResponseHandler.generateErrorResponse(e, HttpStatus.BAD_REQUEST);
-    }
+    System.out.println(registerRequest.getOtp());
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.checkOtp(registerRequest, 3, 10000L));
   }
 
   @GetMapping("/logout")

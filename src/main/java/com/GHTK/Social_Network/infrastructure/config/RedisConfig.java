@@ -51,7 +51,8 @@ public class RedisConfig {
     RedisTemplate<String, AuthRedisDto> template = new RedisTemplate<>();
     template.setConnectionFactory(redisConnectionFactory);
     template.setKeySerializer(new StringRedisSerializer());
-    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(ProfileDto.class));
+    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(AuthRedisDto.class));
     return template;
   }
+
 }

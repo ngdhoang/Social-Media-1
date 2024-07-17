@@ -89,40 +89,51 @@ public class AuthService implements AuthPortInput {
   }
 
   @Override
-  public AuthResponse checkOtp(RegisterRequest registerRequest, int attemptCount, Long timeInterval) {
-    if (!authenticationRedisTemplate.opsForValue().get(registerRequest.getUserEmail()).getOtp().equals(registerRequest.getOtp())) {
-      AuthRedisDto authRedisDto = authenticationRedisTemplate.opsForValue().get(registerRequest.getUserEmail());
+  public MessageResponse checkOtp(RegisterRequest registerRequest, int attemptCount, Long timeInterval) {
+    System.out.println("=============================");
+    AuthRedisDto authRedisDto = authenticationRedisTemplate.opsForValue().get(registerRequest.getUserEmail());
+    System.out.println("-------------------------------");
+    if (authRedisDto == null) {
+      System.out.println("1");
+      throw new CustomException("OTP not found", HttpStatus.BAD_REQUEST);
+    }
+
+    if (authRedisDto.getCount() >= attemptCount) {
+      System.out.println(2);
+
+      authenticationRedisTemplate.delete(registerRequest.getUserEmail());
+      throw new CustomException("Maximum OTP attempts exceeded", HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    if (System.currentTimeMillis() > authRedisDto.getCreateTime().getTime() + timeInterval) {
+      authenticationRedisTemplate.delete(registerRequest.getUserEmail());
+      System.out.println(3);
+
+      throw new CustomException("OTP has expired", HttpStatus.BAD_REQUEST);
+    }
+
+    if (!authRedisDto.getOtp().equals(registerRequest.getOtp())) {
+      System.out.println(4);
+
       authRedisDto.setCount(authRedisDto.getCount() + 1);
       authenticationRedisTemplate.opsForValue().set(registerRequest.getUserEmail(), authRedisDto);
       throw new CustomException("Invalid OTP", HttpStatus.BAD_REQUEST);
     }
-    if (System.currentTimeMillis() > authenticationRedisTemplate.opsForValue().get(registerRequest.getUserEmail()).getCreateTime().getTime() + timeInterval) {
-      authenticationRedisTemplate.delete(registerRequest.getUserEmail());
-      throw new CustomException("OTP has expired", HttpStatus.BAD_REQUEST);
 
-    }
-    if (authenticationRedisTemplate.opsForValue().get(registerRequest.getUserEmail()).getCount() > attemptCount) {
-      authenticationRedisTemplate.delete(registerRequest.getUserEmail());
-      throw new CustomException("Maximum OTP attempts exceeded", HttpStatus.TOO_MANY_REQUESTS);
-    }
-    User users = new User(
+    User user = new User(
             registerRequest.getFirstName(),
             registerRequest.getLastName(),
             registerRequest.getUserEmail(),
             passwordEncoder.encode(registerRequest.getPassword())
     );
-    users.setRole(ERole.USER);
-    UserDetailsImpl userDetails = new UserDetailsImpl(users);
-    authenticationRepositoryPort.saveUser(users);
-    var jwtToken = jwtUtils.generateToken(userDetails);
-    var refreshToken = jwtUtils.generateRefreshToken(userDetails);
+    user.setRole(ERole.USER);
+    UserDetailsImpl userDetails = new UserDetailsImpl(user);
+    authenticationRepositoryPort.saveUser(user);
+    String jwtToken = jwtUtils.generateToken(userDetails);
     saveUserToken(userDetails, jwtToken);
-    authenticationRedisTemplate.delete(users.getUserEmail());
-    return new AuthResponse(
-            jwtToken,
-            refreshToken,
-            users.getRole().toString()
-    );
+    authenticationRedisTemplate.delete(user.getUserEmail());
+
+    return new MessageResponse("Registration successful");
   }
 
   @Override
@@ -166,6 +177,11 @@ public class AuthService implements AuthPortInput {
 
     return new MessageResponse("Password changed successfully");
   }
+//
+//  @Override
+//  public MessageResponse forgotPassword(ChangePasswordRequest changePasswordRequest) {
+//    return null;
+//  }
 
 
   private void saveUserToken(UserDetailsImpl userDetails, String jwtToken) {
@@ -191,5 +207,4 @@ public class AuthService implements AuthPortInput {
     );
     authenticationRepositoryPort.saveAll(validUserToken);
   }
-
 }

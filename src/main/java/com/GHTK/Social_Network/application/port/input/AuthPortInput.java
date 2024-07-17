@@ -16,5 +16,5 @@ public interface AuthPortInput {
 
   MessageResponse changePassword(ChangePasswordRequest changePasswordRequest);
 
-  AuthResponse checkOtp(RegisterRequest registerRequest, int attemptCount, Long timeInterval);
+  MessageResponse checkOtp(RegisterRequest registerRequest, int attemptCount, Long timeInterval);
 }
