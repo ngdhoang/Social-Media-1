@@ -69,7 +69,7 @@ public class FriendShipService implements FriendShipPortInput {
         if (getFriendShipRequest.getUserId() == null || getFriendShipRequest.getUserId().equals(user.getUserId())) {
             getFriendShipRequest.setUserId(user.getUserId());
             List<FriendShip> friendShips = friendShipPort.getListFriendShip(getFriendShipRequest);
-            if (getFriendShipRequest.getStatus().equals(EFriendshipStatus.BLOCK)) {
+            if (getFriendShipRequest.getStatus() != null && getFriendShipRequest.getStatus().equals(EFriendshipStatus.BLOCK)) {
                 List<User> profileUser = friendShips.stream()
                         .map(friendShip -> profilePort.takeProfileById(friendShip.getUserReceiveId())
                                 .orElseThrow(() -> new CustomException("Not found", HttpStatus.NOT_FOUND)))
@@ -160,7 +160,8 @@ public class FriendShipService implements FriendShipPortInput {
 
 
     private MessageResponse handleUserFriendShip(FriendShip friendShip, User user, SetRequestFriendRequest setRequestFriendRequest, EFriendshipStatus requestedStatus) {
-        if (friendShip.getFriendshipStatus().equals(requestedStatus) ||
+        Boolean statusNotNull = requestedStatus != null;
+        if (statusNotNull && friendShip.getFriendshipStatus().equals(requestedStatus) ||
                 (friendShip.getFriendshipStatus().equals(EFriendshipStatus.PENDING) && requestedStatus.equals(EFriendshipStatus.CLOSE_FRIEND))) {
             throw new CustomException("Request is duplicated", HttpStatus.BAD_REQUEST);
         }
@@ -177,7 +178,8 @@ public class FriendShipService implements FriendShipPortInput {
     }
 
     private MessageResponse handleReverseFriendShip(FriendShip friendShip, User user, SetRequestFriendRequest setRequestFriendRequest, EFriendshipStatus requestedStatus) {
-        if (friendShip.getFriendshipStatus().equals(requestedStatus) &&
+        Boolean statusNotNull = requestedStatus != null;
+        if (statusNotNull && friendShip.getFriendshipStatus().equals(requestedStatus) &&
                 requestedStatus != EFriendshipStatus.BLOCK) {
             throw new CustomException("Request is duplicated", HttpStatus.BAD_REQUEST);
         }
@@ -200,7 +202,7 @@ public class FriendShipService implements FriendShipPortInput {
     }
 
     private void handleBothFriendShips(FriendShip friendShip, FriendShip friendShipReverse, User user, SetRequestFriendRequest setRequestFriendRequest, EFriendshipStatus requestedStatus) {
-        if (friendShip.getFriendshipStatus().equals(requestedStatus)) {
+        if (requestedStatus!=null && friendShip.getFriendshipStatus().equals(requestedStatus)) {
             throw new CustomException("Request is duplicated", HttpStatus.BAD_REQUEST);
         }
         if (setRequestFriendRequest.getStatus() != status.get(EFriendshipStatus.BLOCK)
