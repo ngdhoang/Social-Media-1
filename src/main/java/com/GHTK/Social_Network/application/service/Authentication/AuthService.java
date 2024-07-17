@@ -10,9 +10,7 @@ import com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt.JwtUtil
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsImpl;
 import com.GHTK.Social_Network.infrastructure.exception.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.dto.AuthRedisDto;
-import com.GHTK.Social_Network.infrastructure.payload.requests.AuthRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.ChangePasswordRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.RegisterRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.*;
 import com.GHTK.Social_Network.infrastructure.payload.responses.AuthResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import jakarta.mail.MessagingException;
@@ -37,16 +35,11 @@ import java.util.Date;
 @Slf4j
 public class AuthService implements AuthPortInput {
   private final AuthenticationManager authenticationManager;
-
   private final JwtUtils jwtUtils;
-
   private final PasswordEncoder passwordEncoder;
-
   private final AuthPort authenticationRepositoryPort;
-
   private final OtpPortInput otpPortInput;
-
-  private final RedisTemplate<String, AuthRedisDto> authenticationRedisTemplate;
+  private final RedisTemplate<String, AuthRedisDto> redisTemplate;
 
   private User getUserAuth() {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -71,103 +64,112 @@ public class AuthService implements AuthPortInput {
               authRequest.getUserEmail(),
               authRequest.getPassword()
       ));
-
     } catch (BadCredentialsException e) {
       throw new CustomException("Incorrect username or password", HttpStatus.UNAUTHORIZED);
     }
-    var user = authenticationRepositoryPort.findByEmail(authRequest.getUserEmail()).orElseThrow();
+
+    var user = authenticationRepositoryPort.findByEmail(authRequest.getUserEmail())
+            .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
     UserDetailsImpl userDetails = new UserDetailsImpl(user);
     var jwtToken = jwtUtils.generateToken(userDetails);
     var refreshToken = jwtUtils.generateRefreshToken(userDetails);
     revokeAllUserTokens(userDetails);
     saveUserToken(userDetails, jwtToken);
-    return new AuthResponse(
-            jwtToken,
-            refreshToken,
-            user.getRole().toString()
-    );
+
+    return new AuthResponse(jwtToken, refreshToken, user.getRole().toString());
   }
 
   @Override
-  public MessageResponse checkOtp(RegisterRequest registerRequest, int attemptCount, Long timeInterval) {
-    System.out.println("=============================");
-    AuthRedisDto authRedisDto = authenticationRedisTemplate.opsForValue().get(registerRequest.getUserEmail());
-    System.out.println("-------------------------------");
-    if (authRedisDto == null) {
-      System.out.println("1");
-      throw new CustomException("OTP not found", HttpStatus.BAD_REQUEST);
-    }
+  public MessageResponse checkOtpRegister(RegisterRequest registerRequest, int attemptCount, Long timeInterval) {
+    validateOtp(registerRequest.getUserEmail(), registerRequest.getOtp(), attemptCount, timeInterval);
 
-    if (authRedisDto.getCount() >= attemptCount) {
-      System.out.println(2);
-
-      authenticationRedisTemplate.delete(registerRequest.getUserEmail());
-      throw new CustomException("Maximum OTP attempts exceeded", HttpStatus.TOO_MANY_REQUESTS);
-    }
-
-    if (System.currentTimeMillis() > authRedisDto.getCreateTime().getTime() + timeInterval) {
-      authenticationRedisTemplate.delete(registerRequest.getUserEmail());
-      System.out.println(3);
-
-      throw new CustomException("OTP has expired", HttpStatus.BAD_REQUEST);
-    }
-
-    if (!authRedisDto.getOtp().equals(registerRequest.getOtp())) {
-      System.out.println(4);
-
-      authRedisDto.setCount(authRedisDto.getCount() + 1);
-      authenticationRedisTemplate.opsForValue().set(registerRequest.getUserEmail(), authRedisDto);
-      throw new CustomException("Invalid OTP", HttpStatus.BAD_REQUEST);
-    }
-
-    User user = new User(
-            registerRequest.getFirstName(),
-            registerRequest.getLastName(),
-            registerRequest.getUserEmail(),
-            passwordEncoder.encode(registerRequest.getPassword())
-    );
-    user.setRole(ERole.USER);
+    User user = createUser(registerRequest);
     UserDetailsImpl userDetails = new UserDetailsImpl(user);
     authenticationRepositoryPort.saveUser(user);
     String jwtToken = jwtUtils.generateToken(userDetails);
     saveUserToken(userDetails, jwtToken);
-    authenticationRedisTemplate.delete(user.getUserEmail());
 
     return new MessageResponse("Registration successful");
   }
 
   @Override
+  public MessageResponse checkOtpForgotPassword(ForgotPasswordRequest forgotPasswordRequest, int attemptCount, Long timeInterval) {
+    validateOtp(forgotPasswordRequest.getUserEmail(), forgotPasswordRequest.getOtp(), attemptCount, timeInterval);
+
+    var user = authenticationRepositoryPort.findByEmail(forgotPasswordRequest.getUserEmail())
+            .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+    UserDetailsImpl userDetails = new UserDetailsImpl(user);
+    revokeAllUserTokens(userDetails);
+
+    if (passwordEncoder.matches(forgotPasswordRequest.getNewPassword(), user.getPassword())) {
+      throw new CustomException("Old password and new password must be different", HttpStatus.CONFLICT);
+    }
+
+    String encodeNewPassword = passwordEncoder.encode(forgotPasswordRequest.getNewPassword());
+    authenticationRepositoryPort.changePassword(encodeNewPassword, user.getUserId());
+
+    return new MessageResponse("Password changed");
+  }
+
+  @Override
+  public MessageResponse checkOtpDeleteAccount(OTPRequest otpRequest, int attemptCount, Long timeInterval) {
+    validateOtp(getUserAuth().getUserEmail(), otpRequest.getOtp(), attemptCount, timeInterval );
+
+    authenticationRepositoryPort.deleteUserByEmail(getUserAuth().getUserEmail());
+
+    return new MessageResponse("Account deleted");
+  }
+
+  @Override
+  public MessageResponse forgotPassword(ForgotPasswordRequest forgotPasswordRequest) throws MessagingException, UnsupportedEncodingException {
+    if (!authenticationRepositoryPort.existsUserByUserEmail(forgotPasswordRequest.getUserEmail())) {
+      throw new CustomException("This email doesn't exist", HttpStatus.NOT_FOUND);
+    }
+
+    String otp = otpPortInput.generateOTP();
+    saveOtpToRedis(forgotPasswordRequest.getUserEmail(), otp);
+    otpPortInput.sendOtpEmail(forgotPasswordRequest.getUserEmail(), otp);
+
+    return new MessageResponse("OTP sent to email");
+  }
+
+  @Override
+  public MessageResponse deleteAccount() throws MessagingException, UnsupportedEncodingException {
+    String otp = otpPortInput.generateOTP();
+    saveOtpToRedis(getUserAuth().getUserEmail(), otp);
+    otpPortInput.sendOtpEmail(getUserAuth().getUserEmail(), otp);
+
+    return new MessageResponse("OTP sent to email");
+  }
+
+  @Override
   public MessageResponse register(RegisterRequest registerRequest) throws MessagingException, UnsupportedEncodingException {
     if (authenticationRepositoryPort.existsUserByUserEmail(registerRequest.getUserEmail())) {
-      throw new CustomException("This Gmail already exists", HttpStatus.CONFLICT);
+      throw new CustomException("This email already exists", HttpStatus.CONFLICT);
     }
-    String otp = otpPortInput.generateOTP();
-    AuthRedisDto authRedisDto = new AuthRedisDto(
-            registerRequest,
-            otp,
-            new Date(),
-            5
-    );
-    authenticationRedisTemplate.opsForValue().set(registerRequest.getUserEmail(), authRedisDto);
 
+    String otp = otpPortInput.generateOTP();
+    saveOtpToRedis(registerRequest.getUserEmail(), otp);
     otpPortInput.sendOtpEmail(registerRequest.getUserEmail(), otp);
 
-
-    return new MessageResponse("Otp check in email");
+    return new MessageResponse("OTP sent to email");
   }
 
   @Override
   public MessageResponse changePassword(ChangePasswordRequest changePasswordRequest) {
     User user = getUserAuth();
 
-    if (changePasswordRequest.getOldPassword().equals(changePasswordRequest.getNewPassword()))
+    if (changePasswordRequest.getOldPassword().equals(changePasswordRequest.getNewPassword())) {
       throw new CustomException("Old password and new password must be different", HttpStatus.CONFLICT);
+    }
 
-    if (!passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword()))
+    if (!passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())) {
       throw new CustomException("Old password is incorrect", HttpStatus.BAD_REQUEST);
+    }
 
-    if (user.getOldPassword() != null && passwordEncoder.matches(changePasswordRequest.getNewPassword(), user.getOldPassword()))
+    if (user.getOldPassword() != null && passwordEncoder.matches(changePasswordRequest.getNewPassword(), user.getOldPassword())) {
       throw new CustomException("Password has already been used before", HttpStatus.BAD_REQUEST);
+    }
 
     String encodeNewPassword = passwordEncoder.encode(changePasswordRequest.getNewPassword());
     authenticationRepositoryPort.changePassword(encodeNewPassword, user.getUserId());
@@ -177,12 +179,47 @@ public class AuthService implements AuthPortInput {
 
     return new MessageResponse("Password changed successfully");
   }
-//
-//  @Override
-//  public MessageResponse forgotPassword(ChangePasswordRequest changePasswordRequest) {
-//    return null;
-//  }
 
+  private void validateOtp(String email, String providedOtp, int maxAttempts, long timeInterval) {
+    AuthRedisDto authRedisDto = redisTemplate.opsForValue().get(email);
+    if (authRedisDto == null) {
+      throw new CustomException("OTP not found", HttpStatus.BAD_REQUEST);
+    }
+
+    if (authRedisDto.getCount() >= maxAttempts) {
+      redisTemplate.delete(email);
+      throw new CustomException("Maximum OTP attempts exceeded", HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    if (System.currentTimeMillis() > authRedisDto.getCreateTime().getTime() + timeInterval) {
+      redisTemplate.delete(email);
+      throw new CustomException("OTP has expired", HttpStatus.BAD_REQUEST);
+    }
+
+    if (!authRedisDto.getOtp().equals(providedOtp)) {
+      authRedisDto.setCount(authRedisDto.getCount() + 1);
+      redisTemplate.opsForValue().set(email, authRedisDto);
+      throw new CustomException("Invalid OTP", HttpStatus.BAD_REQUEST);
+    }
+
+    redisTemplate.delete(email);
+  }
+
+  private void saveOtpToRedis(String email, String otp) {
+    AuthRedisDto authRedisDto = new AuthRedisDto(null, otp, new Date(), 0);
+    redisTemplate.opsForValue().set(email, authRedisDto);
+  }
+
+  private User createUser(RegisterRequest registerRequest) {
+    User user = new User(
+            registerRequest.getFirstName(),
+            registerRequest.getLastName(),
+            registerRequest.getUserEmail(),
+            passwordEncoder.encode(registerRequest.getPassword())
+    );
+    user.setRole(ERole.USER);
+    return user;
+  }
 
   private void saveUserToken(UserDetailsImpl userDetails, String jwtToken) {
     var token = Token.builder()
@@ -196,15 +233,14 @@ public class AuthService implements AuthPortInput {
   }
 
   private void revokeAllUserTokens(UserDetailsImpl userDetails) {
-    var validUserToken = authenticationRepositoryPort.findAllValidTokenByUser(userDetails.getUser().getUserId());
-    if (validUserToken.isEmpty())
+    var validUserTokens = authenticationRepositoryPort.findAllValidTokenByUser(userDetails.getUser().getUserId());
+    if (validUserTokens.isEmpty()) {
       return;
-    validUserToken.forEach(
-            token -> {
-              token.setExpired(true);
-              token.setRevoked(true);
-            }
-    );
-    authenticationRepositoryPort.saveAll(validUserToken);
+    }
+    validUserTokens.forEach(token -> {
+      token.setExpired(true);
+      token.setRevoked(true);
+    });
+    authenticationRepositoryPort.saveAll(validUserTokens);
   }
 }

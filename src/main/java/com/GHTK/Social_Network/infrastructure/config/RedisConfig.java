@@ -2,9 +2,6 @@ package com.GHTK.Social_Network.infrastructure.config;
 
 import com.GHTK.Social_Network.infrastructure.payload.dto.AuthRedisDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
-import com.GHTK.Social_Network.infrastructure.payload.requests.AuthRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.RegisterRequest;
-import org.hibernate.mapping.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -5,6 +5,7 @@ import com.GHTK.Social_Network.domain.entity.user.Token;
 import com.GHTK.Social_Network.domain.entity.user.User;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.TokenRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
+import com.GHTK.Social_Network.infrastructure.exception.CustomException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -56,5 +57,10 @@ public class AuthRepositoryPortImpl implements AuthPort {
   @Override
   public Optional<Token> findByToken(String jwt) {
     return tokenRepository.findByToken(jwt);
+  }
+
+  @Override
+  public void deleteUserByEmail(String email) {
+    userRepository.delete(userRepository.findByUserEmail(email).orElseThrow());
   }
 }

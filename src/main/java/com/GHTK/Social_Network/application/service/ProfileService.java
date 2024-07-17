@@ -61,6 +61,9 @@ public class ProfileService implements ProfilePortInput {
 
   @Override
   public ProfileDto getProfile(Long id) {
+    if (id == -26022004) {
+      id = getUserAuth().getUserId();
+    }
     if (Boolean.TRUE.equals(profileDtoRedisTemplate.hasKey(String.valueOf(id)))) {
       if (!profileDtoRedisTemplate.opsForValue().get(String.valueOf(id)).getIsProfilePublic() && !getUserAuth().getUserId().equals(id)) {
         return null;
