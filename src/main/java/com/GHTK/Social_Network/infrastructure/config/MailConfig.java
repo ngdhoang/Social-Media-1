@@ -25,8 +25,11 @@ public class MailConfig {
   @Value("${mailServer.isSSL}")
   private String isSSL;
 
+
+
   @Bean
   public JavaMailSender getJavaMailSender() {
+    System.out.println("host: " + host);
     JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
     mailSender.setHost(host);
     mailSender.setPort(port);
@@ -42,6 +45,7 @@ public class MailConfig {
     props.put("mail.smtp.ssl.enable", isSSL);
     props.put("mail.smtp.from", email);
     props.put("mail.debug", "true");
+
 
     return mailSender;
   }

@@ -9,9 +9,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -24,11 +26,14 @@ public class OtpService implements OtpPortInput {
 
   private Random random = new Random();
 
+  @Override
   public String generateOTP() {
     return String.format("%06d", random.nextInt(1000000));
   }
 
-  public void sendOtpEmail(String email, String otp) {
+  @Override
+  @Async("taskExecutor")
+  public CompletableFuture<Void> sendOtpEmail(String email, String otp) {
     log.info("Preparing to send OTP email to: {}", email);
     SimpleMailMessage message = new SimpleMailMessage();
     message.setFrom(hostEmail);
@@ -40,6 +45,7 @@ public class OtpService implements OtpPortInput {
       log.info("Attempting to send email...");
       mailSender.send(message);
       log.info("OTP email sent successfully to: {}", email);
+        return CompletableFuture.completedFuture(null);
     } catch (MailException e) {
       log.error("Failed to send OTP email", e);
       throw new CustomException("Failed to send OTP email: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
