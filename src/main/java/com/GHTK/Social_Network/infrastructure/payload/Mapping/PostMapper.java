@@ -17,9 +17,9 @@ public interface PostMapper {
     @Mapping(source = "postId", target = "postId")
     Post postDtoToPost(PostDto post);
 
-    @Mapping(source = "postId", target = "postId")
+    @Mapping(source = "content", target = "content")
     PostDto postDtoToPostCreateRequest(PostCreateRequest postCreateRequest);
 
-    @Mapping(source = "postId", target = "postId")
+    @Mapping(source = "content", target = "content")
     PostCreateRequest postCreateRequestToPostDto(PostDto postDto);
 }
