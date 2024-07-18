@@ -23,4 +23,6 @@ public interface FriendShipPort {
 
   Boolean findUserById(Long id);
 
+  Boolean isFriend(Long fistUserId, Long secondUserId);
+
 }

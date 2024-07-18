@@ -13,4 +13,5 @@ public interface ProfilePortInput {
   ProfileDto setStateProfile(ProfileStateRequest profileStateDto);
 
   ProfileDto updateAvatarProfile(ImageDto imageDto);
+
 }

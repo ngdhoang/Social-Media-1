@@ -18,4 +18,5 @@ public interface FriendShipPortInput {
 
     MessageResponse unFriendShip(UnFriendShipRequest unFriendShipRequest);
 
+
 }

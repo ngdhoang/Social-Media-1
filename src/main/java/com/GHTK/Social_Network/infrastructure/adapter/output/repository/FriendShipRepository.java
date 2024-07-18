@@ -77,4 +77,17 @@ public interface FriendShipRepository extends JpaRepository<FriendShip, Long> {
           """)
   void delete(@Param("friendShipId") Long friendShipId);
 
+  @Query(value = """
+          select case when count(f) > 0 then true else false end
+          from FriendShip f
+          where 
+          (
+              (f.userReceiveId = :firstUser and f.userInitiatorId = :secondUser)
+              or (f.userReceiveId = :secondUser and f.userInitiatorId = :firstUser)
+          )
+          and f.friendshipStatus <> 'BLOCK'
+          and f.friendshipStatus <> 'PENDING'
+        """)
+  Boolean isFriend(@Param("firstUser") Long firstUser, @Param("secondUser") Long secondUser);
+
 }

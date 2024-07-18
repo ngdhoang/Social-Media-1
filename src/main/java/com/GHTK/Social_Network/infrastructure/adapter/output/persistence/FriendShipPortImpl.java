@@ -90,4 +90,8 @@ public class FriendShipPortImpl implements FriendShipPort {
     friendShipRepository.deleteById(friendShipId);
   }
 
+  @Override
+  public Boolean isFriend(Long fistUserId, Long secondUserId) {
+    return friendShipRepository.isFriend(fistUserId, secondUserId);
+  }
 }
