@@ -7,18 +7,20 @@ import com.GHTK.Social_Network.infrastructure.payload.requests.GetFriendShipRequ
 import java.util.List;
 
 public interface FriendShipPort {
-    Boolean addFriendShip(Long userInitiatorId, Long userReceiveId, EFriendshipStatus status);
+  Boolean addFriendShip(Long userInitiatorId, Long userReceiveId, EFriendshipStatus status);
 
-    Boolean setRequestFriendShip(Long friendShipId, EFriendshipStatus status);
+  Boolean setRequestFriendShip(Long friendShipId, EFriendshipStatus status);
 
-    FriendShip getFriendShip(Long userInitiatorId, Long userReceiveId);
+  FriendShip getFriendShip(Long userInitiatorId, Long userReceiveId);
 
-    FriendShip getFriendShipById(Long id);
+  FriendShip getFriendShipById(Long id);
 
-    void deleteFriendShip(Long userReceiveId, Long userInitiateId);
+  void deleteFriendShip(Long userReceiveId, Long userInitiateId);
 
-    void deleteFriendShip(Long friendShipId);
+  void deleteFriendShip(Long friendShipId);
 
-    List<FriendShip> getListFriendShip(GetFriendShipRequest getFriendShipRequest);
+  List<FriendShip> getListFriendShip(GetFriendShipRequest getFriendShipRequest);
+
+  Boolean findUserById(Long id);
 
 }

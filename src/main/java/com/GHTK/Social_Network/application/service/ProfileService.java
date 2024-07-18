@@ -63,7 +63,7 @@ public class ProfileService implements ProfilePortInput {
 
   @Override
   public ProfileDto getProfile(Long id) {
-    if (id == -26022004) {
+    if (id < 0) {
       id = getUserAuth().getUserId();
     }
     if (Boolean.TRUE.equals(profileDtoRedisTemplate.hasKey(String.valueOf(id)))) {
@@ -74,7 +74,7 @@ public class ProfileService implements ProfilePortInput {
     }
     Optional<User> user = profilePort.takeProfileById(id);
 
-    if (user == null) {
+    if (user.isEmpty()) {
       return null;
     }
 

@@ -1,6 +1,5 @@
 package com.GHTK.Social_Network.domain.entity;
 
-import com.GHTK.Social_Network.domain.entity.user.EStatusUser;
 import com.GHTK.Social_Network.domain.entity.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
