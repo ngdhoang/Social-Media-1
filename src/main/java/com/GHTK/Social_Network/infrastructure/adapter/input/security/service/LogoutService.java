@@ -27,8 +27,8 @@ public class LogoutService implements LogoutHandler {
     final String jwt = authHeader.substring(7);
     var storedToken = tokenRepository.findByToken(jwt).orElse(null);
     if (storedToken != null){
-      storedToken.setRevoked(false);
-      storedToken.setExpired(false);
+      storedToken.setRevoked(true);
+      storedToken.setExpired(true);
       tokenRepository.saveToken(storedToken);
       SecurityContextHolder.clearContext();
     }

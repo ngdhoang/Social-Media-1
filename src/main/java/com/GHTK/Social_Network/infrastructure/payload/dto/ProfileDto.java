@@ -14,6 +14,8 @@ public class ProfileDto {
 
   private String userEmail;
 
+  private String avatar = "";
+
   private LocalDate dob;
 
   private String phoneNumber;

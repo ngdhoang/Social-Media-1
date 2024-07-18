@@ -1,13 +1,21 @@
 package com.GHTK.Social_Network.application.service;
 
+import com.GHTK.Social_Network.application.port.input.CloudServicePortInput;
+import com.GHTK.Social_Network.application.port.input.ImageHandlerPortInput;
 import com.GHTK.Social_Network.application.port.input.ProfilePortInput;
 import com.GHTK.Social_Network.application.port.output.AuthPort;
+import com.GHTK.Social_Network.application.port.output.ImageHandlerPort;
 import com.GHTK.Social_Network.application.port.output.ProfilePort;
 import com.GHTK.Social_Network.domain.entity.user.User;
+import com.GHTK.Social_Network.infrastructure.exception.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ProfileMapper;
+import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
+import com.GHTK.Social_Network.infrastructure.payload.requests.ProfileStateRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateProfileRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,9 +28,13 @@ import org.springframework.stereotype.Service;
 public class ProfileService implements ProfilePortInput {
   private final ProfilePort profilePort;
 
+  private final RedisTemplate<String, ProfileDto> profileDtoRedisTemplate;
+
   private final AuthPort authenticationRepositoryPort;
 
-  private final RedisTemplate<String, ProfileDto> profileDtoRedisTemplate;
+  private final ImageHandlerPort imageHandlerPort;
+
+  private final CloudServicePortInput cloudServicePortInput;
 
   private User getUserAuth() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -72,17 +84,18 @@ public class ProfileService implements ProfilePortInput {
   }
 
   @Override
-  public Boolean updateProfile(ProfileDto profileDto) {
-    profileDto.setProfileId(getUserAuth().getUserId());
-    Boolean isUpdateProfile = profilePort.updateProfile(ProfileMapper.INSTANCE.profileToUser(profileDto));
-    if (isUpdateProfile) {
-      profileDtoRedisTemplate.opsForValue().set(String.valueOf(profileDto.getProfileId()), profileDto);
-    }
-    return isUpdateProfile;
+  public ProfileDto updateProfile(UpdateProfileRequest updateProfileRequest) {
+    Long userId = getUserAuth().getUserId();
+    profilePort.updateProfile(updateProfileRequest, userId);
+    User profileDto = profilePort.takeProfileById(userId);
+    profileDtoRedisTemplate.opsForValue().set(String.valueOf(userId), ProfileMapper.INSTANCE.userToProfileDto(profileDto));
+
+    return profileDtoRedisTemplate.opsForValue().get(String.valueOf(userId));
   }
 
   @Override
-  public Boolean setStateProfile(Integer state) {
+  public ProfileDto setStateProfile(ProfileStateRequest profileStateRequest) {
+    Integer state = profileStateRequest.getIsProfilePublic();
     Boolean isSetStateProfile = profilePort.setStateProfileById(state, getUserAuth().getUserId());
     if (isSetStateProfile) {
       ProfileDto profileDto = profileDtoRedisTemplate.opsForValue().get(String.valueOf(getUserAuth().getUserId()));
@@ -91,6 +104,20 @@ public class ProfileService implements ProfilePortInput {
       }
       profileDtoRedisTemplate.opsForValue().set(String.valueOf(profileDto.getProfileId()), profileDto);
     }
-    return isSetStateProfile;
+    return profileDtoRedisTemplate.opsForValue().get(String.valueOf(getUserAuth().getUserId()));
+  }
+
+  @Override
+  public ProfileDto updateAvatarProfile(ImageDto imageDto) {
+    String url = cloudServicePortInput.uploadPictureSetSize(imageDto.getImage(), ImageHandlerPortInput.MAX_SIZE_AVATAR);
+    Boolean check = imageHandlerPort.saveAvatar(url, getUserAuth().getUserId());
+    if (check) {
+      ProfileDto profileDto = profileDtoRedisTemplate.opsForValue().get(String.valueOf(getUserAuth().getUserId()));
+      profileDto.setAvatar(url);
+      profileDtoRedisTemplate.opsForValue().set(String.valueOf(profileDto.getProfileId()), profileDto);
+      return profileDto;
+    } else {
+      throw new CustomException("Error updating avatar", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }
