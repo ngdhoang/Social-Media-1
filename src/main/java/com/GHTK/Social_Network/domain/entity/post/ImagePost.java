@@ -24,6 +24,6 @@ public class ImagePost {
   private Boolean isDelete;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "user_id", nullable = false)
-  private User user;
+  @JoinColumn(name = "post_id", nullable = false)
+  private Post post;
 }

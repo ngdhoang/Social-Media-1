@@ -208,7 +208,7 @@ public class FriendShipService implements FriendShipPortInput {
   }
 
   private void handleBothFriendShips(FriendShip friendShip, FriendShip friendShipReverse, User user, SetRequestFriendRequest setRequestFriendRequest, EFriendshipStatus requestedStatus) {
-    if (requestedStatus != null && friendShip.getFriendshipStatus().equals(requestedStatus)) {
+    if (friendShip.getFriendshipStatus().equals(requestedStatus)) {
       throw new CustomException("Request is duplicated", HttpStatus.BAD_REQUEST);
     }
     if (setRequestFriendRequest.getStatus() != status.get(EFriendshipStatus.BLOCK)

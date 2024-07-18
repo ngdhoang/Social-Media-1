@@ -19,7 +19,13 @@ public interface ImageHandlerPortInput {
 
   boolean isImage(String base64);
 
+  boolean isImage(MultipartFile multipartFile);
+
   MultipartFile compressImage(String base64, long size);
 
   MultipartFile convertBase64ToMultipartFile(String base64String);
+
+  long multipartImageSizeCalculator(MultipartFile multipartFile);
+
+  MultipartFile compressImage(MultipartFile inputFile, long maxSize);
 }

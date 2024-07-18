@@ -11,4 +11,8 @@ public interface ImagePostInput {
   ImageResponse updateImage(PostRequest postRequest);
 
   MessageResponse deleteImage(Long id);
+
+  ImageResponse getImageById(Long id);
+
+  ImageResponse getImageByPost(String url);
 }

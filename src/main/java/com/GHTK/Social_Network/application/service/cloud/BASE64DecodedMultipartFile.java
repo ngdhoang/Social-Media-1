@@ -6,9 +6,15 @@ import java.io.*;
 
 public class BASE64DecodedMultipartFile implements MultipartFile {
   private final byte[] imgContent;
+  private final String name;
+  private final String originalFilename;
+  private final String contentType;
 
-  public BASE64DecodedMultipartFile(byte[] imgContent) {
+  public BASE64DecodedMultipartFile(byte[] imgContent, String name, String originalFilename, String contentType) {
     this.imgContent = imgContent;
+    this.name = name;
+    this.originalFilename = originalFilename;
+    this.contentType = contentType;
   }
 
   @Override
