@@ -94,4 +94,9 @@ public class FriendShipPortImpl implements FriendShipPort {
   public Boolean isFriend(Long fistUserId, Long secondUserId) {
     return friendShipRepository.isFriend(fistUserId, secondUserId);
   }
+
+  @Override
+  public Boolean isBlock(Long fistUserId, Long secondUserId) {
+    return friendShipRepository.isBlock(fistUserId, secondUserId);
+  }
 }
