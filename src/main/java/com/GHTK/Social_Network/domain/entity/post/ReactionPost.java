@@ -3,27 +3,28 @@ package com.GHTK.Social_Network.domain.entity.post;
 import com.GHTK.Social_Network.domain.entity.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
-@Entity
 @Data
+@Entity
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ImagePost {
+public class ReactionPost {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long imagePostId;
+  private Long reactionPostId;
 
-  private String imageUrl;
-
-  private LocalDate createAt;
-
-  private Boolean isDelete;
+  @Enumerated(EnumType.STRING)
+  private EReactionType reactionType;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "post_id", nullable = false)
+  @JoinColumn(name = "userId", nullable = false)
+  private User user;
+
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "postId", nullable = false)
   private Post post;
 }

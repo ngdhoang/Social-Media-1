@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
+package com.GHTK.Social_Network.infrastructure.adapter.output.repository.post;
 
 import com.GHTK.Social_Network.domain.entity.post.Post;
 import com.GHTK.Social_Network.domain.entity.post.TagUser;
@@ -14,6 +14,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
   Optional<Post> findByPostIdAndUser(Long postId, User user);
 
   List<Post> findAllByUser(User user);
+
 
   Post findByTagUsers(TagUser tagUser);
 }

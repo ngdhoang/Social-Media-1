@@ -42,4 +42,8 @@ public class Post {
   @OneToMany(mappedBy = "post", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<TagUser> tagUsers;
+
+  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY,
+          cascade = CascadeType.ALL)
+  private List<ReactionPost> reactionPosts;
 }

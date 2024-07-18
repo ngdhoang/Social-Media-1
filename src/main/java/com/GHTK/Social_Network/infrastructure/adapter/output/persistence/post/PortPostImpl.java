@@ -1,10 +1,10 @@
-package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
+package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.post;
 
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
 import com.GHTK.Social_Network.domain.entity.post.Post;
 import com.GHTK.Social_Network.domain.entity.post.TagUser;
 import com.GHTK.Social_Network.domain.entity.user.User;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.PostRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.post.PostRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.TagUserRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

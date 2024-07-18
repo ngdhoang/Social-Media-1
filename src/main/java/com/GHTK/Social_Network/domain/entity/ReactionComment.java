@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.domain.entity;
 
+import com.GHTK.Social_Network.domain.entity.post.EReactionType;
 import jakarta.persistence.*;
 
 public class ReactionComment {

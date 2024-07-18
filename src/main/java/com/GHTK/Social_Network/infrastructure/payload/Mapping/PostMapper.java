@@ -2,7 +2,9 @@ package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
 import com.GHTK.Social_Network.domain.entity.post.ImagePost;
 import com.GHTK.Social_Network.domain.entity.post.Post;
+import com.GHTK.Social_Network.domain.entity.post.ReactionPost;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.PostResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionPostResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -17,6 +19,9 @@ public interface PostMapper {
 
   @Mapping(source = "imagePosts", target = "imagePost", qualifiedByName = "imagePostsToUrls")
   PostResponse postToPostResponse(Post post);
+
+  @Mapping(source = "reactionPostId", target = "reactionPostId")
+  ReactionPostResponse reactionPostToReactionPostResponse(ReactionPost reactionPost);
 
   @Named("imagePostsToUrls")
   default List<String> imagePostsToUrls(List<ImagePost> imagePosts) {
