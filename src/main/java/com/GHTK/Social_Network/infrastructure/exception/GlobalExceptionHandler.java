@@ -2,6 +2,7 @@ package com.GHTK.Social_Network.infrastructure.exception;
 
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.mail.MessagingException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.io.UnsupportedEncodingException;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
   @ExceptionHandler(value = MethodArgumentNotValidException.class)
@@ -38,6 +40,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<Object> handleGeneralException(Exception ex) {
+    log.error(ex.getMessage(), ex);
     return ResponseHandler.generateErrorResponse("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

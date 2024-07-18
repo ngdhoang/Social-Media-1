@@ -1,34 +1,43 @@
 package com.GHTK.Social_Network.domain.entity;
 
-import com.GHTK.Social_Network.domain.entity.user.EStatusUser;
 import com.GHTK.Social_Network.domain.entity.user.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
-import java.util.List;
-
-@Getter
-@Setter
+@Table(name = "friend_ship")
 @Entity
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class FriendShip {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long friendShipId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long friendShipId;
 
-  @Enumerated(EnumType.STRING)
-  private EFriendshipStatus friendshipStatus;
+    @Enumerated(EnumType.STRING)
+    private EFriendshipStatus friendshipStatus;
 
-  private LocalDate createAt;
+    @Column(columnDefinition = "DATE")
+    private LocalDate createAt;
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "userReceiverId", nullable = false)
-  private User user;
+    @Column(nullable = false)
+    private Long userReceiveId;
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "userInitiatorId", nullable = false)
-  private User user1;
+    @Column(nullable = false)
+    private Long userInitiatorId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "userInitiatorId", referencedColumnName = "UserId", insertable = false, updatable = false)
+    private User user;
+
+    @PrePersist
+    public void prePersist() {
+        createAt = LocalDate.now();
+    }
 }

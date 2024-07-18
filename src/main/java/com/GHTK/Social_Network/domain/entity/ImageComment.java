@@ -6,16 +6,6 @@ import jakarta.persistence.Id;
 
 import java.time.LocalDate;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.time.LocalDate;
-
-@Getter
-@Setter
-@Entity
-
 public class ImageComment {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,8 +16,4 @@ public class ImageComment {
   private LocalDate createAt;
 
   private Boolean isDelete;
-
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "commentId", nullable = false)
-  private Comment comment;
 }

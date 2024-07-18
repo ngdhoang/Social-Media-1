@@ -1,23 +1,17 @@
 package com.GHTK.Social_Network.domain.entity.user;
 
 import com.GHTK.Social_Network.domain.entity.FriendShip;
+import com.GHTK.Social_Network.domain.entity.post.Post;
+import com.GHTK.Social_Network.domain.entity.post.TagUser;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.GHTK.Social_Network.domain.entity.Comment;
-import com.GHTK.Social_Network.domain.entity.FriendShip;
-import com.GHTK.Social_Network.domain.entity.Post;
-import com.GHTK.Social_Network.domain.entity.ReactionComment;
-import jakarta.persistence.*;
-import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
 
-@Getter
-@Setter
 @Table(name = "user")
 @Entity
 @Data
@@ -59,13 +53,6 @@ public class User {
   @Enumerated(EnumType.STRING)
   private ERole role;
 
-  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
-          cascade = CascadeType.ALL)
-  private List<FriendShip> friendShips;
-
-  @OneToMany(mappedBy = "user1", fetch = FetchType.LAZY,
-          cascade = CascadeType.ALL)
-  private List<FriendShip> friendShips1;
 //  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
 //          cascade = CascadeType.ALL)
 //  private List<Devices> devicesList;
@@ -80,11 +67,11 @@ public class User {
 
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<Comment> comments;
+  private List<TagUser> tagUsers;
 
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<ReactionComment> reactionComments;
+  private List<FriendShip> friendShips;
 
   public User(String firstName, String lastName, String userEmail, String password) {
     this.firstName = firstName;

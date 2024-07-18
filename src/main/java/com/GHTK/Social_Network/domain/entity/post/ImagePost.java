@@ -1,33 +1,29 @@
-package com.GHTK.Social_Network.domain.entity;
-
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-
-import java.time.LocalDate;
+package com.GHTK.Social_Network.domain.entity.post;
 
 import com.GHTK.Social_Network.domain.entity.user.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
-@Getter
-@Setter
 @Entity
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ImagePost {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long imagePostId;
 
-  private String pictureUrl;
+  private String imageUrl;
 
   private LocalDate createAt;
 
   private Boolean isDelete;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "postId", nullable = false)
-  private Post post;
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 }

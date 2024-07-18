@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ProfileController {
   private final ProfilePortInput profilePort;
-
+  
   @GetMapping("")
   public ResponseEntity<Object> getProfile(@RequestParam("i") Long id) {
     ProfileDto profileDto = profilePort.getProfile(id);

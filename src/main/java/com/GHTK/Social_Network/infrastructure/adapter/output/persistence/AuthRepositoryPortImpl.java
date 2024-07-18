@@ -57,4 +57,9 @@ public class AuthRepositoryPortImpl implements AuthPort {
   public Optional<Token> findByToken(String jwt) {
     return tokenRepository.findByToken(jwt);
   }
+
+  @Override
+  public void deleteUserByEmail(String email) {
+    userRepository.delete(userRepository.findByUserEmail(email).orElseThrow());
+  }
 }

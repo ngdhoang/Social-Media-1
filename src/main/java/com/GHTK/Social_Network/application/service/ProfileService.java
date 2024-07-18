@@ -23,6 +23,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class ProfileService implements ProfilePortInput {
@@ -61,22 +63,25 @@ public class ProfileService implements ProfilePortInput {
 
   @Override
   public ProfileDto getProfile(Long id) {
+    if (id < 0) {
+      id = getUserAuth().getUserId();
+    }
     if (Boolean.TRUE.equals(profileDtoRedisTemplate.hasKey(String.valueOf(id)))) {
       if (!profileDtoRedisTemplate.opsForValue().get(String.valueOf(id)).getIsProfilePublic() && !getUserAuth().getUserId().equals(id)) {
         return null;
       }
       return profileDtoRedisTemplate.opsForValue().get(String.valueOf(id));
     }
-    User user = profilePort.takeProfileById(id);
+    Optional<User> user = profilePort.takeProfileById(id);
 
-    if (user == null) {
+    if (user.isEmpty()) {
       return null;
     }
 
-    Boolean isProfilePublic = user.getIsProfilePublic();
+    Boolean isProfilePublic = user.get().getIsProfilePublic();
 
-    ProfileDto profileDto = ProfileMapper.INSTANCE.userToProfileDto(user);
-    if (isProfilePublic || user.getUserId().equals(getUserAuth().getUserId())) {
+    ProfileDto profileDto = ProfileMapper.INSTANCE.userToProfileDto(user.get());
+    if (isProfilePublic || user.get().getUserId().equals(getUserAuth().getUserId())) {
       profileDtoRedisTemplate.opsForValue().set(String.valueOf(id), profileDto);
       return profileDto;
     }
@@ -86,10 +91,12 @@ public class ProfileService implements ProfilePortInput {
   @Override
   public ProfileDto updateProfile(UpdateProfileRequest updateProfileRequest) {
     Long userId = getUserAuth().getUserId();
-    profilePort.updateProfile(updateProfileRequest, userId);
-    User profileDto = profilePort.takeProfileById(userId);
-    profileDtoRedisTemplate.opsForValue().set(String.valueOf(userId), ProfileMapper.INSTANCE.userToProfileDto(profileDto));
 
+    Boolean isUpdateProfile = profilePort.updateProfile(updateProfileRequest, userId);
+    Optional<User> profileDto = profilePort.takeProfileById(userId);
+    if (isUpdateProfile) {
+      profileDtoRedisTemplate.opsForValue().set(String.valueOf(userId), ProfileMapper.INSTANCE.userToProfileDto(profileDto.get()));
+    }
     return profileDtoRedisTemplate.opsForValue().get(String.valueOf(userId));
   }
 
