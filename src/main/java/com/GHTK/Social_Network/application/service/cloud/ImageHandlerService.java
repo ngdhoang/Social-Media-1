@@ -64,6 +64,11 @@ public class ImageHandlerService implements ImageHandlerPortInput {
   }
 
   @Override
+  public boolean checkSizeValid(MultipartFile file, long maxSize) {
+    return multipartImageSizeCalculator(file) < maxSize;
+  }
+
+  @Override
   public boolean isImage(String base64) {
     if (!isBase64(base64)) {
       return false;
@@ -142,26 +147,35 @@ public class ImageHandlerService implements ImageHandlerPortInput {
   public MultipartFile compressImage(MultipartFile inputFile, long maxSize) {
     try {
       BufferedImage originalImage = ImageIO.read(inputFile.getInputStream());
+      if (originalImage == null) {
+        throw new IOException("The input file is not a valid image.");
+      }
 
       float quality = 1.0f;
-      ByteArrayOutputStream baos;
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-      do {
-        baos = new ByteArrayOutputStream();
+      while (true) {
+        baos.reset();
         ImageOutputStream ios = ImageIO.createImageOutputStream(baos);
         ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
         writer.setOutput(ios);
 
         ImageWriteParam param = writer.getDefaultWriteParam();
-        param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-        param.setCompressionQuality(quality);
+        if (param.canWriteCompressed()) {
+          param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+          param.setCompressionQuality(quality);
+        }
 
         writer.write(null, new IIOImage(originalImage, null, null), param);
         writer.dispose();
         ios.close();
 
+        if (baos.size() <= maxSize || quality <= 0.1f) {
+          break;
+        }
+
         quality -= 0.1f;
-      } while (baos.size() > maxSize && quality > 0.1f);
+      }
 
       byte[] compressedBytes = baos.toByteArray();
 
@@ -177,6 +191,7 @@ public class ImageHandlerService implements ImageHandlerPortInput {
       return null;
     }
   }
+
 
   private String getMimeTypeFromBytes(byte[] bytes) {
     if (bytes.length < 8) {

@@ -1,12 +1,11 @@
 package com.GHTK.Social_Network.domain.entity.post;
 
-import com.GHTK.Social_Network.domain.entity.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.util.Date;
 
 @Entity
 @Data
@@ -19,11 +18,15 @@ public class ImagePost {
 
   private String imageUrl;
 
-  private LocalDate createAt;
-
-  private Boolean isDelete;
+  private Date createAt;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "post_id", nullable = false)
   private Post post;
+
+  public ImagePost(String imageUrl, Date createAt, Post post) {
+    this.imageUrl = imageUrl;
+    this.createAt = createAt;
+    this.post = post;
+  }
 }

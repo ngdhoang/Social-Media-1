@@ -21,7 +21,7 @@ public class CloudService implements CloudServicePortInput {
   private final ImageHandlerPortInput imageHandlerPortInput;
 
   @Override
-  public String uploadPictureByBase64(String base64String) {
+  public Map uploadPictureByBase64(String base64String) {
     try {
       if (!imageHandlerPortInput.isBase64(base64String)) {
         throw new CustomException("Input not base64", HttpStatus.BAD_REQUEST);
@@ -34,11 +34,11 @@ public class CloudService implements CloudServicePortInput {
   }
 
   @Override
-  public String uploadPictureByFile(MultipartFile file) {
+  public Map uploadPictureByFile(MultipartFile file) {
     try {
       Map data = this.cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
       if (data.containsKey("url")) {
-        return (String) data.get("url");
+        return data;
       } else {
         throw new RuntimeException("Failed to upload image to Cloudinary. Response: " + data);
       }
@@ -48,21 +48,56 @@ public class CloudService implements CloudServicePortInput {
   }
 
   @Override
-  public String uploadPictureSetSize(String base64String, Long size) {
-      if (!imageHandlerPortInput.isBase64(base64String)) {
-        throw new CustomException("Input not base64", HttpStatus.BAD_REQUEST);
-      }
+  public Map uploadPictureByFile(MultipartFile file, Long size) {
+    if (!imageHandlerPortInput.isImage(file)) {
+      throw new CustomException("Input not image", HttpStatus.BAD_REQUEST);
+    }
 
-      if (!imageHandlerPortInput.checkSizeValid(base64String, ImageHandlerPortInput.MAX_SIZE_NOT_VALID)) {
-        throw new CustomException("Size not valid", HttpStatus.BAD_REQUEST);
-      }
+    if (!imageHandlerPortInput.checkSizeValid(file, ImageHandlerPortInput.MAX_SIZE_NOT_VALID)) {
+      throw new CustomException("Size not valid", HttpStatus.BAD_REQUEST);
+    }
 
-      if (!imageHandlerPortInput.isImage(base64String)) {
-        throw new CustomException("Image not base64", HttpStatus.BAD_REQUEST);
-      }
+//    MultipartFile multipartFile = imageHandlerPortInput.compressImage(file, size);
+    return uploadPictureByFile(file);
+  }
 
-      MultipartFile multipartFile = imageHandlerPortInput.compressImage(base64String, size);
-      return uploadPictureByFile(multipartFile);
+  @Override
+  public Map uploadPictureSetSize(String base64String, Long size) {
+    if (!imageHandlerPortInput.isBase64(base64String)) {
+      throw new CustomException("Input not base64", HttpStatus.BAD_REQUEST);
+    }
+
+    if (!imageHandlerPortInput.checkSizeValid(base64String, ImageHandlerPortInput.MAX_SIZE_NOT_VALID)) {
+      throw new CustomException("Size not valid", HttpStatus.BAD_REQUEST);
+    }
+
+    if (!imageHandlerPortInput.isImage(base64String)) {
+      throw new CustomException("Image not base64", HttpStatus.BAD_REQUEST);
+    }
+
+    MultipartFile multipartFile = imageHandlerPortInput.compressImage(base64String, size);
+    return uploadPictureByFile(multipartFile);
+  }
+
+  @Override
+  public String extractUrl(Map data) {
+    if (data.get("url") == null)
+      throw new RuntimeException("Failed to extract url from Cloudinary");
+    return (String) data.get("url");
+  }
+
+  @Override
+  public String extractPublicId(Map data) {
+    if (data.get("public_id") == null)
+      throw new CustomException("Failed to extract public_id from Cloudinary", HttpStatus.INTERNAL_SERVER_ERROR);
+    return (String) data.get("public_id");
+  }
+
+  @Override
+  public String extractKey(Map data, String key) {
+    if (data.get(key) == null)
+      throw new RuntimeException("Failed to extract "  + key + " from Cloudinary");
+    return (String) data.get(key);
   }
 
   private String extractPublicIdFromUrl(String imageUrl) {

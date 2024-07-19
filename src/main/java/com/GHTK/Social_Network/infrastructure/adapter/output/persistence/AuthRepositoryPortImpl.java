@@ -63,4 +63,9 @@ public class AuthRepositoryPortImpl implements AuthPort {
   public void deleteUserByEmail(String email) {
     userRepository.delete(userRepository.findByUserEmail(email).orElseThrow());
   }
+
+  @Override
+  public User getUserById(Long id) {
+    return userRepository.findById(id).orElse(null);
+  }
 }

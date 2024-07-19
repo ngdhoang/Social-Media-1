@@ -5,9 +5,9 @@ import org.springframework.web.multipart.MultipartFile;
 public interface ImageHandlerPortInput {
   long MAX_SIZE_AVATAR = 512_000; // 500 KB
 
-  long MAX_SIZE_POST = 5_242_880; // 5 MB
+  long MAX_SIZE_POST = 50_242_880; // 5 MB
 
-  long MAX_SIZE_NOT_VALID = 10_485_760; // 10 MB
+  long MAX_SIZE_NOT_VALID = 100_485_760; // 10 MB
 
   byte[] base64ToByte(String base64);
 
@@ -16,6 +16,8 @@ public interface ImageHandlerPortInput {
   long base64ImageSizeCalculator(String base64);
 
   boolean checkSizeValid(String base64, long maxSize);
+
+  boolean checkSizeValid(MultipartFile file, long maxSize);
 
   boolean isImage(String base64);
 

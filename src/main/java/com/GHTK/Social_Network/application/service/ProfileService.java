@@ -116,7 +116,7 @@ public class ProfileService implements ProfilePortInput {
 
   @Override
   public ProfileDto updateAvatarProfile(ImageDto imageDto) {
-    String url = cloudServicePortInput.uploadPictureSetSize(imageDto.getImage(), ImageHandlerPortInput.MAX_SIZE_AVATAR);
+    String url = (String) cloudServicePortInput.uploadPictureSetSize(imageDto.getImageUrl(), ImageHandlerPortInput.MAX_SIZE_AVATAR).get("url");
     Boolean check = imageHandlerPort.saveAvatar(url, getUserAuth().getUserId());
     if (check) {
       ProfileDto profileDto = profileDtoRedisTemplate.opsForValue().get(String.valueOf(getUserAuth().getUserId()));

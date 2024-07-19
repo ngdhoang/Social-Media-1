@@ -6,6 +6,7 @@ import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.ProfileStateRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateProfileRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,17 +28,17 @@ public class ProfileController {
   }
 
   @PutMapping("")
-  public ResponseEntity<Object> updateProfile(@RequestBody UpdateProfileRequest updateProfileRequest) {
+  public ResponseEntity<Object> updateProfile(@RequestBody @Valid UpdateProfileRequest updateProfileRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.updateProfile(updateProfileRequest));
   }
 
   @PutMapping("/state")
-  public ResponseEntity<Object> updateProfile(@RequestBody ProfileStateRequest profileStateRequest) {
+  public ResponseEntity<Object> updateProfile(@RequestBody @Valid ProfileStateRequest profileStateRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.setStateProfile(profileStateRequest));
   }
 
   @PutMapping("/change-avatar")
-  public ResponseEntity<Object> updateAvatarProfile(@RequestBody ImageDto imageDto) {
+  public ResponseEntity<Object> updateAvatarProfile(@RequestBody @Valid ImageDto imageDto) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.updateAvatarProfile(imageDto));
   }
 }

@@ -1,6 +1,7 @@
-package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
+package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.post;
 
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
+import com.GHTK.Social_Network.domain.entity.post.ImagePost;
 import com.GHTK.Social_Network.domain.entity.post.Post;
 import com.GHTK.Social_Network.domain.entity.post.TagUser;
 import com.GHTK.Social_Network.domain.entity.user.User;
@@ -16,7 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class PortPostImpl implements PostPort {
+public class PostPortImpl implements PostPort {
   private final PostRepository postRepository;
   private final UserRepository userRepository;
   private final TagUserRepository tagUserRepository;
@@ -37,13 +38,8 @@ public class PortPostImpl implements PostPort {
   }
 
   @Override
-  public List<Post> findAllPostById(User user) {
-    List<TagUser> tagUserList = tagUserRepository.findAllByUser(user);
-    List<Post> postList = new ArrayList<>();
-    tagUserList.forEach(tagUser -> {
-      postList.add(postRepository.findByTagUsers(tagUser));
-    });
-    return postList;
+  public List<Post> findAllPostByUser(User user) {
+    return postRepository.findAllByUser(user);
   }
 
   @Override
@@ -73,6 +69,21 @@ public class PortPostImpl implements PostPort {
 
   @Override
   public List<Post> findAllPostTagMe(User user) {
-    return List.of();
+    List<TagUser> tagUserList = tagUserRepository.findAllByUser(user);
+    List<Post> postList = new ArrayList<>();
+    tagUserList.forEach(tagUser -> {
+      postList.add(postRepository.findByTagUsers(tagUser));
+    });
+    return postList;
+  }
+
+  @Override
+  public Post findPostByImagePost(ImagePost imagePost) {
+    return postRepository.findByImagePosts(imagePost).orElse(null);
+  }
+
+  @Override
+  public TagUser saveTagUser(TagUser tagUser) {
+    return tagUserRepository.save(tagUser);
   }
 }
