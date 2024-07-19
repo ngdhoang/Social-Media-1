@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input;
 
 import com.GHTK.Social_Network.application.port.input.ProfilePortInput;
-import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.OneMultipartFileDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.ProfileStateRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateProfileRequest;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ProfileController {
   private final ProfilePortInput profilePort;
-  
+
   @GetMapping("")
   public ResponseEntity<Object> getProfile(@RequestParam("i") Long id) {
     ProfileDto profileDto = profilePort.getProfile(id);
@@ -38,7 +38,7 @@ public class ProfileController {
   }
 
   @PutMapping("/change-avatar")
-  public ResponseEntity<Object> updateAvatarProfile(@RequestBody @Valid ImageDto imageDto) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.updateAvatarProfile(imageDto));
+  public ResponseEntity<Object> updateAvatarProfile(@ModelAttribute @Valid OneMultipartFileDto imageDto) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.updateAvatarProfile(imageDto.getFile()));
   }
 }

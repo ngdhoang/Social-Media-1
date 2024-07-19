@@ -9,7 +9,6 @@ import com.GHTK.Social_Network.application.port.output.ProfilePort;
 import com.GHTK.Social_Network.domain.entity.user.User;
 import com.GHTK.Social_Network.infrastructure.exception.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ProfileMapper;
-import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.ProfileStateRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateProfileRequest;
@@ -22,7 +21,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -67,7 +68,7 @@ public class ProfileService implements ProfilePortInput {
       id = getUserAuth().getUserId();
     }
     if (Boolean.TRUE.equals(profileDtoRedisTemplate.hasKey(String.valueOf(id)))) {
-      if (!profileDtoRedisTemplate.opsForValue().get(String.valueOf(id)).getIsProfilePublic() && !getUserAuth().getUserId().equals(id)) {
+      if (!Objects.requireNonNull(profileDtoRedisTemplate.opsForValue().get(String.valueOf(id))).getIsProfilePublic() && !getUserAuth().getUserId().equals(id)) {
         return null;
       }
       return profileDtoRedisTemplate.opsForValue().get(String.valueOf(id));
@@ -115,8 +116,8 @@ public class ProfileService implements ProfilePortInput {
   }
 
   @Override
-  public ProfileDto updateAvatarProfile(ImageDto imageDto) {
-    String url = (String) cloudServicePortInput.uploadPictureSetSize(imageDto.getImageUrl(), ImageHandlerPortInput.MAX_SIZE_AVATAR).get("url");
+  public ProfileDto updateAvatarProfile(MultipartFile file) {
+    String url = (String) cloudServicePortInput.uploadPictureByFile(file, ImageHandlerPortInput.MAX_SIZE_AVATAR).get("url");
     Boolean check = imageHandlerPort.saveAvatar(url, getUserAuth().getUserId());
     if (check) {
       ProfileDto profileDto = profileDtoRedisTemplate.opsForValue().get(String.valueOf(getUserAuth().getUserId()));

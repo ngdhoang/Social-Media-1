@@ -43,8 +43,8 @@ public class PostPortImpl implements PostPort {
   }
 
   @Override
-  public Post findPostByPostIdAndUser(Long postId, User user) {
-    return postRepository.findByPostIdAndUser(postId, user).orElse(null);
+  public Post findPostByPostId(Long postId) {
+    return postRepository.findById(postId).orElse(null);
   }
 
   @Override

@@ -16,7 +16,7 @@ public interface PostPort {
 
   List<Post> findAllPostByUser(User user);
 
-  Post findPostByPostIdAndUser(Long postId, User user);
+  Post findPostByPostId(Long postId);
 
   User findFriendById(Long id);
 

@@ -65,7 +65,7 @@ public class AuthController {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.deleteAccount());
   }
 
-  @GetMapping("/delete-account/check-otp")
+  @DeleteMapping("/delete-account/check-otp")
   public ResponseEntity<Object> checkOtpDeleteAccount(@RequestBody @Valid OTPRequest otpRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.checkOtpDeleteAccount(otpRequest, AuthPortInput.MAX_COUNT_OTP, 100000L));
   }

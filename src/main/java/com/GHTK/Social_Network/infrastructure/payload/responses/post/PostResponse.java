@@ -1,6 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.payload.responses.post;
 
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
 import lombok.Data;
 
 import java.util.Date;
@@ -17,4 +18,6 @@ public class PostResponse {
   private Date updateAt;
 
   private List<ImageDto> imagePosts;
+
+  private List<ProfileDto> tagUsers;
 }

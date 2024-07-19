@@ -2,6 +2,7 @@ package com.GHTK.Social_Network.application.service.post;
 
 import com.GHTK.Social_Network.application.port.input.post.PostPortInput;
 import com.GHTK.Social_Network.application.port.output.AuthPort;
+import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
 import com.GHTK.Social_Network.domain.collection.ImageSequence;
@@ -33,6 +34,7 @@ public class PostService implements PostPortInput {
   private final AuthPort authenticationRepositoryPort;
   private final ImagePostPort imagePostPort;
   private final RedisTemplate<String, String> imageRedisTemplate;
+  private final FriendShipPort friendShipPort;
 
   private User getUserAuth() {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -66,13 +68,13 @@ public class PostService implements PostPortInput {
     List<TagUser> tagUserList = new ArrayList<>();
     tagUserIds.stream().forEach(
             u -> {
-              // Check user is friend and no block
-              // true
-              User user = new User(); // temp
+              if (!friendShipPort.isFriend(u, post.getUser().getUserId())) {
+                throw new CustomException("User not friend or block", HttpStatus.NOT_FOUND);
+              }
+              User user = authenticationRepositoryPort.getUserById(u);
               TagUser tagUser = TagUser.builder().post(post).user(user).build();
               portPost.saveTagUser(tagUser);
               tagUserList.add(tagUser);
-              //false throw error
             }
     );
     return tagUserList;
@@ -105,14 +107,17 @@ public class PostService implements PostPortInput {
     // Sau đó xử lý và lưu ImagePost
     List<String> keys = postRequest.getPublicIds();
     List<ImagePost> imagePosts = new ArrayList<>();
+    List<Long> imagePostSort = new ArrayList<>();
     for (String k : keys) {
       if (Boolean.TRUE.equals(imageRedisTemplate.hasKey(k))) {
         String url = imageRedisTemplate.opsForValue().get(k);
         ImagePost imagePost = new ImagePost(url, new Date(), newPost);
         imagePosts.add(imagePostPort.saveImagePost(imagePost));
+        imagePostSort.add(imagePost.getImagePostId());
         imageRedisTemplate.delete(k);
       }
     }
+    imagePostPort.saveImageSequence(new ImageSequence(post.getPostId(), imagePostSort));
 
     newPost.setImagePosts(imagePosts);
     newPost.setCreatedAt(new Date());
@@ -127,9 +132,12 @@ public class PostService implements PostPortInput {
 
     User user = getUserAuth();
     // Check post exist
-    Post post = portPost.findPostByPostIdAndUser(postRequest.getId(), user);
+    Post post = portPost.findPostByPostId(postRequest.getId());
     if (post == null) {
       throw new CustomException("The post does not exist", HttpStatus.NOT_FOUND);
+    }
+    if (!post.getUser().equals(user)) {
+      throw new CustomException("User not permission", HttpStatus.UNAUTHORIZED);
     }
 
     // Take status post
@@ -152,6 +160,7 @@ public class PostService implements PostPortInput {
           ImagePost imagePost = new ImagePost(publicIds.get(cnt++), new Date(), post);
           ImagePost newImagePost = imagePostPort.saveImagePost(imagePost);
           imageIds.set(i, newImagePost.getImagePostId());
+          imageRedisTemplate.delete(publicIds.get(cnt - 1));
         }
       }
     }
@@ -167,9 +176,12 @@ public class PostService implements PostPortInput {
   public MessageResponse deletePost(Long id) {
     User user = getUserAuth();
     // Check post exist
-    Post post = portPost.findPostByPostIdAndUser(id, user);
+    Post post = portPost.findPostByPostId(id);
     if (post == null) {
       throw new CustomException("The post does not exist", HttpStatus.NOT_FOUND);
+    }
+    if (!post.getUser().equals(user)) {
+      throw new CustomException("User not permission", HttpStatus.UNAUTHORIZED);
     }
 
     if (!portPost.deletePostById(id))
@@ -186,7 +198,9 @@ public class PostService implements PostPortInput {
     }
 
     // Check block
-
+    if (friendShipPort.isBlock(userId, getUserAuth().getUserId())) {
+      throw new CustomException("User has blocked", HttpStatus.FORBIDDEN);
+    }
     // -----------------
 
     List<Post> postList = portPost.findAllPostByUser(user);
@@ -220,7 +234,9 @@ public class PostService implements PostPortInput {
     }
 
     // Check block
-
+    if (friendShipPort.isBlock(post.getUser().getUserId(), getUserAuth().getUserId())) {
+      throw new CustomException("User has blocked", HttpStatus.FORBIDDEN);
+    }
     // ----------------------
     List<ImagePost> imagePosts = post.getImagePosts();
     post.setImagePosts(sortImagePosts(postId, imagePosts));

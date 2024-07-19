@@ -29,14 +29,19 @@ public class PostController {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, imagePostInput.createImage(request));
   }
 
-  @PostMapping("/delete-image")
-  public ResponseEntity<Object> deleteImage(@RequestParam String p) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, imagePostInput.deleteImageInRedis(p));
-  }
+//  @PostMapping("/delete-image")
+//  public ResponseEntity<Object> deleteImage(@RequestParam String p) {
+//    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, imagePostInput.deleteImageInRedis(p));
+//  }
 
   @GetMapping("/{id}")
   public ResponseEntity<Object> getPostById(@PathVariable Long id) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.getPostsByPostId(id));
+  }
+
+  @GetMapping("/tag")
+  public ResponseEntity<Object> getPostTagMe() {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.getAllPostsTagMe());
   }
 
   @GetMapping("")
@@ -49,7 +54,7 @@ public class PostController {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.deletePost(id));
   }
 
-  @PostMapping("/update")
+  @DeleteMapping("/update")
   public ResponseEntity<Object> updatePost(@RequestBody @Valid PostRequest postRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.updatePost(postRequest));
   }
