@@ -12,7 +12,9 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Mapper
@@ -32,7 +34,9 @@ public interface PostMapper {
 
   @Named("tagUserToTagUserDto")
   default List<ProfileDto> tagUserToTagUserDto(List<TagUser> tagUserList) {
-    return tagUserList.stream()
+    return Optional.ofNullable(tagUserList)
+            .orElse(Collections.emptyList())
+            .stream()
             .map(tu -> {
               User u = tu.getUser();
               return ProfileDto.builder()
@@ -45,4 +49,5 @@ public interface PostMapper {
             })
             .collect(Collectors.toList());
   }
+
 }

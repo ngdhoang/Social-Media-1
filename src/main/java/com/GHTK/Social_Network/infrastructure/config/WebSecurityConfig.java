@@ -6,6 +6,7 @@ import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.Use
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -55,6 +56,7 @@ public class WebSecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(request -> request
                     .requestMatchers("/api/auth/**", "api/profile", "/api/search").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/post/{p}/reaction").permitAll()
                     .anyRequest().authenticated()
             )
             .authenticationProvider(daoAuthenticationProvider())

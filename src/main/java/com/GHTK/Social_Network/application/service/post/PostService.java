@@ -31,10 +31,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PostService implements PostPortInput {
   private final PostPort portPost;
-  private final AuthPort authenticationRepositoryPort;
+
   private final ImagePostPort imagePostPort;
+
   private final RedisTemplate<String, String> imageRedisTemplate;
+
   private final FriendShipPort friendShipPort;
+
+  private final AuthPort authenticationRepositoryPort;
 
   private User getUserAuth() {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
