@@ -8,7 +8,7 @@ import lombok.Data;
 
 @Data
 public class GetFriendShipRequest extends PaginationRequest{
-    @ValidEFriendShipStatus
+    @Nullable
     private EFriendshipStatus status;
 
     @Nullable

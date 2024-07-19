@@ -7,8 +7,7 @@ import jakarta.validation.ConstraintValidatorContext;
 
 public class EFriendShipStatusValidator implements ConstraintValidator<ValidEFriendShipStatus, String> {
     @Override
-    public void initialize(ValidEFriendShipStatus constraintAnnotation) {
-    }
+    public void initialize(ValidEFriendShipStatus constraintAnnotation) {}
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {

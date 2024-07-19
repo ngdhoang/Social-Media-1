@@ -21,7 +21,7 @@ public class FriendShipController {
 
   @GetMapping("")
   public ResponseEntity<Object> getFriendShip(
-          @ModelAttribute GetFriendShipRequest getFriendShipRequest
+          @Valid @ModelAttribute GetFriendShipRequest getFriendShipRequest
   ) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, friendShipService.getFriendShip(getFriendShipRequest));
   }
