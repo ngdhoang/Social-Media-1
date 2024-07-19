@@ -6,17 +6,21 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 public class EFriendShipStatusValidator implements ConstraintValidator<ValidEFriendShipStatus, String> {
-  @Override
-  public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {
-    if (value == null) {
-      return true;
+    @Override
+    public void initialize(ValidEFriendShipStatus constraintAnnotation) {
     }
 
-    try {
-      EFriendshipStatus.valueOf(value.toUpperCase());
-      return true;
-    } catch (IllegalArgumentException e) {
-      return false;
+    @Override
+    public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {
+        if (value == null) {
+            return true;
+        }
+
+        try {
+            EFriendshipStatus.valueOf(value.toUpperCase());
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
-  }
 }

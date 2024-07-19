@@ -82,6 +82,9 @@ public class FriendShipService implements FriendShipPortInput {
       return getProfileDtos(user, friendShips);
     }
 
+    if(getFriendShipRequest.getStatus() == EFriendshipStatus.PENDING){
+      throw new CustomException("Not permission", HttpStatus.FORBIDDEN);
+    }
     User userReceive = profilePort.takeProfileById(getFriendShipRequest.getUserId())
             .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
@@ -258,4 +261,5 @@ public class FriendShipService implements FriendShipPortInput {
     }
     return null;
   }
+
 }
