@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.application.customAnnotation.logic;
 
-import com.GHTK.Social_Network.application.customAnnotation.Enum.ESortBy;
 import com.GHTK.Social_Network.application.customAnnotation.config.ValidSortBy;
+import com.GHTK.Social_Network.application.customAnnotation.Enum.ESortBy;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 

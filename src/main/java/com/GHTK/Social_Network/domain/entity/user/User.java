@@ -2,7 +2,11 @@ package com.GHTK.Social_Network.domain.entity.user;
 
 import com.GHTK.Social_Network.domain.entity.FriendShip;
 import com.GHTK.Social_Network.domain.entity.post.Post;
+import com.GHTK.Social_Network.domain.entity.post.ReactionPost;
 import com.GHTK.Social_Network.domain.entity.post.TagUser;
+import com.GHTK.Social_Network.domain.entity.post.comment.Comment;
+import com.GHTK.Social_Network.domain.entity.post.comment.ImageComment;
+import com.GHTK.Social_Network.domain.entity.post.comment.ReactionComment;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -72,6 +76,22 @@ public class User {
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<FriendShip> friendShips;
+
+  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
+          cascade = CascadeType.ALL)
+  private List<ReactionPost> reactionPosts;
+
+  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
+          cascade = CascadeType.ALL)
+  private List<ReactionComment> reactionComments;
+
+  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
+          cascade = CascadeType.ALL)
+  private List<Comment> comments;
+
+  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
+          cascade = CascadeType.ALL)
+  private List<ImageComment> imageComments;
 
   public User(String firstName, String lastName, String userEmail, String password) {
     this.firstName = firstName;

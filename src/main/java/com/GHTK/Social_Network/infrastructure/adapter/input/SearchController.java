@@ -19,10 +19,6 @@ public class SearchController {
 
   @GetMapping("")
   public ResponseEntity<Object> search(@RequestParam String q, @RequestParam(required = false) Integer s) {
-    try {
-      return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, searchPortInput.searchPublic(q, s));
-    } catch (Exception e) {
-      return ResponseHandler.generateErrorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, searchPortInput.searchPublic(q, s));
   }
 }

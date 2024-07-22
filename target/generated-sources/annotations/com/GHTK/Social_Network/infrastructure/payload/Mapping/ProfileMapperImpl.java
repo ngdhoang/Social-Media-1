@@ -6,7 +6,7 @@ import javax.annotation.processing.Generated;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2024-07-18T14:34:22+0700",
+    date = "2024-07-22T10:25:59+0700",
     comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.2 (Oracle Corporation)"
 )
 public class ProfileMapperImpl implements ProfileMapper {
@@ -40,20 +40,20 @@ public class ProfileMapperImpl implements ProfileMapper {
             return null;
         }
 
-        ProfileDto profileDto = new ProfileDto();
+        ProfileDto.ProfileDtoBuilder profileDto = ProfileDto.builder();
 
-        profileDto.setProfileId( user.getUserId() );
-        profileDto.setLastName( user.getLastName() );
-        profileDto.setFirstName( user.getFirstName() );
-        profileDto.setUserEmail( user.getUserEmail() );
-        profileDto.setAvatar( user.getAvatar() );
-        profileDto.setDob( user.getDob() );
-        profileDto.setPhoneNumber( user.getPhoneNumber() );
-        profileDto.setHomeTown( user.getHomeTown() );
-        profileDto.setSchoolName( user.getSchoolName() );
-        profileDto.setWorkPlace( user.getWorkPlace() );
-        profileDto.setIsProfilePublic( user.getIsProfilePublic() );
+        profileDto.profileId( user.getUserId() );
+        profileDto.lastName( user.getLastName() );
+        profileDto.firstName( user.getFirstName() );
+        profileDto.userEmail( user.getUserEmail() );
+        profileDto.avatar( user.getAvatar() );
+        profileDto.dob( user.getDob() );
+        profileDto.phoneNumber( user.getPhoneNumber() );
+        profileDto.homeTown( user.getHomeTown() );
+        profileDto.schoolName( user.getSchoolName() );
+        profileDto.workPlace( user.getWorkPlace() );
+        profileDto.isProfilePublic( user.getIsProfilePublic() );
 
-        return profileDto;
+        return profileDto.build();
     }
 }

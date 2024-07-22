@@ -7,5 +7,5 @@ import java.util.List;
 
 @Data
 public class UpdateImageRequest {
-  private List<UpdateImagePostDto> updateImagePostDtoList;
+  UpdateImagePostDto updateImagePostDtoList;
 }

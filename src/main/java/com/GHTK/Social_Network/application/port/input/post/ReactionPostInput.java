@@ -1,18 +1,11 @@
 package com.GHTK.Social_Network.application.port.input.post;
 
-import com.GHTK.Social_Network.infrastructure.payload.requests.post.ReactionPostRequest;
-import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
-import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionPostResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionResponse;
 
 import java.util.List;
 
-public interface ReactionPostInput      {
-    ReactionPostResponse createReactionPost(ReactionPostRequest reactionPostRequest);
+public interface ReactionPostInput {
+  ReactionResponse handleReactionPost(Long postId, String reactionType);
 
-    ReactionPostResponse updateReactionPost(ReactionPostRequest reactionPostRequest);
-
-    MessageResponse deleteReactionPost(Long id);
-
-    List<ReactionPostResponse> getAllReactionPostByPostId(Long postId);
-
+  List<ReactionResponse> getAllReactionInPost(Long postId);
 }

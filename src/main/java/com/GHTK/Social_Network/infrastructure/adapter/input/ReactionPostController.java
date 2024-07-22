@@ -1,37 +1,31 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input;
 
 import com.GHTK.Social_Network.application.port.input.post.ReactionPostInput;
-import com.GHTK.Social_Network.application.service.post.ReactionPostService;
-import com.GHTK.Social_Network.infrastructure.payload.requests.post.ReactionPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
-import jakarta.mail.MessagingException;
-import jakarta.validation.Valid;
+import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.UnsupportedEncodingException;
+import java.util.Objects;
 
 @RestController
-@RequestMapping("/api/reaction/posts")
+@CrossOrigin(origins = "*", maxAge = 3600)
+@RequestMapping("/api/post")
 @RequiredArgsConstructor
 public class ReactionPostController {
-    private final ReactionPostService  reactionPostService;
+  private final ReactionPostInput reactionPostInput;
 
-    @PostMapping("create")
-    public ResponseEntity<Object> createReaction(@RequestBody @Valid ReactionPostRequest reactionPostRequest)throws MessagingException, UnsupportedEncodingException {
-        return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionPostService.createReactionPost(reactionPostRequest));
-    }
+  @PostMapping("/{p}/reaction")
+  public ResponseEntity<Object> reactionPostHandler(@PathVariable Long p, @RequestParam String r) {
+    ReactionResponse response = reactionPostInput.handleReactionPost(p, r);
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, Objects.requireNonNullElseGet(response, () -> new MessageResponse("Delete reaction success")));
+  }
 
-    @PutMapping("update")
-    public ResponseEntity<Object> updateReaction(@RequestBody @Valid ReactionPostRequest reactionPostRequest)throws MessagingException, UnsupportedEncodingException {
-        return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionPostService.updateReactionPost(reactionPostRequest));
-    }
-    @GetMapping("delete")
-    public ResponseEntity<Object> DeleteReaction(@RequestBody @Valid Long id) throws MessagingException, UnsupportedEncodingException {
-        return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionPostService.deleteReactionPost(id));
-    }
-//    @GetMapping("{id}")
-//    public
+  @GetMapping("/{p}/reaction")
+  public ResponseEntity<Object> getReactionPostHandler(@PathVariable Long p) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionPostInput.getAllReactionInPost(p));
+  }
 }

@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.domain.entity.post;
 
+import com.GHTK.Social_Network.domain.entity.post.comment.Comment;
 import com.GHTK.Social_Network.domain.entity.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -46,4 +47,8 @@ public class Post {
   @OneToMany(mappedBy = "post", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<ReactionPost> reactionPosts;
+
+  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY,
+          cascade = CascadeType.ALL)
+  private List<Comment> comments;
 }

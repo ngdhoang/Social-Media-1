@@ -2,120 +2,108 @@ package com.GHTK.Social_Network.application.service.post;
 
 import com.GHTK.Social_Network.application.port.input.post.ReactionPostInput;
 import com.GHTK.Social_Network.application.port.output.AuthPort;
+import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
 import com.GHTK.Social_Network.application.port.output.post.ReactionPostPort;
 import com.GHTK.Social_Network.domain.entity.post.EReactionType;
 import com.GHTK.Social_Network.domain.entity.post.Post;
 import com.GHTK.Social_Network.domain.entity.post.ReactionPost;
 import com.GHTK.Social_Network.domain.entity.user.User;
-import com.GHTK.Social_Network.infrastructure.adapter.output.persistence.post.ReactionPostImpl;
 import com.GHTK.Social_Network.infrastructure.exception.CustomException;
-import com.GHTK.Social_Network.infrastructure.payload.Mapping.PostMapper;
-import com.GHTK.Social_Network.infrastructure.payload.requests.post.ReactionPostRequest;
-import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
-import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionPostResponse;
-import jakarta.persistence.Id;
+import com.GHTK.Social_Network.infrastructure.payload.Mapping.ReactionPostMapper;
+import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionResponse;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.annotations.Check;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ReactionPostService implements ReactionPostInput {
-    private final ReactionPostPort reactionPostPort;
-    private final AuthPort authenticationRepositoryPort;
-    private final PostPort postPort;
+  private final ReactionPostPort reactionPostPort;
+  private final PostPort postPort;
+  private final AuthPort authenticationRepositoryPort;
+  private final FriendShipPort friendShipPort;
 
-    private User getUserAuth() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username;
-        if (principal instanceof UserDetails) {
-            username = ((UserDetails) principal).getUsername();
-        } else if (principal instanceof String) {
-            username = (String) principal;
-        } else {
-            throw new IllegalStateException("Unexpected principal type: " + principal.getClass());
-        }
+  private User getUserAuth() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        return authenticationRepositoryPort.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Invalid token"));
+    if (authentication == null || !authentication.isAuthenticated() ||
+            authentication instanceof AnonymousAuthenticationToken) {
+      return User.builder().userId(0L).build();
     }
 
-    @Override
-    public ReactionPostResponse createReactionPost(ReactionPostRequest reactionPostRequest) {
-       //Check post exists
-        Post post = postPort.findPostById(reactionPostRequest.getPostId());
-        if (post == null){
-            throw new CustomException("Post does not exist", HttpStatus.NOT_FOUND);
-        }
-        //Lay user dang post
-        User userPost = post.getUser();
+    Object principal = authentication.getPrincipal();
+    String username;
 
-        //Lay user cua minh
-        User user = getUserAuth();
-
-        //Check block
-        //---------------------------------
-        ReactionPost reactionPost = ReactionPost.builder().reactionType(EReactionType.LIKE).build();
-        return PostMapper.INSTANCE.reactionPostToReactionPostResponse(reactionPost);
+    if (principal instanceof UserDetails) {
+      username = ((UserDetails) principal).getUsername();
+    } else if (principal instanceof String) {
+      username = (String) principal;
+    } else {
+      throw new IllegalStateException("Unexpected principal type: " + principal.getClass());
     }
 
-    @Override
-    public ReactionPostResponse updateReactionPost(ReactionPostRequest reactionPostRequest) {
-        User user = getUserAuth();
+    return authenticationRepositoryPort.findByEmail(username)
+            .orElseThrow(() -> new UsernameNotFoundException("Invalid token"));
+  }
 
-        //Check post exists
-        Post post = postPort.findPostById(reactionPostRequest.getPostId());
-        if (post == null){
-            throw new CustomException("Post does not exist", HttpStatus.NOT_FOUND);
-        }
-        if (user != post.getUser()){
-            throw new CustomException("User not exist",HttpStatus.NOT_FOUND);
-        }
-        //Check reaction exist
-        ReactionPost reactionPost = reactionPostPort.findReactionPostByIdAndPost(reactionPostRequest.getReactionId(),post);
-        if (reactionPost == null){
-            throw new CustomException("The react does not exist", HttpStatus.NOT_FOUND);
-        }
-        ReactionPost newReactionPost = reactionPostPort.saveReactionPost(reactionPost);
-        //Check block
-        //------------------------
-
-
-
-        return PostMapper.INSTANCE.reactionPostToReactionPostResponse(newReactionPost);
+  private void validatePostAccess(Post post) {
+    if (post == null) {
+      throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
     }
 
-    @Override
-    public MessageResponse deleteReactionPost(Long id) {
-        //Check reaction exist
-        ReactionPost reactionPost = reactionPostPort.findReactionPostById(id);
-        if (reactionPost == null){
-            throw new CustomException("The react does not exist", HttpStatus.NOT_FOUND);
-        }
-        if (!reactionPostPort.deleteReactionPostById(id))
-            throw new CustomException("Don't have permission to delete this post", HttpStatus.FORBIDDEN);
-        return MessageResponse.builder().message("Successfully deleted").build();
+    User postOwner = post.getUser();
+    User currentUser = getUserAuth();
+
+    if (!postOwner.getIsProfilePublic()) {
+      throw new CustomException("Post not accessible", HttpStatus.FORBIDDEN);
     }
 
-    @Override
-    public List<ReactionPostResponse> getAllReactionPostByPostId(Long postId) {
-        //Check post is exist
-        Post post = postPort.findPostById(postId);
-        if (post == null){
-            throw new CustomException("Post does not exist", HttpStatus.NOT_FOUND);
-        }
-        List<ReactionPost> reactionPostList = reactionPostPort.findAllReactionPostByPost(post);
-
-        return reactionPostList.stream()
-                .map(PostMapper.INSTANCE::reactionPostToReactionPostResponse)
-                .collect(Collectors.toList());
+    if (friendShipPort.isBlock(postOwner.getUserId(), currentUser.getUserId())) {
+      throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
     }
+  }
+
+  @Override
+  public ReactionResponse handleReactionPost(Long postId, String reactionType) {
+    Post post = postPort.findPostByPostId(postId);
+    validatePostAccess(post);
+
+    EReactionType newReactionType;
+    try {
+      newReactionType = EReactionType.valueOf(reactionType.toUpperCase());
+    } catch (IllegalArgumentException e) {
+      throw new CustomException("Invalid reaction type", HttpStatus.BAD_REQUEST);
+    }
+
+    ReactionPost reactionPost = reactionPostPort.findByPostIdAndUserID(postId, getUserAuth().getUserId());
+
+    if (reactionPost == null) {
+      ReactionPost newReactionPost = new ReactionPost(post, getUserAuth(), newReactionType);
+      return ReactionPostMapper.INSTANCE.toReactionPostResponse(reactionPostPort.saveReaction(newReactionPost));
+    } else {
+      if (reactionPost.getReactionType() == newReactionType) {
+        reactionPostPort.deleteReaction(reactionPost);
+        return null;
+      } else {
+        reactionPost.setReactionType(newReactionType);
+        return ReactionPostMapper.INSTANCE.toReactionPostResponse(reactionPostPort.saveReaction(reactionPost));
+      }
+    }
+  }
+
+  @Override
+  public List<ReactionResponse> getAllReactionInPost(Long postId) {
+    return reactionPostPort.findByPostId(postId).stream().map(
+            ReactionPostMapper.INSTANCE::toReactionPostResponse
+    ).toList();
+  }
+
 }

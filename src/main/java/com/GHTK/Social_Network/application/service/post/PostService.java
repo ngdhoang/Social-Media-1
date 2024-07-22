@@ -2,8 +2,12 @@ package com.GHTK.Social_Network.application.service.post;
 
 import com.GHTK.Social_Network.application.port.input.post.PostPortInput;
 import com.GHTK.Social_Network.application.port.output.AuthPort;
+import com.GHTK.Social_Network.application.port.output.FriendShipPort;
+import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
+import com.GHTK.Social_Network.domain.collection.ImageSequence;
 import com.GHTK.Social_Network.domain.entity.post.EPostStatus;
+import com.GHTK.Social_Network.domain.entity.post.ImagePost;
 import com.GHTK.Social_Network.domain.entity.post.Post;
 import com.GHTK.Social_Network.domain.entity.post.TagUser;
 import com.GHTK.Social_Network.domain.entity.user.User;
@@ -13,21 +17,27 @@ import com.GHTK.Social_Network.infrastructure.payload.requests.post.PostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.PostResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PostService implements PostPortInput {
   private final PostPort portPost;
+
+  private final ImagePostPort imagePostPort;
+
+  private final RedisTemplate<String, String> imageRedisTemplate;
+
+  private final FriendShipPort friendShipPort;
+
   private final AuthPort authenticationRepositoryPort;
 
   private User getUserAuth() {
@@ -62,12 +72,13 @@ public class PostService implements PostPortInput {
     List<TagUser> tagUserList = new ArrayList<>();
     tagUserIds.stream().forEach(
             u -> {
-              // Check user is friend and no block
-              // true
-              User user = new User(); // temp
+              if (!friendShipPort.isFriend(u, post.getUser().getUserId())) {
+                throw new CustomException("User not friend or block", HttpStatus.NOT_FOUND);
+              }
+              User user = authenticationRepositoryPort.getUserById(u);
               TagUser tagUser = TagUser.builder().post(post).user(user).build();
+              portPost.saveTagUser(tagUser);
               tagUserList.add(tagUser);
-              //false throw error
             }
     );
     return tagUserList;
@@ -75,31 +86,63 @@ public class PostService implements PostPortInput {
 
   @Override
   public PostResponse createPost(PostRequest postRequest) {
+    // async
+    String tail = "_" + getUserAuth().getUserEmail();
+    imagePostPort.deleteImageRedisByPublicId(postRequest.getDeletePublicIds(), tail);
+
     // take status post
     EPostStatus ePostStatus = filterStatusPost(postRequest.getStatus());
 
     // Create new post
     Post post = Post.builder()
             .content(postRequest.getContent())
-            .postStatus(ePostStatus).build();
+            .postStatus(ePostStatus)
+            .user(getUserAuth()).build();
+
+    Post newPost = portPost.savePost(post);
 
     // Handler tag user
-    List<TagUser> tagUserList = getTagUsers(postRequest.getTagUserIds(), post);
-    post.setTagUsers(tagUserList);
-    post.setUser(getUserAuth()); // Set relationship
+    List<TagUser> tagUserList = new ArrayList<>();
+    if (!postRequest.getTagUserIds().isEmpty()) {
+      getTagUsers(postRequest.getTagUserIds(), post);
+      post.setTagUsers(tagUserList);
+      post.setUser(getUserAuth());
+    }
 
-    // Save post into repository
-    Post newPost = portPost.savePost(post);
+    // Sau đó xử lý và lưu ImagePost
+    List<String> keys = postRequest.getPublicIds();
+    List<ImagePost> imagePosts = new ArrayList<>();
+    List<Long> imagePostSort = new ArrayList<>();
+    for (String k : keys) {
+      if (Boolean.TRUE.equals(imageRedisTemplate.hasKey(k))) {
+        String url = imageRedisTemplate.opsForValue().get(k);
+        ImagePost imagePost = new ImagePost(url, new Date(), newPost);
+        imagePosts.add(imagePostPort.saveImagePost(imagePost));
+        imagePostSort.add(imagePost.getImagePostId());
+        imageRedisTemplate.delete(k);
+      }
+    }
+    imagePostPort.saveImageSequence(new ImageSequence(post.getPostId(), imagePostSort));
+
+    newPost.setImagePosts(imagePosts);
+    newPost.setCreatedAt(new Date());
+    newPost = portPost.savePost(newPost);
+
     return PostMapper.INSTANCE.postToPostResponse(newPost);
   }
 
   @Override
   public PostResponse updatePost(PostRequest postRequest) {
+    imagePostPort.deleteImageRedisByPublicId(postRequest.getDeletePublicIds(), "_" + getUserAuth().getUserEmail());
+
     User user = getUserAuth();
     // Check post exist
-    Post post = portPost.findPostByPostIdAndUser(postRequest.getId(), user);
+    Post post = portPost.findPostByPostId(postRequest.getId());
     if (post == null) {
       throw new CustomException("The post does not exist", HttpStatus.NOT_FOUND);
+    }
+    if (!post.getUser().equals(user)) {
+      throw new CustomException("User not permission", HttpStatus.UNAUTHORIZED);
     }
 
     // Take status post
@@ -112,7 +155,25 @@ public class PostService implements PostPortInput {
     List<TagUser> tagUserList = getTagUsers(postRequest.getTagUserIds(), post);
     post.setTagUsers(tagUserList);
 
+    List<Long> imageIds = postRequest.getImageIds();
+    List<String> publicIds = postRequest.getPublicIds();
+
+    int cnt = 0;
+    for (int i = 0; i < imageIds.size(); i++) {
+      if (imageIds.get(i) == 0) {
+        if (cnt < publicIds.size()) {
+          ImagePost imagePost = new ImagePost(publicIds.get(cnt++), new Date(), post);
+          ImagePost newImagePost = imagePostPort.saveImagePost(imagePost);
+          imageIds.set(i, newImagePost.getImagePostId());
+          imageRedisTemplate.delete(publicIds.get(cnt - 1));
+        }
+      }
+    }
+
+    imagePostPort.saveImageSequence(new ImageSequence(post.getPostId(), imageIds));
+
     Post newPost = portPost.savePost(post);
+    newPost.setImagePosts(sortImagePosts(newPost.getPostId(), newPost.getImagePosts()));
     return PostMapper.INSTANCE.postToPostResponse(newPost);
   }
 
@@ -120,9 +181,12 @@ public class PostService implements PostPortInput {
   public MessageResponse deletePost(Long id) {
     User user = getUserAuth();
     // Check post exist
-    Post post = portPost.findPostByPostIdAndUser(id, user);
+    Post post = portPost.findPostByPostId(id);
     if (post == null) {
       throw new CustomException("The post does not exist", HttpStatus.NOT_FOUND);
+    }
+    if (!post.getUser().equals(user)) {
+      throw new CustomException("User not permission", HttpStatus.UNAUTHORIZED);
     }
 
     if (!portPost.deletePostById(id))
@@ -139,10 +203,12 @@ public class PostService implements PostPortInput {
     }
 
     // Check block
-
+    if (friendShipPort.isBlock(userId, getUserAuth().getUserId()) && userId.equals(getUserAuth().getUserId())) {
+      throw new CustomException("User has blocked", HttpStatus.FORBIDDEN);
+    }
     // -----------------
 
-    List<Post> postList = portPost.findAllPostById(user);
+    List<Post> postList = portPost.findAllPostByUser(user);
 
     return postList.stream()
             .map(PostMapper.INSTANCE::postToPostResponse)
@@ -173,8 +239,30 @@ public class PostService implements PostPortInput {
     }
 
     // Check block
-
+    if (friendShipPort.isBlock(post.getUser().getUserId(), getUserAuth().getUserId()) && post.getUser().getUserId().equals(getUserAuth().getUserId())) {
+      throw new CustomException("User has blocked", HttpStatus.FORBIDDEN);
+    }
     // ----------------------
+    List<ImagePost> imagePosts = post.getImagePosts();
+    post.setImagePosts(sortImagePosts(postId, imagePosts));
+
     return PostMapper.INSTANCE.postToPostResponse(post);
+  }
+
+  List<ImagePost> sortImagePosts(Long postId, List<ImagePost> imagePosts) {
+    List<Long> longList = imagePostPort.findImageSequenceByPostId(postId).getListImageSort();
+
+    Map<Long, ImagePost> imagePostMap = new HashMap<>();
+    for (ImagePost imagePost : imagePosts) {
+      imagePostMap.put(imagePost.getImagePostId(), imagePost);
+    }
+
+    List<ImagePost> sortedImagePosts = new ArrayList<>();
+    for (Long imagePostId : longList) {
+      if (imagePostMap.containsKey(imagePostId)) {
+        sortedImagePosts.add(imagePostMap.get(imagePostId));
+      }
+    }
+    return sortedImagePosts;
   }
 }

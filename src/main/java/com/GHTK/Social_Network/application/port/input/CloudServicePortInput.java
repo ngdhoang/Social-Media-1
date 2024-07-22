@@ -1,13 +1,24 @@
 package com.GHTK.Social_Network.application.port.input;
 
+import java.util.Map;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface CloudServicePortInput {
-  String uploadPictureByBase64(String base64String);
+  Map uploadPictureByBase64(String base64String);
 
-  String uploadPictureByFile(MultipartFile file);
+  Map uploadPictureByFile(MultipartFile file);
 
-  String uploadPictureSetSize(String base64String, Long size);
+  Map uploadPictureByFile(MultipartFile file, Long size);
+
+  Map uploadPictureSetSize(String base64String, Long size);
+
+  String extractUrl(Map data);
+
+  String extractPublicId(Map data);
+
+  String extractKey(Map data, String key);
 
   boolean deletePictureByUrl(String url);
+
+  void checkImageValid(MultipartFile file);
 }

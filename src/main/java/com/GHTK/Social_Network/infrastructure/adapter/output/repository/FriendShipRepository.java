@@ -15,66 +15,90 @@ import java.util.List;
 @Repository
 public interface FriendShipRepository extends JpaRepository<FriendShip, Long> {
 
-    @Query("""
-            select f from FriendShip f
-            where f.userReceiveId = :userId or f.userInitiatorId = :userId
-                and (:status is null and f.friendshipStatus <> 'BLOCK') or f.friendshipStatus = :status
+  @Query("""
+          select f from FriendShip f
+          where f.userReceiveId = :userId or f.userInitiatorId = :userId
+              and (:status is null and f.friendshipStatus <> 'BLOCK') or f.friendshipStatus = :status
+          """)
+  List<FriendShip> getListFriend(
+          @Param("userId") Long userId,
+          @Param("status") EFriendshipStatus status,
+          Pageable pageable);
+
+
+  @Query("""
+          select f from FriendShip f
+          where f.userInitiatorId = :userId
+              and f.friendshipStatus = 'BLOCK'
+          """)
+  List<FriendShip> getListBlock(
+          @Param("userId") Long userId,
+          Pageable pageable);
+
+  @Query(value = """
+          select f from FriendShip f
+          where f.userReceiveId = :userReceiveId 
+          and f.userInitiatorId = :userInitiateId
+          """)
+  FriendShip findFriendShip(@Param("userInitiateId") Long userInitiateId, @Param("userReceiveId") Long userReceiveId);
+
+  @Modifying
+  @Transactional
+  @Query(value = """
+          update FriendShip f
+          set f.friendshipStatus = :status
+          where f.userReceiveId = :userReceiveId
+          and f.userInitiatorId = :userInitiateId
+          """)
+  void setRequestFriendShip(@Param("userReceiveId") Long userReceiveId, @Param("userInitiateId") Long userInitiateId, @Param("status") String status);
+
+  @Modifying
+  @Transactional
+  @Query(value = """
+          update FriendShip f
+          set f.friendshipStatus = :status
+          where f.friendShipId = :friendShipId
+          """)
+  void setRequestFriendShip(@Param("friendShipId") Long friendShipId, @Param("status") String status);
+
+  @Modifying
+  @Transactional
+  @Query(value = """
+          insert into FriendShip (user_receive_id, user_initiator_id, friendship_status)
+          values (:userReceiveId, :userInitiateId, :status)
+          """, nativeQuery = true)
+  void addFriendShip(@Param("userReceiveId") Long userReceiveId, @Param("userInitiateId") Long userInitiateId, @Param("status") String status);
+
+  @Modifying
+  @Transactional
+  @Query(value = """
+          delete from FriendShip f
+          where f.friendShipId = :friendShipId
+          """)
+  void delete(@Param("friendShipId") Long friendShipId);
+
+  @Query(value = """
+          select case when count(f) > 0 then true else false end
+          from FriendShip f
+          where 
+          (
+              (f.userReceiveId = :firstUser and f.userInitiatorId = :secondUser)
+              or (f.userReceiveId = :secondUser and f.userInitiatorId = :firstUser)
+          )
+          and f.friendshipStatus <> 'BLOCK'
+          and f.friendshipStatus <> 'PENDING'
+        """)
+  Boolean isFriend(@Param("firstUser") Long firstUser, @Param("secondUser") Long secondUser);
+
+  @Query(value = """
+            select case when count(f) > 0 then true else false end
+            from FriendShip f
+            where 
+            (
+                (f.userReceiveId = :firstUser and f.userInitiatorId = :secondUser)
+                or (f.userReceiveId = :secondUser and f.userInitiatorId = :firstUser)
+            )
+            and f.friendshipStatus = 'BLOCK'
             """)
-    List<FriendShip> getListFriend(
-            @Param("userId") Long userId,
-            @Param("status") EFriendshipStatus status,
-            Pageable pageable);
-
-
-    @Query("""
-            select f from FriendShip f
-            where f.userInitiatorId = :userId
-                and f.friendshipStatus = 'BLOCK'
-            """)
-    List<FriendShip> getListBlock(
-            @Param("userId") Long userId,
-            Pageable pageable);
-
-    @Query(value = """
-            select f from FriendShip f
-            where f.userReceiveId = :userReceiveId 
-            and f.userInitiatorId = :userInitiateId
-            """)
-    FriendShip findFriendShip(@Param("userInitiateId") Long userInitiateId, @Param("userReceiveId") Long userReceiveId);
-
-    @Modifying
-    @Transactional
-    @Query(value = """
-            update FriendShip f
-            set f.friendshipStatus = :status
-            where f.userReceiveId = :userReceiveId
-            and f.userInitiatorId = :userInitiateId
-            """)
-    void setRequestFriendShip(@Param("userReceiveId") Long userReceiveId, @Param("userInitiateId") Long userInitiateId, @Param("status") String status);
-
-    @Modifying
-    @Transactional
-    @Query(value = """
-            update FriendShip f
-            set f.friendshipStatus = :status
-            where f.friendShipId = :friendShipId
-            """)
-    void setRequestFriendShip(@Param("friendShipId") Long friendShipId, @Param("status") String status);
-
-    @Modifying
-    @Transactional
-    @Query(value = """
-            insert into FriendShip (user_receive_id, user_initiator_id, friendship_status)
-            values (:userReceiveId, :userInitiateId, :status)
-            """, nativeQuery = true)
-    void addFriendShip(@Param("userReceiveId") Long userReceiveId, @Param("userInitiateId") Long userInitiateId, @Param("status") String status);
-
-    @Modifying
-    @Transactional
-    @Query(value = """
-            delete from FriendShip f
-            where f.friendShipId = :friendShipId
-            """)
-    void delete(@Param("friendShipId") Long friendShipId);
-
+  Boolean isBlock(@Param("firstUser") Long firstUser, @Param("secondUser") Long secondUser);
 }

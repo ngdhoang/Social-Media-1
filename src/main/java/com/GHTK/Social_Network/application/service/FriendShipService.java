@@ -82,6 +82,9 @@ public class FriendShipService implements FriendShipPortInput {
       return getProfileDtos(user, friendShips);
     }
 
+    if(getFriendShipRequest.getStatus() == EFriendshipStatus.PENDING){
+      throw new CustomException("Not permission", HttpStatus.FORBIDDEN);
+    }
     User userReceive = profilePort.takeProfileById(getFriendShipRequest.getUserId())
             .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
@@ -208,7 +211,7 @@ public class FriendShipService implements FriendShipPortInput {
   }
 
   private void handleBothFriendShips(FriendShip friendShip, FriendShip friendShipReverse, User user, SetRequestFriendRequest setRequestFriendRequest, EFriendshipStatus requestedStatus) {
-    if (requestedStatus != null && friendShip.getFriendshipStatus().equals(requestedStatus)) {
+    if (friendShip.getFriendshipStatus().equals(requestedStatus)) {
       throw new CustomException("Request is duplicated", HttpStatus.BAD_REQUEST);
     }
     if (setRequestFriendRequest.getStatus() != status.get(EFriendshipStatus.BLOCK)
@@ -258,4 +261,5 @@ public class FriendShipService implements FriendShipPortInput {
     }
     return null;
   }
+
 }

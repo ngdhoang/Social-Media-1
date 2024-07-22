@@ -1,13 +1,13 @@
 package com.GHTK.Social_Network.infrastructure.payload.responses.post;
 
-import lombok.AllArgsConstructor;
+import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
 import lombok.Data;
 
 import java.util.Date;
 import java.util.List;
 
 @Data
-@AllArgsConstructor
 public class PostResponse {
   private Long postId;
 
@@ -17,5 +17,7 @@ public class PostResponse {
 
   private Date updateAt;
 
-  private List<String> imagePost;
+  private List<ImageDto> imagePosts;
+
+  private List<ProfileDto> tagUsers;
 }

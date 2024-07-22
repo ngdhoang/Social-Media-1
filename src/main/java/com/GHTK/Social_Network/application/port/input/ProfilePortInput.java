@@ -4,6 +4,7 @@ import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.ProfileStateRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateProfileRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ProfilePortInput {
   ProfileDto getProfile(Long id);
@@ -12,5 +13,5 @@ public interface ProfilePortInput {
 
   ProfileDto setStateProfile(ProfileStateRequest profileStateDto);
 
-  ProfileDto updateAvatarProfile(ImageDto imageDto);
+  ProfileDto updateAvatarProfile(MultipartFile file);
 }

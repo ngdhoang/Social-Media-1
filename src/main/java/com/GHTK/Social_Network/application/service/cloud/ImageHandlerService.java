@@ -14,6 +14,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashSet;
@@ -63,6 +64,11 @@ public class ImageHandlerService implements ImageHandlerPortInput {
   }
 
   @Override
+  public boolean checkSizeValid(MultipartFile file, long maxSize) {
+    return multipartImageSizeCalculator(file) < maxSize;
+  }
+
+  @Override
   public boolean isImage(String base64) {
     if (!isBase64(base64)) {
       return false;
@@ -76,6 +82,27 @@ public class ImageHandlerService implements ImageHandlerPortInput {
     ));
 
     return validImageMimeTypes.contains(mimeType);
+  }
+
+  @Override
+  public boolean isImage(MultipartFile multipartFile) {
+    String originalFilename = multipartFile.getOriginalFilename();
+    if (originalFilename == null) {
+      return false;
+    }
+
+    String name = originalFilename.toLowerCase();
+    if (name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png") ||
+            name.endsWith(".gif") || name.endsWith(".bmp") || name.endsWith(".webp")) {
+
+      try (InputStream inputStream = multipartFile.getInputStream()) {
+        BufferedImage img = ImageIO.read(inputStream);
+        return img != null;
+      } catch (IOException e) {
+        return false;
+      }
+    }
+    return false;
   }
 
   @Override
@@ -116,6 +143,56 @@ public class ImageHandlerService implements ImageHandlerPortInput {
     }
   }
 
+  @Override
+  public MultipartFile compressImage(MultipartFile inputFile, long maxSize) {
+    try {
+      BufferedImage originalImage = ImageIO.read(inputFile.getInputStream());
+      if (originalImage == null) {
+        throw new IOException("The input file is not a valid image.");
+      }
+
+      float quality = 1.0f;
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+      while (true) {
+        baos.reset();
+        ImageOutputStream ios = ImageIO.createImageOutputStream(baos);
+        ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
+        writer.setOutput(ios);
+
+        ImageWriteParam param = writer.getDefaultWriteParam();
+        if (param.canWriteCompressed()) {
+          param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+          param.setCompressionQuality(quality);
+        }
+
+        writer.write(null, new IIOImage(originalImage, null, null), param);
+        writer.dispose();
+        ios.close();
+
+        if (baos.size() <= maxSize || quality <= 0.1f) {
+          break;
+        }
+
+        quality -= 0.1f;
+      }
+
+      byte[] compressedBytes = baos.toByteArray();
+
+      return new CustomMultipartFile(
+              compressedBytes,
+              inputFile.getOriginalFilename(),
+              "image/jpeg",
+              inputFile.getName()
+      );
+
+    } catch (IOException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+
   private String getMimeTypeFromBytes(byte[] bytes) {
     if (bytes.length < 8) {
       return null;
@@ -139,7 +216,23 @@ public class ImageHandlerService implements ImageHandlerPortInput {
 
   @Override
   public MultipartFile convertBase64ToMultipartFile(String base64String) {
-    byte[] bytes = base64ToByte(base64String);
-    return new BASE64DecodedMultipartFile(bytes);
+    String[] parts = base64String.split(",");
+    String imageString = parts.length > 1 ? parts[1] : parts[0];
+
+    byte[] bytes = Base64.getDecoder().decode(imageString);
+
+    String contentType = "image/jpeg"; // Mặc định là JPEG
+    if (parts.length > 1 && parts[0].contains("image/")) {
+      contentType = parts[0].split(":")[1].split(";")[0];
+    }
+
+    String filename = "image." + contentType.split("/")[1]; // Tạo tên file dựa trên loại nội dung
+
+    return new CustomMultipartFile(bytes, "file", filename, contentType);
+  }
+
+  @Override
+  public long multipartImageSizeCalculator(MultipartFile multipartFile) {
+    return multipartFile.getSize();
   }
 }

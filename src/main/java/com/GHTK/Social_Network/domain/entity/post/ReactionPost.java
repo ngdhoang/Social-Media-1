@@ -3,13 +3,11 @@ package com.GHTK.Social_Network.domain.entity.post;
 import com.GHTK.Social_Network.domain.entity.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
 @Entity
-@Builder
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReactionPost {
@@ -17,14 +15,20 @@ public class ReactionPost {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long reactionPostId;
 
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "post_id", nullable = false)
+  private Post post;
+
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
+
   @Enumerated(EnumType.STRING)
   private EReactionType reactionType;
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "userId", nullable = false)
-  private User user;
-
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "postId", nullable = false)
-  private Post post;
+  public ReactionPost(Post post, User user, EReactionType reactionType) {
+    this.post = post;
+    this.user = user;
+    this.reactionType = reactionType;
+  }
 }
