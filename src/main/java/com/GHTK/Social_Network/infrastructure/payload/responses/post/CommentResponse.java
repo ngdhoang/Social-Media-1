@@ -17,7 +17,7 @@ public class CommentResponse {
 
   private List<CommentResponse> childComments;
 
-  private Long commentOriginal;
+//  private Long commentOriginal;
 
   private Long postId;
 

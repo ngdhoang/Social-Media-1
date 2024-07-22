@@ -32,7 +32,7 @@ public class ProfilePortImpl implements ProfilePort {
     savedUser.setWorkPlace(updateProfileRequest.getWorkPlace());
     savedUser.setIsProfilePublic(updateProfileRequest.getIsProfilePublic());
     userRepository.save(savedUser);
-    return null;
+    return true;
   }
 
   @Override

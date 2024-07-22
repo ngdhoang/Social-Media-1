@@ -55,8 +55,11 @@ public class WebSecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unAuthorizationHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(request -> request
-                    .requestMatchers("/api/auth/**", "api/profile", "/api/search").permitAll()
+                    .requestMatchers("/api/auth/**", "/api/search", "/api/post/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/profile").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/post/**", "/api/post").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/post/{p}/reaction").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/post/{id}/comment").permitAll()
                     .anyRequest().authenticated()
             )
             .authenticationProvider(daoAuthenticationProvider())

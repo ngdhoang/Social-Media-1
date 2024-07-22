@@ -4,7 +4,7 @@ import com.GHTK.Social_Network.domain.entity.post.EReactionType;
 import lombok.Data;
 
 @Data
-public class ReactionPostResponse {
+public class ReactionResponse {
   private Long reactionPostId;
 
   private Long postId;

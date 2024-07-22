@@ -87,7 +87,8 @@ public class PostService implements PostPortInput {
   @Override
   public PostResponse createPost(PostRequest postRequest) {
     // async
-    imagePostPort.deleteImageRedisByPublicId(postRequest.getDeletePublicIds());
+    String tail = "_" + getUserAuth().getUserEmail();
+    imagePostPort.deleteImageRedisByPublicId(postRequest.getDeletePublicIds(), tail);
 
     // take status post
     EPostStatus ePostStatus = filterStatusPost(postRequest.getStatus());
@@ -132,7 +133,7 @@ public class PostService implements PostPortInput {
 
   @Override
   public PostResponse updatePost(PostRequest postRequest) {
-    imagePostPort.deleteImageRedisByPublicId(postRequest.getDeletePublicIds());
+    imagePostPort.deleteImageRedisByPublicId(postRequest.getDeletePublicIds(), "_" + getUserAuth().getUserEmail());
 
     User user = getUserAuth();
     // Check post exist
@@ -202,7 +203,7 @@ public class PostService implements PostPortInput {
     }
 
     // Check block
-    if (friendShipPort.isBlock(userId, getUserAuth().getUserId())) {
+    if (friendShipPort.isBlock(userId, getUserAuth().getUserId()) && userId.equals(getUserAuth().getUserId())) {
       throw new CustomException("User has blocked", HttpStatus.FORBIDDEN);
     }
     // -----------------
@@ -238,7 +239,7 @@ public class PostService implements PostPortInput {
     }
 
     // Check block
-    if (friendShipPort.isBlock(post.getUser().getUserId(), getUserAuth().getUserId())) {
+    if (friendShipPort.isBlock(post.getUser().getUserId(), getUserAuth().getUserId()) && post.getUser().getUserId().equals(getUserAuth().getUserId())) {
       throw new CustomException("User has blocked", HttpStatus.FORBIDDEN);
     }
     // ----------------------

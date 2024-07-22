@@ -4,13 +4,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 
-public class BASE64DecodedMultipartFile implements MultipartFile {
+public class CustomMultipartFile implements MultipartFile {
   private final byte[] imgContent;
   private final String name;
   private final String originalFilename;
   private final String contentType;
 
-  public BASE64DecodedMultipartFile(byte[] imgContent, String name, String originalFilename, String contentType) {
+  public CustomMultipartFile(byte[] imgContent, String name, String originalFilename, String contentType) {
     this.imgContent = imgContent;
     this.name = name;
     this.originalFilename = originalFilename;
@@ -19,20 +19,17 @@ public class BASE64DecodedMultipartFile implements MultipartFile {
 
   @Override
   public String getName() {
-    // TODO - implementation depends on your requirements
-    return null;
+    return name;
   }
 
   @Override
   public String getOriginalFilename() {
-    // TODO - implementation depends on your requirements
-    return null;
+    return originalFilename;
   }
 
   @Override
   public String getContentType() {
-    // TODO - implementation depends on your requirements
-    return null;
+    return contentType;
   }
 
   @Override

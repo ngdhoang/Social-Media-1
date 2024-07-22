@@ -96,7 +96,7 @@ public class CloudService implements CloudServicePortInput {
   @Override
   public String extractKey(Map data, String key) {
     if (data.get(key) == null)
-      throw new RuntimeException("Failed to extract "  + key + " from Cloudinary");
+      throw new RuntimeException("Failed to extract " + key + " from Cloudinary");
     return (String) data.get(key);
   }
 
@@ -120,6 +120,17 @@ public class CloudService implements CloudServicePortInput {
     } catch (IOException e) {
       e.printStackTrace();
       return false;
+    }
+  }
+
+  @Override
+  public void checkImageValid(MultipartFile file) {
+    if (!imageHandlerPortInput.isImage(file)) {
+      throw new CustomException("Input not image", HttpStatus.BAD_REQUEST);
+    }
+
+    if (!imageHandlerPortInput.checkSizeValid(file, ImageHandlerPortInput.MAX_SIZE_NOT_VALID)) {
+      throw new CustomException("Size not valid", HttpStatus.BAD_REQUEST);
     }
   }
 }

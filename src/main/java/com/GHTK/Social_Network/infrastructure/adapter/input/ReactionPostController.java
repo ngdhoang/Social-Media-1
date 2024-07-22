@@ -3,7 +3,7 @@ package com.GHTK.Social_Network.infrastructure.adapter.input;
 import com.GHTK.Social_Network.application.port.input.post.ReactionPostInput;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
-import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionPostResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +20,12 @@ public class ReactionPostController {
 
   @PostMapping("/{p}/reaction")
   public ResponseEntity<Object> reactionPostHandler(@PathVariable Long p, @RequestParam String r) {
-    ReactionPostResponse response = reactionPostInput.handleReactionPost(p, r);
+    ReactionResponse response = reactionPostInput.handleReactionPost(p, r);
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, Objects.requireNonNullElseGet(response, () -> new MessageResponse("Delete reaction success")));
   }
 
   @GetMapping("/{p}/reaction")
-  public ResponseEntity<Object> reactionPostHandler(@PathVariable Long p) {
+  public ResponseEntity<Object> getReactionPostHandler(@PathVariable Long p) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionPostInput.getAllReactionInPost(p));
   }
 }

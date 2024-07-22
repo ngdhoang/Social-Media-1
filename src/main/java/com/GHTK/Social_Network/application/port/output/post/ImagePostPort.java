@@ -12,7 +12,7 @@ public interface ImagePostPort {
   void deleteImageById(Long id);
 
   @Async
-  void deleteImageRedisByPublicId(List<String> publicId);
+  void deleteImageRedisByPublicId(List<String> publicId, String tail);
 
   ImagePost saveImagePost(ImagePost imagePost);
 

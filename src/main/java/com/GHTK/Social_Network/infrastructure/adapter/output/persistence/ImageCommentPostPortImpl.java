@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class imageCommentPostPortImpl implements ImageCommentPostPort {
+public class ImageCommentPostPortImpl implements ImageCommentPostPort {
   private final ImageCommentRepository imageCommentRepository;
 
   @Override

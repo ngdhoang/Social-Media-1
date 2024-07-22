@@ -1,6 +1,7 @@
 package com.GHTK.Social_Network.domain.entity.post.comment;
 
 import com.GHTK.Social_Network.domain.entity.post.Post;
+import com.GHTK.Social_Network.domain.entity.post.ReactionPost;
 import com.GHTK.Social_Network.domain.entity.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -44,6 +45,10 @@ public class Comment {
   @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<ImageComment> imageComments;
+
+  @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY,
+          cascade = CascadeType.ALL)
+  private List<ReactionComment> reactionComments;
 
   public Comment(Date createUp, String content, User user, Post post) {
     this.createUp = createUp;

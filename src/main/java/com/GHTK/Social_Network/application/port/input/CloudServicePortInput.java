@@ -19,4 +19,6 @@ public interface CloudServicePortInput {
   String extractKey(Map data, String key);
 
   boolean deletePictureByUrl(String url);
+
+  void checkImageValid(MultipartFile file);
 }

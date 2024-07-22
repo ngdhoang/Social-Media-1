@@ -179,7 +179,7 @@ public class ImageHandlerService implements ImageHandlerPortInput {
 
       byte[] compressedBytes = baos.toByteArray();
 
-      return new BASE64DecodedMultipartFile(
+      return new CustomMultipartFile(
               compressedBytes,
               inputFile.getOriginalFilename(),
               "image/jpeg",
@@ -228,7 +228,7 @@ public class ImageHandlerService implements ImageHandlerPortInput {
 
     String filename = "image." + contentType.split("/")[1]; // Tạo tên file dựa trên loại nội dung
 
-    return new BASE64DecodedMultipartFile(bytes, "file", filename, contentType);
+    return new CustomMultipartFile(bytes, "file", filename, contentType);
   }
 
   @Override

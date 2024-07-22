@@ -26,6 +26,7 @@ public class PostController {
 
   @PostMapping("/up-image")
   public ResponseEntity<Object> upImage(@ModelAttribute @Valid CreateImageRequest request) {
+    System.out.println("jashfjkashdf");
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, imagePostInput.createImage(request));
   }
 

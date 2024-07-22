@@ -1,20 +1,25 @@
 package com.GHTK.Social_Network.application.service.post;
 
 import com.GHTK.Social_Network.application.port.input.post.CommentPostInput;
+import com.GHTK.Social_Network.application.port.input.post.ReactionCommentPostInput;
 import com.GHTK.Social_Network.application.port.output.AuthPort;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.post.CommentPostPort;
 import com.GHTK.Social_Network.application.port.output.post.ImageCommentPostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
+import com.GHTK.Social_Network.domain.entity.post.EReactionType;
 import com.GHTK.Social_Network.domain.entity.post.Post;
 import com.GHTK.Social_Network.domain.entity.post.comment.Comment;
 import com.GHTK.Social_Network.domain.entity.post.comment.ImageComment;
+import com.GHTK.Social_Network.domain.entity.post.comment.ReactionComment;
 import com.GHTK.Social_Network.domain.entity.user.User;
 import com.GHTK.Social_Network.infrastructure.exception.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.CommentMapper;
+import com.GHTK.Social_Network.infrastructure.payload.Mapping.ReactionCommentMapper;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.CommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.CommentResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
@@ -23,13 +28,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-public class CommentService implements CommentPostInput {
+public class CommentService implements CommentPostInput, ReactionCommentPostInput {
   private final PostPort postPort;
 
   private final AuthPort authenticationRepositoryPort;
@@ -59,14 +65,13 @@ public class CommentService implements CommentPostInput {
             .orElseThrow(() -> new UsernameNotFoundException("Invalid token"));
   }
 
-  private void checkCommentValid(Post post, User user) {
+  private void checkCommentValid(Post post, User u) {
     if (post == null) {
       throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
     }
 
-    if (friendShipPort.isBlock(user.getUserId(), post.getUser().getUserId()) || !post.getUser().getIsProfilePublic()) {
+    if (friendShipPort.isBlock(u.getUserId(), post.getUser().getUserId()) || !post.getUser().getIsProfilePublic() && !u.getUserId().equals(getUserAuth().getUserId())) {
       throw new CustomException("You are not allowed to create a comment", HttpStatus.FORBIDDEN);
-
     }
   }
 
@@ -181,5 +186,37 @@ public class CommentService implements CommentPostInput {
       imageCommentPostPort.saveImageComment(imageComment);
     }
     return imageComment;
+  }
+
+  @Override
+  public ReactionResponse handleReactionComment(Long commentId, String reactionType) {
+    Post post = postPort.findPostByPostId(commentId);
+    Comment updatedComment = commentPostPort.findCommentById(commentId);
+    checkCommentValid(post, updatedComment.getUser());
+
+    EReactionType newReactionType;
+    try {
+      newReactionType = EReactionType.valueOf(reactionType.toUpperCase());
+    } catch (IllegalArgumentException e) {
+      throw new CustomException("Invalid reaction type", HttpStatus.BAD_REQUEST);
+    }
+
+    ReactionComment reactionComment = commentPostPort.findByCommentIdAndUserID(commentId, getUserAuth().getUserId());
+    if (reactionComment == null) {
+      ReactionComment newReactionComment = new ReactionComment(
+              newReactionType,
+              updatedComment,
+              getUserAuth()
+      );
+      return ReactionCommentMapper.INSTANCE.toReactionResponse(commentPostPort.saveReactionComment(newReactionComment));
+    }
+
+    reactionComment.setReactionType(newReactionType);
+    return ReactionCommentMapper.INSTANCE.toReactionResponse(commentPostPort.saveReactionComment(reactionComment));
+  }
+
+  @Override
+  public List<ReactionResponse> getAllReactionInComment(Long commentId) {
+    return List.of();
   }
 }

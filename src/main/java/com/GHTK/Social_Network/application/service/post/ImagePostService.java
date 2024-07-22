@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.application.service.post;
 
 import com.GHTK.Social_Network.application.port.input.CloudServicePortInput;
-import com.GHTK.Social_Network.application.port.input.ImageHandlerPortInput;
+import com.GHTK.Social_Network.application.port.input.RandomStringGeneratorPortInput;
 import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
 import com.GHTK.Social_Network.application.port.output.AuthPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +40,10 @@ public class ImagePostService implements ImagePostInput {
   private final AuthPort authenticationRepositoryPort;
 
   private final PostPort postPort;
+
+  private final RandomStringGeneratorPortInput randomStringGeneratorPortInput;
+
+  private final AsyncImageUpload asyncImageUpload;
 
   private User getUserAuth() {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -58,21 +61,34 @@ public class ImagePostService implements ImagePostInput {
             .orElseThrow(() -> new UsernameNotFoundException("Invalid token"));
   }
 
-  @Override
-  public ImageResponse createImage(CreateImageRequest request) {
-    Map data = cloudServicePortInput.uploadPictureByFile(request.getFile(), ImageHandlerPortInput.MAX_SIZE_POST);
-    ImageResponse imageResponse = new ImageResponse();
-    ImagePostDto imageDto = new ImagePostDto(cloudServicePortInput.extractPublicId(data), cloudServicePortInput.extractUrl(data));
-    imageRedisTemplate.opsForValue().set(cloudServicePortInput.extractPublicId(data), cloudServicePortInput.extractUrl(data));
-    List<ImagePostDto> imageDtoList = new ArrayList<>();
-    imageDtoList.add(imageDto);
-    imageResponse.setImageDtoList(imageDtoList);
 
-    return imageResponse;
+  @Override
+  public ImagePostDto createImage(CreateImageRequest request) {
+    cloudServicePortInput.checkImageValid(request.getFile());
+    String publicId = randomStringGeneratorPortInput.generateRandomPublicId(8);
+
+    asyncImageUpload.uploadImageAsync(request.getFile(), publicId + "_" + getUserAuth().getUserEmail());
+
+    return new ImagePostDto(publicId, "");
   }
 
+//  public ImageResponse createImage(CreateImageRequest request) {
+//    cloudServicePortInput.checkImageValid(request.getFile());
+//    Map data = cloudServicePortInput.uploadPictureByFile(request.getFile(), ImageHandlerPortInput.MAX_SIZE_POST);
+//    ImageResponse imageResponse = new ImageResponse();
+//    ImagePostDto imageDto = new ImagePostDto(cloudServicePortInput.extractPublicId(data), cloudServicePortInput.extractUrl(data));
+//    imageRedisTemplate.opsForValue().set(cloudServicePortInput.extractPublicId(data), cloudServicePortInput.extractUrl(data));
+//    List<ImagePostDto> imageDtoList = new ArrayList<>();
+//    imageDtoList.add(imageDto);
+//    imageResponse.setImageDtoList(imageDtoList);
+//
+//
+//
+//    return imageResponse;
+//  }
+
   @Override
-  public ImageResponse updateImage(UpdateImagePostDto request) {
+  public ImagePostDto updateImage(UpdateImagePostDto request) {
     deleteImage(request.getImageId());
 
     return createImage(new CreateImageRequest(request.getImage()));

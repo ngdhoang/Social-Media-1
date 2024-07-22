@@ -10,6 +10,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -31,8 +32,16 @@ public class ImagePostPortImpl implements ImagePostPort {
   }
 
   @Override
-  public void deleteImageRedisByPublicId(List<String> publicId) {
-    publicId.forEach(imageRedisTemplate::delete);
+  public void deleteImageRedisByPublicId(List<String> publicIds, String tail) {
+//    publicIds.forEach(publicId -> {
+//      imageRedisTemplate.delete(publicId);
+//      imageRedisTemplate.delete(publicId);
+//    });
+    Set<String> keys = imageRedisTemplate.keys("*" + tail);
+
+    if (keys != null) {
+      keys.forEach(imageRedisTemplate::delete);
+    }
   }
 
   @Override

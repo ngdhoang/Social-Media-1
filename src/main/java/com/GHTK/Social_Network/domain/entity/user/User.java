@@ -6,6 +6,7 @@ import com.GHTK.Social_Network.domain.entity.post.ReactionPost;
 import com.GHTK.Social_Network.domain.entity.post.TagUser;
 import com.GHTK.Social_Network.domain.entity.post.comment.Comment;
 import com.GHTK.Social_Network.domain.entity.post.comment.ImageComment;
+import com.GHTK.Social_Network.domain.entity.post.comment.ReactionComment;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -79,6 +80,10 @@ public class User {
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<ReactionPost> reactionPosts;
+
+  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
+          cascade = CascadeType.ALL)
+  private List<ReactionComment> reactionComments;
 
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)

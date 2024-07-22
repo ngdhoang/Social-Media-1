@@ -15,7 +15,7 @@ public class UpdateProfileRequest {
     @Email(message = "Email invalidate")
     private String email;
 
-    @ValidPhoneNumber(message = "Phone invalidate")
+//    @ValidPhoneNumber(message = "Phone invalidate")
     private String phoneNumber;
 
     private LocalDate dob;

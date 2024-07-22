@@ -11,7 +11,7 @@ import com.GHTK.Social_Network.domain.entity.post.ReactionPost;
 import com.GHTK.Social_Network.domain.entity.user.User;
 import com.GHTK.Social_Network.infrastructure.exception.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ReactionPostMapper;
-import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionPostResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -72,7 +72,7 @@ public class ReactionPostService implements ReactionPostInput {
   }
 
   @Override
-  public ReactionPostResponse handleReactionPost(Long postId, String reactionType) {
+  public ReactionResponse handleReactionPost(Long postId, String reactionType) {
     Post post = postPort.findPostByPostId(postId);
     validatePostAccess(post);
 
@@ -100,11 +100,10 @@ public class ReactionPostService implements ReactionPostInput {
   }
 
   @Override
-  public List<ReactionPostResponse> getAllReactionInPost(Long postId) {
+  public List<ReactionResponse> getAllReactionInPost(Long postId) {
     return reactionPostPort.findByPostId(postId).stream().map(
             ReactionPostMapper.INSTANCE::toReactionPostResponse
     ).toList();
   }
-
 
 }
