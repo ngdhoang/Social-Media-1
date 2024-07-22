@@ -1,11 +1,10 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
-import com.GHTK.Social_Network.application.port.output.AuthPort;
-import com.GHTK.Social_Network.domain.entity.user.Token;
-import com.GHTK.Social_Network.domain.entity.user.User;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.TokenRepository;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
-import com.GHTK.Social_Network.infrastructure.exception.CustomException;
+import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
+import com.GHTK.Social_Network.domain.model.user.Token;
+import com.GHTK.Social_Network.domain.model.user.User;
+import com.GHTK.Social_Network.infrastructure.adapter.output.TokenRepositoryAdapter;
+import com.GHTK.Social_Network.infrastructure.adapter.output.UserRepositoryAdapter;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,23 +14,23 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class AuthRepositoryPortImpl implements AuthPort {
-  private final TokenRepository tokenRepository;
+  private final TokenRepositoryAdapter tokenEntityRepository;
 
-  private final UserRepository userRepository;
+  private final UserRepositoryAdapter userRepository;
 
   @Override
   public List<Token> findAllValidTokenByUser(Long id) {
-    return tokenRepository.findAllValidTokenByUser(id);
+    return tokenEntityRepository.findAllValidTokenByUser(id);
   }
 
   @Override
-  public void saveToken(Token token) {
-    tokenRepository.save(token);
+  public void saveToken(Token tokenEntity) {
+    tokenEntityRepository.save(tokenEntity);
   }
 
   @Override
-  public void saveAll(List<Token> tokens) {
-    tokenRepository.saveAll(tokens);
+  public void saveAll(List<Token> tokenEntities) {
+    tokenEntityRepository.saveAll(tokenEntities);
   }
 
   @Override
@@ -56,7 +55,7 @@ public class AuthRepositoryPortImpl implements AuthPort {
 
   @Override
   public Optional<Token> findByToken(String jwt) {
-    return tokenRepository.findByToken(jwt);
+    return tokenEntityRepository.findByToken(jwt);
   }
 
   @Override

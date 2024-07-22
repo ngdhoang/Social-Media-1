@@ -1,9 +1,9 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
-import com.GHTK.Social_Network.domain.entity.post.ImagePost;
-import com.GHTK.Social_Network.domain.entity.post.Post;
-import com.GHTK.Social_Network.domain.entity.post.TagUser;
-import com.GHTK.Social_Network.domain.entity.user.User;
+import com.GHTK.Social_Network.infrastructure.entity.post.ImagePostEntity;
+import com.GHTK.Social_Network.infrastructure.entity.post.PostEntity;
+import com.GHTK.Social_Network.infrastructure.entity.post.TagUserEntity;
+import com.GHTK.Social_Network.infrastructure.entity.user.UserEntity;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.PostResponse;
@@ -23,22 +23,22 @@ public interface PostMapper {
 
   @Mapping(source = "imagePosts", target = "imagePosts", qualifiedByName = "imagePostsToUrls")
   @Mapping(source = "tagUsers", target = "tagUsers", qualifiedByName = "tagUserToTagUserDto")
-  PostResponse postToPostResponse(Post post);
+  PostResponse postToPostResponse(PostEntity postEntity);
 
   @Named("imagePostsToUrls")
-  default List<ImageDto> imagePostsToUrls(List<ImagePost> imagePosts) {
+  default List<ImageDto> imagePostsToUrls(List<ImagePostEntity> imagePosts) {
     return imagePosts.stream()
             .map((imagePost) -> new ImageDto(imagePost.getImagePostId(), imagePost.getImageUrl(), imagePost.getCreateAt()))
             .collect(Collectors.toList());
   }
 
   @Named("tagUserToTagUserDto")
-  default List<ProfileDto> tagUserToTagUserDto(List<TagUser> tagUserList) {
-    return Optional.ofNullable(tagUserList)
+  default List<ProfileDto> tagUserToTagUserDto(List<TagUserEntity> tagUserEntityList) {
+    return Optional.ofNullable(tagUserEntityList)
             .orElse(Collections.emptyList())
             .stream()
             .map(tu -> {
-              User u = tu.getUser();
+              UserEntity u = tu.getUserEntity();
               return ProfileDto.builder()
                       .profileId(u.getUserId())
                       .firstName(u.getFirstName())

@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
-import com.GHTK.Social_Network.domain.entity.post.comment.Comment;
+import com.GHTK.Social_Network.infrastructure.entity.post.comment.CommentEntity;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.CommentResponse;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
@@ -13,16 +13,16 @@ import java.util.Optional;
 public interface CommentMapper {
   CommentMapper INSTANCE = Mappers.getMapper(CommentMapper.class);
 
-  @Mapping(source = "user.userId", target = "userId")
+  @Mapping(source = "userEntity.userId", target = "userId")
   @Mapping(source = "post.postId", target = "postId")
   @Mapping(source = "parentComment.commentId", target = "parentCommentId")
   @Mapping(target = "childComments", expression = "java(mapChildComments(comment.getChildComments()))")
   @Mapping(target = "image", expression = "java(getFirstImageUrl(comment))")
-  CommentResponse commentToCommentResponse(Comment comment);
+  CommentResponse commentToCommentResponse(CommentEntity comment);
 
-  List<CommentResponse> mapChildComments(List<Comment> childComments);
+  List<CommentResponse> mapChildComments(List<CommentEntity> childComments);
 
-  default String getFirstImageUrl(Comment comment) {
+  default String getFirstImageUrl(CommentEntity comment) {
     return Optional.ofNullable(comment.getImageComments())
             .orElse(Collections.emptyList())
             .stream()
@@ -32,7 +32,7 @@ public interface CommentMapper {
   }
 
   @AfterMapping
-  default void setAdditionalFields(Comment comment, @MappingTarget CommentResponse commentResponse) {
+  default void setAdditionalFields(CommentEntity comment, @MappingTarget CommentResponse commentResponse) {
     if (comment.getImageComments() != null && !comment.getImageComments().isEmpty()) {
       commentResponse.setImage(comment.getImageComments().get(0).getImageUrl());
     }

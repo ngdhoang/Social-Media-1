@@ -2,7 +2,7 @@ package com.GHTK.Social_Network.application.service;
 
 import com.GHTK.Social_Network.application.port.input.SearchPortInput;
 import com.GHTK.Social_Network.application.port.output.SearchPort;
-import com.GHTK.Social_Network.domain.entity.user.User;
+import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.SearchMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.SearchDto;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +24,8 @@ public class SearchService implements SearchPortInput {
 
     List<SearchDto> results = new ArrayList<>();
 
-    List<User> users = searchPort.searchUserInPage(keyword);
-    users.forEach(user -> {
+    List<User> userEntities = searchPort.searchUserInPage(keyword);
+    userEntities.forEach(user -> {
       results.add(SearchMapper.INSTANCE.UserToSearchDto(user));
     });
 

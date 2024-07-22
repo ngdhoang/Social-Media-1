@@ -1,8 +1,8 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
 import com.GHTK.Social_Network.application.port.output.post.ReactionPostPort;
-import com.GHTK.Social_Network.domain.entity.post.ReactionPost;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ReactionPostRepository;
+import com.GHTK.Social_Network.infrastructure.entity.post.ReactionPost;
+import com.GHTK.Social_Network.infrastructure.repository.ReactionPostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

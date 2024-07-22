@@ -1,28 +1,27 @@
 package com.GHTK.Social_Network.application.service.post;
 
 import com.GHTK.Social_Network.application.port.input.post.PostPortInput;
-import com.GHTK.Social_Network.application.port.output.AuthPort;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
+import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
-import com.GHTK.Social_Network.domain.collection.ImageSequence;
-import com.GHTK.Social_Network.domain.entity.post.EPostStatus;
-import com.GHTK.Social_Network.domain.entity.post.ImagePost;
-import com.GHTK.Social_Network.domain.entity.post.Post;
-import com.GHTK.Social_Network.domain.entity.post.TagUser;
-import com.GHTK.Social_Network.domain.entity.user.User;
-import com.GHTK.Social_Network.infrastructure.exception.CustomException;
+import com.GHTK.Social_Network.common.customException.CustomException;
+import com.GHTK.Social_Network.domain.model.post.EPostStatus;
+import com.GHTK.Social_Network.domain.model.post.Post;
+import com.GHTK.Social_Network.domain.model.post.TagUser;
+import com.GHTK.Social_Network.domain.model.user.User;
+import com.GHTK.Social_Network.infrastructure.MapperEntity.UserMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.PostMapper;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.PostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.PostResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,14 +30,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PostService implements PostPortInput {
   private final PostPort portPost;
-
   private final ImagePostPort imagePostPort;
-
-  private final RedisTemplate<String, String> imageRedisTemplate;
-
   private final FriendShipPort friendShipPort;
-
-  private final AuthPort authenticationRepositoryPort;
+  private final AuthPort authPort;
 
   private User getUserAuth() {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -52,9 +46,10 @@ public class PostService implements PostPortInput {
       throw new IllegalStateException("Unexpected principal type: " + principal.getClass());
     }
 
-    return authenticationRepositoryPort.findByEmail(username)
+    return authPort.findByEmail(username)
             .orElseThrow(() -> new UsernameNotFoundException("Invalid token"));
   }
+
 
   // Handler status post
   private EPostStatus filterStatusPost(String status) {
@@ -72,12 +67,12 @@ public class PostService implements PostPortInput {
     List<TagUser> tagUserList = new ArrayList<>();
     tagUserIds.stream().forEach(
             u -> {
-              if (!friendShipPort.isFriend(u, post.getUser().getUserId())) {
+              if (!friendShipPort.isFriend(u, post.getUserId())) {
                 throw new CustomException("User not friend or block", HttpStatus.NOT_FOUND);
               }
-              User user = authenticationRepositoryPort.getUserById(u);
-              TagUser tagUser = TagUser.builder().post(post).user(user).build();
-              portPost.saveTagUser(tagUser);
+              User user = authPort.getUserById(u);
+              TagUser tagUser = TagUser.builder().postId(post.getPostId()).userId(user.getUserId()).build();
+              portPost.saveTagUser();
               tagUserList.add(tagUser);
             }
     );
@@ -93,19 +88,19 @@ public class PostService implements PostPortInput {
     EPostStatus ePostStatus = filterStatusPost(postRequest.getStatus());
 
     // Create new post
-    Post post = Post.builder()
+    Post postEntity = PostEntity.builder()
             .content(postRequest.getContent())
             .postStatus(ePostStatus)
-            .user(getUserAuth()).build();
+            .userEntity(getUserAuth()).build();
 
-    Post newPost = portPost.savePost(post);
+    PostEntity newPostEntity = portPost.savePost(postEntity);
 
     // Handler tag user
     List<TagUser> tagUserList = new ArrayList<>();
     if (!postRequest.getTagUserIds().isEmpty()) {
-      getTagUsers(postRequest.getTagUserIds(), post);
-      post.setTagUsers(tagUserList);
-      post.setUser(getUserAuth());
+      getTagUsers(postRequest.getTagUserIds(), postEntity);
+      postEntity.setTagUsers(tagUserList);
+      postEntity.setUserEntity(getUserAuth());
     }
 
     // Sau đó xử lý và lưu ImagePost
@@ -115,44 +110,44 @@ public class PostService implements PostPortInput {
     for (String k : keys) {
       if (Boolean.TRUE.equals(imageRedisTemplate.hasKey(k))) {
         String url = imageRedisTemplate.opsForValue().get(k);
-        ImagePost imagePost = new ImagePost(url, new Date(), newPost);
+        ImagePost imagePost = new ImagePost(url, new Date(), newPostEntity);
         imagePosts.add(imagePostPort.saveImagePost(imagePost));
         imagePostSort.add(imagePost.getImagePostId());
         imageRedisTemplate.delete(k);
       }
     }
-    imagePostPort.saveImageSequence(new ImageSequence(post.getPostId(), imagePostSort));
+    imagePostPort.saveImageSequence(new ImageSequence(postEntity.getPostId(), imagePostSort));
 
-    newPost.setImagePosts(imagePosts);
-    newPost.setCreatedAt(new Date());
-    newPost = portPost.savePost(newPost);
+    newPostEntity.setImagePosts(imagePosts);
+    newPostEntity.setCreatedAt(new Date());
+    newPostEntity = portPost.savePost(newPostEntity);
 
-    return PostMapper.INSTANCE.postToPostResponse(newPost);
+    return PostMapper.INSTANCE.postToPostResponse(newPostEntity);
   }
 
   @Override
   public PostResponse updatePost(PostRequest postRequest) {
     imagePostPort.deleteImageRedisByPublicId(postRequest.getDeletePublicIds());
 
-    User user = getUserAuth();
+    UserEntity userEntity = getUserAuth();
     // Check post exist
-    Post post = portPost.findPostByPostId(postRequest.getId());
-    if (post == null) {
+    PostEntity postEntity = portPost.findPostByPostId(postRequest.getId());
+    if (postEntity == null) {
       throw new CustomException("The post does not exist", HttpStatus.NOT_FOUND);
     }
-    if (!post.getUser().equals(user)) {
+    if (!postEntity.getUserEntity().equals(userEntity)) {
       throw new CustomException("User not permission", HttpStatus.UNAUTHORIZED);
     }
 
     // Take status post
     EPostStatus ePostStatus = filterStatusPost(postRequest.getStatus());
-    post.setPostStatus(ePostStatus);
-    post.setContent(postRequest.getContent());
-    post.setUpdateAt(new Date());
+    postEntity.setPostStatus(ePostStatus);
+    postEntity.setContent(postRequest.getContent());
+    postEntity.setUpdateAt(new Date());
 
     // Handler tag user
-    List<TagUser> tagUserList = getTagUsers(postRequest.getTagUserIds(), post);
-    post.setTagUsers(tagUserList);
+    List<TagUser> tagUserList = getTagUsers(postRequest.getTagUserIds(), postEntity);
+    postEntity.setTagUsers(tagUserList);
 
     List<Long> imageIds = postRequest.getImageIds();
     List<String> publicIds = postRequest.getPublicIds();
@@ -161,7 +156,7 @@ public class PostService implements PostPortInput {
     for (int i = 0; i < imageIds.size(); i++) {
       if (imageIds.get(i) == 0) {
         if (cnt < publicIds.size()) {
-          ImagePost imagePost = new ImagePost(publicIds.get(cnt++), new Date(), post);
+          ImagePost imagePost = new ImagePost(publicIds.get(cnt++), new Date(), postEntity);
           ImagePost newImagePost = imagePostPort.saveImagePost(imagePost);
           imageIds.set(i, newImagePost.getImagePostId());
           imageRedisTemplate.delete(publicIds.get(cnt - 1));
@@ -169,22 +164,22 @@ public class PostService implements PostPortInput {
       }
     }
 
-    imagePostPort.saveImageSequence(new ImageSequence(post.getPostId(), imageIds));
+    imagePostPort.saveImageSequence(new ImageSequence(postEntity.getPostId(), imageIds));
 
-    Post newPost = portPost.savePost(post);
-    newPost.setImagePosts(sortImagePosts(newPost.getPostId(), newPost.getImagePosts()));
-    return PostMapper.INSTANCE.postToPostResponse(newPost);
+    PostEntity newPostEntity = portPost.savePost(postEntity);
+    newPostEntity.setImagePosts(sortImagePosts(newPostEntity.getPostId(), newPostEntity.getImagePosts()));
+    return PostMapper.INSTANCE.postToPostResponse(newPostEntity);
   }
 
   @Override
   public MessageResponse deletePost(Long id) {
-    User user = getUserAuth();
+    UserEntity userEntity = getUserAuth();
     // Check post exist
-    Post post = portPost.findPostByPostId(id);
-    if (post == null) {
+    PostEntity postEntity = portPost.findPostByPostId(id);
+    if (postEntity == null) {
       throw new CustomException("The post does not exist", HttpStatus.NOT_FOUND);
     }
-    if (!post.getUser().equals(user)) {
+    if (!postEntity.getUserEntity().equals(userEntity)) {
       throw new CustomException("User not permission", HttpStatus.UNAUTHORIZED);
     }
 
@@ -196,8 +191,8 @@ public class PostService implements PostPortInput {
   @Override
   public List<PostResponse> getAllPostsByUserId(Long userId) {
     // Check user exist and no private for me or don't block me
-    User user = portPost.findUserById(userId);
-    if (user == null || !user.getIsProfilePublic()) {
+    UserEntity userEntity = portPost.findUserById(userId);
+    if (userEntity == null || !userEntity.getIsProfilePublic()) {
       throw new CustomException("User does not exist or profile private", HttpStatus.NOT_FOUND);
     }
 
@@ -207,9 +202,9 @@ public class PostService implements PostPortInput {
     }
     // -----------------
 
-    List<Post> postList = portPost.findAllPostByUser(user);
+    List<PostEntity> postEntityList = portPost.findAllPostByUser(userEntity);
 
-    return postList.stream()
+    return postEntityList.stream()
             .map(PostMapper.INSTANCE::postToPostResponse)
             .collect(Collectors.toList());
   }
@@ -217,8 +212,8 @@ public class PostService implements PostPortInput {
   @Override
   public List<PostResponse> getAllPostsTagMe() {
     List<PostResponse> postResponseList = new ArrayList<>();
-    List<Post> postList = portPost.findAllPostTagMe(getUserAuth());
-    postList.stream().forEach(
+    List<PostEntity> postEntityList = portPost.findAllPostTagMe(getUserAuth());
+    postEntityList.stream().forEach(
             post -> postResponseList.add(PostMapper.INSTANCE.postToPostResponse(post))
     );
     return postResponseList;
@@ -227,25 +222,25 @@ public class PostService implements PostPortInput {
   @Override
   public PostResponse getPostsByPostId(Long postId) {
     // Check post exist, private or block
-    Post post = portPost.findPostById(postId);
-    if (post == null) {
+    PostEntity postEntity = portPost.findPostById(postId);
+    if (postEntity == null) {
       throw new CustomException("Post does not exist", HttpStatus.NOT_FOUND);
     }
 
-    User user = portPost.findUserByPost(post);
-    if (!user.getIsProfilePublic()) {
+    UserEntity userEntity = portPost.findUserByPost(postEntity);
+    if (!userEntity.getIsProfilePublic()) {
       throw new CustomException("User does not exist or profile private", HttpStatus.FORBIDDEN);
     }
 
     // Check block
-    if (friendShipPort.isBlock(post.getUser().getUserId(), getUserAuth().getUserId())) {
+    if (friendShipPort.isBlock(postEntity.getUserEntity().getUserId(), getUserAuth().getUserId())) {
       throw new CustomException("User has blocked", HttpStatus.FORBIDDEN);
     }
     // ----------------------
-    List<ImagePost> imagePosts = post.getImagePosts();
-    post.setImagePosts(sortImagePosts(postId, imagePosts));
+    List<ImagePost> imagePosts = postEntity.getImagePosts();
+    postEntity.setImagePosts(sortImagePosts(postId, imagePosts));
 
-    return PostMapper.INSTANCE.postToPostResponse(post);
+    return PostMapper.INSTANCE.postToPostResponse(postEntity);
   }
 
   List<ImagePost> sortImagePosts(Long postId, List<ImagePost> imagePosts) {

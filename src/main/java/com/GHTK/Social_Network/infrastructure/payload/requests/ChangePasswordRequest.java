@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.payload.requests;
 
-import com.GHTK.Social_Network.application.customAnnotation.config.PasswordMatching;
-import com.GHTK.Social_Network.application.customAnnotation.config.StrongPassword;
+import com.GHTK.Social_Network.common.customAnnotation.config.PasswordMatching;
+import com.GHTK.Social_Network.common.customAnnotation.config.StrongPassword;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 

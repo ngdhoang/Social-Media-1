@@ -1,9 +1,9 @@
 package com.GHTK.Social_Network.infrastructure.payload.requests;
 
-import com.GHTK.Social_Network.application.customAnnotation.Enum.EOrderBy;
-import com.GHTK.Social_Network.application.customAnnotation.Enum.ESortBy;
-import com.GHTK.Social_Network.application.customAnnotation.config.ValidOrderBy;
-import com.GHTK.Social_Network.application.customAnnotation.config.ValidSortBy;
+import com.GHTK.Social_Network.common.customAnnotation.Enum.EOrderBy;
+import com.GHTK.Social_Network.common.customAnnotation.Enum.ESortBy;
+import com.GHTK.Social_Network.common.customAnnotation.config.ValidOrderBy;
+import com.GHTK.Social_Network.common.customAnnotation.config.ValidSortBy;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Max;
@@ -12,7 +12,6 @@ import lombok.Data;
 
 @Data
 public class PaginationRequest {
-
     @Min(value = 0, message = "Page must be greater than or equal to 0")
     @Max(value = 100, message = "Page must be less than or equal to 1000")
     private int page = 0;

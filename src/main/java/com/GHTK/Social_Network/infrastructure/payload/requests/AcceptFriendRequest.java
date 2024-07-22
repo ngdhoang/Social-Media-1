@@ -5,10 +5,9 @@ import lombok.Data;
 
 @Data
 public class AcceptFriendRequest {
+  @NotNull(message = "friendId cannot blank")
+  private Long friendId;
 
-    @NotNull(message = "friendId cannot blank")
-    private Long friendId;
-
-    @NotNull(message = "isAccept cannot blank")
-    private int isAccept;
+  @NotNull(message = "isAccept cannot blank")
+  private int isAccept;
 }

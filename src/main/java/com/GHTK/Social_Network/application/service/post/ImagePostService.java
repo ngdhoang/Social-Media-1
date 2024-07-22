@@ -1,15 +1,16 @@
 package com.GHTK.Social_Network.application.service.post;
 
-import com.GHTK.Social_Network.application.port.input.CloudServicePortInput;
+import com.GHTK.Social_Network.application.port.output.CloudPort;
 import com.GHTK.Social_Network.application.port.input.ImageHandlerPortInput;
 import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
-import com.GHTK.Social_Network.application.port.output.AuthPort;
+import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
-import com.GHTK.Social_Network.domain.entity.post.ImagePost;
-import com.GHTK.Social_Network.domain.entity.post.Post;
-import com.GHTK.Social_Network.domain.entity.user.User;
-import com.GHTK.Social_Network.infrastructure.exception.CustomException;
+import com.GHTK.Social_Network.infrastructure.MapperEntity.UserMapper;
+import com.GHTK.Social_Network.infrastructure.entity.post.ImagePostEntity;
+import com.GHTK.Social_Network.infrastructure.entity.post.PostEntity;
+import com.GHTK.Social_Network.infrastructure.entity.user.UserEntity;
+import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ImagePostMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.post.ImagePostDto;
@@ -32,7 +33,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class ImagePostService implements ImagePostInput {
-  private final CloudServicePortInput cloudServicePortInput;
+  private final CloudPort cloudPort;
 
   private final RedisTemplate<String, String> imageRedisTemplate;
 
@@ -42,7 +43,7 @@ public class ImagePostService implements ImagePostInput {
 
   private final PostPort postPort;
 
-  private User getUserAuth() {
+  private UserEntity getUserAuth() {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     String username;
 
@@ -54,16 +55,16 @@ public class ImagePostService implements ImagePostInput {
       throw new IllegalStateException("Unexpected principal type: " + principal.getClass());
     }
 
-    return authenticationRepositoryPort.findByEmail(username)
-            .orElseThrow(() -> new UsernameNotFoundException("Invalid token"));
+    return UserMapper.INSTANCE.toEntity(authenticationRepositoryPort.findByEmail(username)
+            .orElseThrow(() -> new UsernameNotFoundException("Invalid token")));
   }
 
   @Override
   public ImageResponse createImage(CreateImageRequest request) {
-    Map data = cloudServicePortInput.uploadPictureByFile(request.getFile(), ImageHandlerPortInput.MAX_SIZE_POST);
+    Map data = cloudPort.uploadPictureByFile(request.getFile(), ImageHandlerPortInput.MAX_SIZE_POST);
     ImageResponse imageResponse = new ImageResponse();
-    ImagePostDto imageDto = new ImagePostDto(cloudServicePortInput.extractPublicId(data), cloudServicePortInput.extractUrl(data));
-    imageRedisTemplate.opsForValue().set(cloudServicePortInput.extractPublicId(data), cloudServicePortInput.extractUrl(data));
+    ImagePostDto imageDto = new ImagePostDto(cloudPort.extractPublicId(data), cloudPort.extractUrl(data));
+    imageRedisTemplate.opsForValue().set(cloudPort.extractPublicId(data), cloudPort.extractUrl(data));
     List<ImagePostDto> imageDtoList = new ArrayList<>();
     imageDtoList.add(imageDto);
     imageResponse.setImageDtoList(imageDtoList);
@@ -80,7 +81,7 @@ public class ImagePostService implements ImagePostInput {
 
   @Override
   public MessageResponse deleteImage(Long id) {
-    ImagePost imagePost = imagePostPort.findImageById(id);
+    ImagePostEntity imagePost = imagePostPort.findImageById(id);
     if (imagePost == null) {
       throw new CustomException("Image not found", HttpStatus.NOT_FOUND);
     }
@@ -89,7 +90,7 @@ public class ImagePostService implements ImagePostInput {
       throw new CustomException("User not authorized", HttpStatus.FORBIDDEN);
     }
 
-    if (!cloudServicePortInput.deletePictureByUrl(imagePost.getImageUrl())) {
+    if (!cloudPort.deletePictureByUrl(imagePost.getImageUrl())) {
       throw new CustomException("Image cannot delete", HttpStatus.FORBIDDEN);
     }
 
@@ -113,8 +114,8 @@ public class ImagePostService implements ImagePostInput {
 
   @Override
   public List<ImageDto> getImageByPostId(Long id) {
-    Post post = postPort.findPostById(id);
-    List<ImagePost> imagePosts = post.getImagePosts();
+    PostEntity postEntity = postPort.findPostById(id);
+    List<ImagePostEntity> imagePosts = postEntity.getImagePosts();
     List<ImageDto> imageResponseList = new ArrayList<>();
     imagePosts.forEach(imagePost -> {
       imageResponseList.add(ImagePostMapper.INSTANCE.imagePostToImageDto(imagePost));

@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
-import com.GHTK.Social_Network.domain.entity.user.User;
+import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.dto.SearchDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -11,5 +11,5 @@ public interface SearchMapper {
   SearchMapper INSTANCE = Mappers.getMapper(SearchMapper.class);
 
   @Mapping(source = "userEmail", target = "email")
-  SearchDto UserToSearchDto(User user);
+  SearchDto UserToSearchDto(User userEntity);
 }

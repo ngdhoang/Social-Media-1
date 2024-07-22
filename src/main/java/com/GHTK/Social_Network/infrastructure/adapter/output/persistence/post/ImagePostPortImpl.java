@@ -1,10 +1,10 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.post;
 
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
-import com.GHTK.Social_Network.domain.collection.ImageSequence;
-import com.GHTK.Social_Network.domain.entity.post.ImagePost;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ImagePostRepository;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ImageSequenceRepository;
+import com.GHTK.Social_Network.infrastructure.entity.collection.ImageSequence;
+import com.GHTK.Social_Network.infrastructure.entity.post.ImagePostEntity;
+import com.GHTK.Social_Network.infrastructure.repository.ImagePostRepository;
+import com.GHTK.Social_Network.infrastructure.repository.ImageSequenceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ public class ImagePostPortImpl implements ImagePostPort {
   private final ImageSequenceRepository imageSequenceRepository;
 
   @Override
-  public ImagePost findImageById(Long id) {
+  public ImagePostEntity findImageById(Long id) {
     return imagePostRepository.findById(id).orElse(null);
   }
 
@@ -36,7 +36,7 @@ public class ImagePostPortImpl implements ImagePostPort {
   }
 
   @Override
-  public ImagePost saveImagePost(ImagePost imagePost) {
+  public ImagePostEntity saveImagePost(ImagePostEntity imagePost) {
     return imagePostRepository.save(imagePost);
   }
 

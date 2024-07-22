@@ -5,7 +5,6 @@ import lombok.Data;
 
 @Data
 public class UnFriendShipRequest {
-
-    @NotNull(message = "friendId cannot blank")
-    private Long friendId;
+  @NotNull(message = "friendId cannot blank")
+  private Long friendId;
 }
