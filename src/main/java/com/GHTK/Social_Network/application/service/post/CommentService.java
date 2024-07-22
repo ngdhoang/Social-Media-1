@@ -2,18 +2,18 @@ package com.GHTK.Social_Network.application.service.post;
 
 import com.GHTK.Social_Network.application.port.input.post.CommentPostInput;
 import com.GHTK.Social_Network.application.port.input.post.ReactionCommentPostInput;
-import com.GHTK.Social_Network.application.port.output.AuthPort;
+import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.post.CommentPostPort;
 import com.GHTK.Social_Network.application.port.output.post.ImageCommentPostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
-import com.GHTK.Social_Network.domain.entity.post.EReactionType;
-import com.GHTK.Social_Network.domain.entity.post.Post;
-import com.GHTK.Social_Network.domain.entity.post.comment.Comment;
-import com.GHTK.Social_Network.domain.entity.post.comment.ImageComment;
-import com.GHTK.Social_Network.domain.entity.post.comment.ReactionComment;
-import com.GHTK.Social_Network.domain.entity.user.User;
-import com.GHTK.Social_Network.infrastructure.exception.CustomException;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EReactionType;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.Post;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.Comment;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ImageComment;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ReactionComment;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
+import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.CommentMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ReactionCommentMapper;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.CommentRequest;
@@ -28,7 +28,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -49,7 +48,7 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
   private final ImageCommentPostPort imageCommentPostPort;
 
 
-  private User getUserAuth() {
+  private UserEntity getUserAuth() {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     String username;
 
@@ -65,12 +64,12 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
             .orElseThrow(() -> new UsernameNotFoundException("Invalid token"));
   }
 
-  private void checkCommentValid(Post post, User u) {
+  private void checkCommentValid(Post post, UserEntity u) {
     if (post == null) {
       throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
     }
 
-    if (friendShipPort.isBlock(u.getUserId(), post.getUser().getUserId()) || !post.getUser().getIsProfilePublic() && !u.getUserId().equals(getUserAuth().getUserId())) {
+    if (friendShipPort.isBlock(u.getUserId(), post.getUserEntity().getUserId()) || !post.getUserEntity().getIsProfilePublic() && !u.getUserId().equals(getUserAuth().getUserId())) {
       throw new CustomException("You are not allowed to create a comment", HttpStatus.FORBIDDEN);
     }
   }
@@ -78,13 +77,13 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
   @Override
   public CommentResponse createCommentSrc(CommentRequest comment) {
     Post post = postPort.findPostByPostId(comment.getPostId());
-    User user = getUserAuth();
-    checkCommentValid(post, user);
+    UserEntity userEntity = getUserAuth();
+    checkCommentValid(post, userEntity);
 
     Comment newComment = new Comment(
             new Date(),
             comment.getContent(),
-            user,
+            userEntity,
             post
     );
     Comment saveComment = commentPostPort.saveComment(newComment);
@@ -102,8 +101,8 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
   @Override
   public CommentResponse createCommentChild(Long commentIdSrc, CommentRequest comment) {
     Post post = postPort.findPostByPostId(comment.getPostId());
-    User user = getUserAuth();
-    checkCommentValid(post, user);
+    UserEntity userEntity = getUserAuth();
+    checkCommentValid(post, userEntity);
     Comment parentComment = commentPostPort.findCommentById(commentIdSrc);
     if (parentComment == null) {
       throw new CustomException("Parent comment not found", HttpStatus.NOT_FOUND);
@@ -112,7 +111,7 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
     Comment newComment = new Comment(
             new Date(),
             comment.getContent(),
-            user,
+            userEntity,
             post
     );
 
@@ -142,7 +141,7 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
   @Override
   public MessageResponse deleteComment(Long commentId) {
     Comment comment = commentPostPort.findCommentById(commentId);
-    if (comment == null || !Objects.equals(comment.getUser().getUserId(), getUserAuth().getUserId())) {
+    if (comment == null || !Objects.equals(comment.getUserEntity().getUserId(), getUserAuth().getUserId())) {
       throw new CustomException("Comment not found", HttpStatus.NOT_FOUND);
     }
     try {
@@ -156,8 +155,8 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
   @Override
   public CommentResponse updateComment(Long commentId, CommentRequest comment) {
     Post post = postPort.findPostByPostId(comment.getPostId());
-    User user = getUserAuth();
-    checkCommentValid(post, user);
+    UserEntity userEntity = getUserAuth();
+    checkCommentValid(post, userEntity);
 
     Comment updatedComment = commentPostPort.findCommentById(commentId);
 
@@ -174,11 +173,11 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
     return response;
   }
 
-  private ImageComment saveImageCommentRedis(String publicId, User userSave, Comment commentSave) {
+  private ImageComment saveImageCommentRedis(String publicId, UserEntity userEntitySave, Comment commentSave) {
     ImageComment imageComment = null;
     if (Boolean.TRUE.equals(imageRedisTemplate.hasKey(publicId)) && !publicId.isEmpty()) {
       imageComment = new ImageComment(
-              userSave,
+              userEntitySave,
               commentSave,
               imageRedisTemplate.opsForValue().get(publicId),
               new Date()
@@ -192,7 +191,7 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
   public ReactionResponse handleReactionComment(Long commentId, String reactionType) {
     Post post = postPort.findPostByPostId(commentId);
     Comment updatedComment = commentPostPort.findCommentById(commentId);
-    checkCommentValid(post, updatedComment.getUser());
+    checkCommentValid(post, updatedComment.getUserEntity());
 
     EReactionType newReactionType;
     try {

@@ -1,9 +1,9 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
-import com.GHTK.Social_Network.domain.entity.post.ImagePost;
-import com.GHTK.Social_Network.domain.entity.post.Post;
-import com.GHTK.Social_Network.domain.entity.post.TagUser;
-import com.GHTK.Social_Network.domain.entity.user.User;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePost;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.Post;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.TagUser;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.PostResponse;
@@ -38,7 +38,7 @@ public interface PostMapper {
             .orElse(Collections.emptyList())
             .stream()
             .map(tu -> {
-              User u = tu.getUser();
+              UserEntity u = tu.getUserEntity();
               return ProfileDto.builder()
                       .profileId(u.getUserId())
                       .firstName(u.getFirstName())

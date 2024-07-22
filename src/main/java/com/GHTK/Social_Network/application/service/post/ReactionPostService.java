@@ -1,15 +1,15 @@
 package com.GHTK.Social_Network.application.service.post;
 
 import com.GHTK.Social_Network.application.port.input.post.ReactionPostInput;
-import com.GHTK.Social_Network.application.port.output.AuthPort;
+import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
 import com.GHTK.Social_Network.application.port.output.post.ReactionPostPort;
-import com.GHTK.Social_Network.domain.entity.post.EReactionType;
-import com.GHTK.Social_Network.domain.entity.post.Post;
-import com.GHTK.Social_Network.domain.entity.post.ReactionPost;
-import com.GHTK.Social_Network.domain.entity.user.User;
-import com.GHTK.Social_Network.infrastructure.exception.CustomException;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EReactionType;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.Post;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionPost;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
+import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ReactionPostMapper;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionResponse;
 import lombok.RequiredArgsConstructor;
@@ -31,12 +31,12 @@ public class ReactionPostService implements ReactionPostInput {
   private final AuthPort authenticationRepositoryPort;
   private final FriendShipPort friendShipPort;
 
-  private User getUserAuth() {
+  private UserEntity getUserAuth() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
     if (authentication == null || !authentication.isAuthenticated() ||
             authentication instanceof AnonymousAuthenticationToken) {
-      return User.builder().userId(0L).build();
+      return UserEntity.builder().userId(0L).build();
     }
 
     Object principal = authentication.getPrincipal();
@@ -59,14 +59,14 @@ public class ReactionPostService implements ReactionPostInput {
       throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
     }
 
-    User postOwner = post.getUser();
-    User currentUser = getUserAuth();
+    UserEntity postOwner = post.getUserEntity();
+    UserEntity currentUserEntity = getUserAuth();
 
     if (!postOwner.getIsProfilePublic()) {
       throw new CustomException("Post not accessible", HttpStatus.FORBIDDEN);
     }
 
-    if (friendShipPort.isBlock(postOwner.getUserId(), currentUser.getUserId())) {
+    if (friendShipPort.isBlock(postOwner.getUserId(), currentUserEntity.getUserId())) {
       throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
     }
   }

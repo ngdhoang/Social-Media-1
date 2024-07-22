@@ -2,7 +2,7 @@ package com.GHTK.Social_Network.application.service.cloud;
 
 import com.GHTK.Social_Network.application.port.input.CloudServicePortInput;
 import com.GHTK.Social_Network.application.port.input.ImageHandlerPortInput;
-import com.GHTK.Social_Network.infrastructure.exception.CustomException;
+import com.GHTK.Social_Network.common.customException.CustomException;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import lombok.RequiredArgsConstructor;

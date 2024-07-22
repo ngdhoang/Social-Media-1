@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
 
-import com.GHTK.Social_Network.domain.entity.post.Post;
-import com.GHTK.Social_Network.domain.entity.user.User;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.Post;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -12,15 +12,15 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
-  Optional<User> findByUserEmail(String userEmail);
+public interface UserRepository extends JpaRepository<UserEntity, Long> {
+  Optional<UserEntity> findByUserEmail(String userEmail);
 
   Boolean existsByUserEmail(String userEmail);
 
   @Modifying
   @Transactional
   @Query("""
-              update User u
+              update UserEntity u
               set u.oldPassword = u.password, u.password = ?1
               where u.userId = ?2
           """)
@@ -32,7 +32,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
   @Modifying
   @Transactional
   @Query("""
-          update User u
+          update UserEntity u
                   set u.isProfilePublic = ?1
                   where u.userId = ?2
             """)
@@ -41,22 +41,21 @@ public interface UserRepository extends JpaRepository<User, Long> {
   @Modifying
   @Transactional
   @Query("""
-              update User u
+              update UserEntity u
               set u.avatar = ?1
               where u.userId = ?2
           """)
   int changeAvatar(String url, Long userId);
 
   @Query("""
-              select u from User u 
+              select u from UserEntity u 
               where lower(u.firstName) like lower(concat('%', ?1, '%')) 
               or lower(u.lastName) like lower(concat('%', ?1, '%'))
               or lower(concat(u.firstName, ' ', u.lastName)) like lower(concat('%', ?1, '%'))
               or lower(concat(u.firstName, u.lastName)) like lower(concat('%', ?1, '%'))
               or lower(u.userEmail) like lower(concat('%', ?1, '%'))
           """)
-  List<User> searchUsersByNameOrEmail(String name);
+  List<UserEntity> searchUsersByNameOrEmail(String name);
 
-  Optional<User> findByPosts(Post post);
-
+  Optional<UserEntity> findByPosts(Post post);
 }

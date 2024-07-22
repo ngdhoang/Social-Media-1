@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.application.port.output.post;
 
-import com.GHTK.Social_Network.domain.entity.post.comment.ImageComment;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ImageComment;
 
 public interface ImageCommentPostPort {
   ImageComment saveImageComment(ImageComment imageComment);

@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.payload.requests;
 
-import com.GHTK.Social_Network.application.customAnnotation.config.ValidEFriendShipStatus;
-import com.GHTK.Social_Network.domain.entity.EFriendshipStatus;
+import com.GHTK.Social_Network.common.customAnnotation.config.ValidEFriendShipStatus;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.EFriendshipStatus;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Min;
 import lombok.Data;

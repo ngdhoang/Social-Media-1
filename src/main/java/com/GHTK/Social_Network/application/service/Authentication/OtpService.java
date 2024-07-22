@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.application.service.Authentication;
 
 import com.GHTK.Social_Network.application.port.input.OtpPortInput;
-import com.GHTK.Social_Network.infrastructure.exception.CustomException;
+import com.GHTK.Social_Network.common.customException.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

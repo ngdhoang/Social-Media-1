@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.exception;
 
+import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;

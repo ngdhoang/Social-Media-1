@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
 import com.GHTK.Social_Network.application.port.output.ProfilePort;
-import com.GHTK.Social_Network.domain.entity.user.User;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
 import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateProfileRequest;
 import lombok.RequiredArgsConstructor;
@@ -15,23 +15,23 @@ public class ProfilePortImpl implements ProfilePort {
   private final UserRepository userRepository;
 
   @Override
-  public Optional<User> takeProfileById(Long id) {
+  public Optional<UserEntity> takeProfileById(Long id) {
     return Optional.ofNullable(userRepository.findById(id).orElse(null));
   }
 
   @Override
   public Boolean updateProfile(UpdateProfileRequest updateProfileRequest, Long userId) {
-    User savedUser = userRepository.findById(userId).orElse(null);
+    UserEntity savedUserEntity = userRepository.findById(userId).orElse(null);
 
-    savedUser.setFirstName(updateProfileRequest.getFirstName());
-    savedUser.setLastName(updateProfileRequest.getLastName());
-    savedUser.setDob(updateProfileRequest.getDob());
-    savedUser.setPhoneNumber(updateProfileRequest.getPhoneNumber());
-    savedUser.setHomeTown(updateProfileRequest.getHomeTown());
-    savedUser.setSchoolName(updateProfileRequest.getSchoolName());
-    savedUser.setWorkPlace(updateProfileRequest.getWorkPlace());
-    savedUser.setIsProfilePublic(updateProfileRequest.getIsProfilePublic());
-    userRepository.save(savedUser);
+    savedUserEntity.setFirstName(updateProfileRequest.getFirstName());
+    savedUserEntity.setLastName(updateProfileRequest.getLastName());
+    savedUserEntity.setDob(updateProfileRequest.getDob());
+    savedUserEntity.setPhoneNumber(updateProfileRequest.getPhoneNumber());
+    savedUserEntity.setHomeTown(updateProfileRequest.getHomeTown());
+    savedUserEntity.setSchoolName(updateProfileRequest.getSchoolName());
+    savedUserEntity.setWorkPlace(updateProfileRequest.getWorkPlace());
+    savedUserEntity.setIsProfilePublic(updateProfileRequest.getIsProfilePublic());
+    userRepository.save(savedUserEntity);
     return true;
   }
 

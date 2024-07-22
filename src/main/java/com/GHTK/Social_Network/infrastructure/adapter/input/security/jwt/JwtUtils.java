@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt;
 
+import com.GHTK.Social_Network.application.port.output.auth.JwtPort;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -16,7 +17,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
-public class JwtUtils {
+public class JwtUtils implements JwtPort {
   @Value("${application.GHTK.JwtUtils.secretKey}")
   private String secretKey;
 
@@ -25,6 +26,7 @@ public class JwtUtils {
 
   @Value("${application.GHTK.JwtUtils.refreshExpiration}")
   private long refreshExpiration;
+
   public String extractUserEmail(String jwt) {
     return extractClaim(jwt, Claims::getSubject);
   }
@@ -34,7 +36,7 @@ public class JwtUtils {
     return claimsResolver.apply(claims);
   }
 
-  private Claims extractAllClaims(String token){
+  private Claims extractAllClaims(String token) {
     return Jwts.parser()
             .verifyWith(getSignInKey())
             .build()
@@ -55,7 +57,7 @@ public class JwtUtils {
     return extractClaim(token, Claims::getExpiration);
   }
 
-  private SecretKey getSignInKey(){
+  private SecretKey getSignInKey() {
     byte[] keyBytes = Decoders.BASE64.decode(secretKey);
     return Keys.hmacShaKeyFor(keyBytes);
   }
@@ -69,6 +71,7 @@ public class JwtUtils {
             .signWith(getSignInKey())
             .compact();
   }
+
   public String generateToken(
           Map<String, Object> extraClaims,
           UserDetails userDetails

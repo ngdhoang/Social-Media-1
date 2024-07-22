@@ -1,10 +1,10 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.post;
 
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
-import com.GHTK.Social_Network.domain.entity.post.ImagePost;
-import com.GHTK.Social_Network.domain.entity.post.Post;
-import com.GHTK.Social_Network.domain.entity.post.TagUser;
-import com.GHTK.Social_Network.domain.entity.user.User;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePost;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.Post;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.TagUser;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.PostRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.TagUserRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
@@ -33,13 +33,13 @@ public class PostPortImpl implements PostPort {
   }
 
   @Override
-  public User findUserByPost(Post post) {
+  public UserEntity findUserByPost(Post post) {
     return userRepository.findByPosts(post).orElse(null);
   }
 
   @Override
-  public List<Post> findAllPostByUser(User user) {
-    return postRepository.findAllByUser(user);
+  public List<Post> findAllPostByUser(UserEntity userEntity) {
+    return postRepository.findAllByUser(userEntity);
   }
 
   @Override
@@ -48,12 +48,12 @@ public class PostPortImpl implements PostPort {
   }
 
   @Override
-  public User findFriendById(Long id) {
+  public UserEntity findFriendById(Long id) {
     return null;
   }
 
   @Override
-  public User findUserById(Long id) {
+  public UserEntity findUserById(Long id) {
     return userRepository.findById(id).orElse(null);
   }
 
@@ -68,8 +68,8 @@ public class PostPortImpl implements PostPort {
   }
 
   @Override
-  public List<Post> findAllPostTagMe(User user) {
-    List<TagUser> tagUserList = tagUserRepository.findAllByUser(user);
+  public List<Post> findAllPostTagMe(UserEntity userEntity) {
+    List<TagUser> tagUserList = tagUserRepository.findAllByUser(userEntity);
     List<Post> postList = new ArrayList<>();
     tagUserList.forEach(tagUser -> {
       postList.add(postRepository.findByTagUsers(tagUser));

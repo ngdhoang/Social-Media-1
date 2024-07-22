@@ -1,17 +1,17 @@
 package com.GHTK.Social_Network.application.service.post;
 
 import com.GHTK.Social_Network.application.port.input.post.PostPortInput;
-import com.GHTK.Social_Network.application.port.output.AuthPort;
+import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
-import com.GHTK.Social_Network.domain.collection.ImageSequence;
-import com.GHTK.Social_Network.domain.entity.post.EPostStatus;
-import com.GHTK.Social_Network.domain.entity.post.ImagePost;
-import com.GHTK.Social_Network.domain.entity.post.Post;
-import com.GHTK.Social_Network.domain.entity.post.TagUser;
-import com.GHTK.Social_Network.domain.entity.user.User;
-import com.GHTK.Social_Network.infrastructure.exception.CustomException;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.ImageSequence;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatus;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePost;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.Post;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.TagUser;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
+import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.PostMapper;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.PostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
@@ -40,7 +40,7 @@ public class PostService implements PostPortInput {
 
   private final AuthPort authenticationRepositoryPort;
 
-  private User getUserAuth() {
+  private UserEntity getUserAuth() {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     String username;
 
@@ -72,11 +72,11 @@ public class PostService implements PostPortInput {
     List<TagUser> tagUserList = new ArrayList<>();
     tagUserIds.stream().forEach(
             u -> {
-              if (!friendShipPort.isFriend(u, post.getUser().getUserId())) {
+              if (!friendShipPort.isFriend(u, post.getUserEntity().getUserId())) {
                 throw new CustomException("User not friend or block", HttpStatus.NOT_FOUND);
               }
-              User user = authenticationRepositoryPort.getUserById(u);
-              TagUser tagUser = TagUser.builder().post(post).user(user).build();
+              UserEntity userEntity = authenticationRepositoryPort.getUserById(u);
+              TagUser tagUser = TagUser.builder().post(post).userEntity(userEntity).build();
               portPost.saveTagUser(tagUser);
               tagUserList.add(tagUser);
             }
@@ -97,7 +97,7 @@ public class PostService implements PostPortInput {
     Post post = Post.builder()
             .content(postRequest.getContent())
             .postStatus(ePostStatus)
-            .user(getUserAuth()).build();
+            .userEntity(getUserAuth()).build();
 
     Post newPost = portPost.savePost(post);
 
@@ -106,7 +106,7 @@ public class PostService implements PostPortInput {
     if (!postRequest.getTagUserIds().isEmpty()) {
       getTagUsers(postRequest.getTagUserIds(), post);
       post.setTagUsers(tagUserList);
-      post.setUser(getUserAuth());
+      post.setUserEntity(getUserAuth());
     }
 
     // Sau đó xử lý và lưu ImagePost
@@ -135,13 +135,13 @@ public class PostService implements PostPortInput {
   public PostResponse updatePost(PostRequest postRequest) {
     imagePostPort.deleteImageRedisByPublicId(postRequest.getDeletePublicIds(), "_" + getUserAuth().getUserEmail());
 
-    User user = getUserAuth();
+    UserEntity userEntity = getUserAuth();
     // Check post exist
     Post post = portPost.findPostByPostId(postRequest.getId());
     if (post == null) {
       throw new CustomException("The post does not exist", HttpStatus.NOT_FOUND);
     }
-    if (!post.getUser().equals(user)) {
+    if (!post.getUserEntity().equals(userEntity)) {
       throw new CustomException("User not permission", HttpStatus.UNAUTHORIZED);
     }
 
@@ -179,13 +179,13 @@ public class PostService implements PostPortInput {
 
   @Override
   public MessageResponse deletePost(Long id) {
-    User user = getUserAuth();
+    UserEntity userEntity = getUserAuth();
     // Check post exist
     Post post = portPost.findPostByPostId(id);
     if (post == null) {
       throw new CustomException("The post does not exist", HttpStatus.NOT_FOUND);
     }
-    if (!post.getUser().equals(user)) {
+    if (!post.getUserEntity().equals(userEntity)) {
       throw new CustomException("User not permission", HttpStatus.UNAUTHORIZED);
     }
 
@@ -197,8 +197,8 @@ public class PostService implements PostPortInput {
   @Override
   public List<PostResponse> getAllPostsByUserId(Long userId) {
     // Check user exist and no private for me or don't block me
-    User user = portPost.findUserById(userId);
-    if (user == null || !user.getIsProfilePublic()) {
+    UserEntity userEntity = portPost.findUserById(userId);
+    if (userEntity == null || !userEntity.getIsProfilePublic()) {
       throw new CustomException("User does not exist or profile private", HttpStatus.NOT_FOUND);
     }
 
@@ -208,7 +208,7 @@ public class PostService implements PostPortInput {
     }
     // -----------------
 
-    List<Post> postList = portPost.findAllPostByUser(user);
+    List<Post> postList = portPost.findAllPostByUser(userEntity);
 
     return postList.stream()
             .map(PostMapper.INSTANCE::postToPostResponse)
@@ -233,13 +233,13 @@ public class PostService implements PostPortInput {
       throw new CustomException("Post does not exist", HttpStatus.NOT_FOUND);
     }
 
-    User user = portPost.findUserByPost(post);
-    if (!user.getIsProfilePublic()) {
+    UserEntity userEntity = portPost.findUserByPost(post);
+    if (!userEntity.getIsProfilePublic()) {
       throw new CustomException("User does not exist or profile private", HttpStatus.FORBIDDEN);
     }
 
     // Check block
-    if (friendShipPort.isBlock(post.getUser().getUserId(), getUserAuth().getUserId()) && post.getUser().getUserId().equals(getUserAuth().getUserId())) {
+    if (friendShipPort.isBlock(post.getUserEntity().getUserId(), getUserAuth().getUserId()) && post.getUserEntity().getUserId().equals(getUserAuth().getUserId())) {
       throw new CustomException("User has blocked", HttpStatus.FORBIDDEN);
     }
     // ----------------------

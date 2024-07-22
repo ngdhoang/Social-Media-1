@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.application.port.output;
 
-import com.GHTK.Social_Network.domain.entity.EFriendshipStatus;
-import com.GHTK.Social_Network.domain.entity.FriendShip;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.EFriendshipStatus;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.FriendShip;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetFriendShipRequest;
 
 import java.util.List;

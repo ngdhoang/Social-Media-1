@@ -1,9 +1,9 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
-import com.GHTK.Social_Network.application.customAnnotation.Enum.ESortBy;
+import com.GHTK.Social_Network.common.customAnnotation.Enum.ESortBy;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
-import com.GHTK.Social_Network.domain.entity.EFriendshipStatus;
-import com.GHTK.Social_Network.domain.entity.FriendShip;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.EFriendshipStatus;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.FriendShip;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendShipRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetFriendShipRequest;

@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.application.port.output.post;
 
-import com.GHTK.Social_Network.domain.collection.ImageSequence;
-import com.GHTK.Social_Network.domain.entity.post.ImagePost;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.ImageSequence;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePost;
 import org.springframework.scheduling.annotation.Async;
 
 import java.util.List;

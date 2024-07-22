@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.payload.requests;
 
-import com.GHTK.Social_Network.application.customAnnotation.config.PasswordMatching;
+import com.GHTK.Social_Network.common.customAnnotation.config.PasswordMatching;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

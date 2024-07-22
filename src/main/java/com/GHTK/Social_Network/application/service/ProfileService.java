@@ -3,11 +3,11 @@ package com.GHTK.Social_Network.application.service;
 import com.GHTK.Social_Network.application.port.input.CloudServicePortInput;
 import com.GHTK.Social_Network.application.port.input.ImageHandlerPortInput;
 import com.GHTK.Social_Network.application.port.input.ProfilePortInput;
-import com.GHTK.Social_Network.application.port.output.AuthPort;
+import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.ImageHandlerPort;
 import com.GHTK.Social_Network.application.port.output.ProfilePort;
-import com.GHTK.Social_Network.domain.entity.user.User;
-import com.GHTK.Social_Network.infrastructure.exception.CustomException;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
+import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ProfileMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.ProfileStateRequest;
@@ -39,12 +39,12 @@ public class ProfileService implements ProfilePortInput {
 
   private final CloudServicePortInput cloudServicePortInput;
 
-  private User getUserAuth() {
+  private UserEntity getUserAuth() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
     if (authentication == null || !authentication.isAuthenticated() ||
             authentication instanceof AnonymousAuthenticationToken) {
-      return User.builder().userId(0L).build();
+      return UserEntity.builder().userId(0L).build();
     }
 
     Object principal = authentication.getPrincipal();
@@ -73,7 +73,7 @@ public class ProfileService implements ProfilePortInput {
       }
       return profileDtoRedisTemplate.opsForValue().get(String.valueOf(id));
     }
-    Optional<User> user = profilePort.takeProfileById(id);
+    Optional<UserEntity> user = profilePort.takeProfileById(id);
 
     if (user.isEmpty()) {
       return null;
@@ -94,7 +94,7 @@ public class ProfileService implements ProfilePortInput {
     Long userId = getUserAuth().getUserId();
 
     Boolean isUpdateProfile = profilePort.updateProfile(updateProfileRequest, userId);
-    Optional<User> profileDto = profilePort.takeProfileById(userId);
+    Optional<UserEntity> profileDto = profilePort.takeProfileById(userId);
     if (isUpdateProfile) {
       profileDtoRedisTemplate.opsForValue().set(String.valueOf(userId), ProfileMapper.INSTANCE.userToProfileDto(profileDto.get()));
     }

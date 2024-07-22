@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
 import com.GHTK.Social_Network.application.port.output.post.ImageCommentPostPort;
-import com.GHTK.Social_Network.domain.entity.post.comment.ImageComment;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ImageComment;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ImageCommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

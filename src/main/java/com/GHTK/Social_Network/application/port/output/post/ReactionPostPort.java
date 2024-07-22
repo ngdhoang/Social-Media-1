@@ -1,7 +1,6 @@
 package com.GHTK.Social_Network.application.port.output.post;
 
-import com.GHTK.Social_Network.domain.entity.post.Post;
-import com.GHTK.Social_Network.domain.entity.post.ReactionPost;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionPost;
 
 import java.util.List;
 

@@ -1,8 +1,8 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
 import com.GHTK.Social_Network.application.port.output.post.CommentPostPort;
-import com.GHTK.Social_Network.domain.entity.post.comment.Comment;
-import com.GHTK.Social_Network.domain.entity.post.comment.ReactionComment;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.Comment;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ReactionComment;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.CommentRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ReactionCommentRepository;
 import lombok.RequiredArgsConstructor;

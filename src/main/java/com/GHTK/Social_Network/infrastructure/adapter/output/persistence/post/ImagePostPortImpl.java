@@ -1,8 +1,8 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.post;
 
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
-import com.GHTK.Social_Network.domain.collection.ImageSequence;
-import com.GHTK.Social_Network.domain.entity.post.ImagePost;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.ImageSequence;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePost;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ImagePostRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ImageSequenceRepository;
 import lombok.RequiredArgsConstructor;
