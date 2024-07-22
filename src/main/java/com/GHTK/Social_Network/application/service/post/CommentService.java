@@ -7,11 +7,11 @@ import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.post.CommentPostPort;
 import com.GHTK.Social_Network.application.port.output.post.ImageCommentPostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EReactionType;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.Post;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.Comment;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ImageComment;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ReactionComment;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EReactionTypeEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.CommentEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ImageCommentEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ReactionCommentEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.CommentMapper;
@@ -64,35 +64,35 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
             .orElseThrow(() -> new UsernameNotFoundException("Invalid token"));
   }
 
-  private void checkCommentValid(Post post, UserEntity u) {
-    if (post == null) {
+  private void checkCommentValid(PostEntity postEntity, UserEntity u) {
+    if (postEntity == null) {
       throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
     }
 
-    if (friendShipPort.isBlock(u.getUserId(), post.getUserEntity().getUserId()) || !post.getUserEntity().getIsProfilePublic() && !u.getUserId().equals(getUserAuth().getUserId())) {
+    if (friendShipPort.isBlock(u.getUserId(), postEntity.getUserEntity().getUserId()) || !postEntity.getUserEntity().getIsProfilePublic() && !u.getUserId().equals(getUserAuth().getUserId())) {
       throw new CustomException("You are not allowed to create a comment", HttpStatus.FORBIDDEN);
     }
   }
 
   @Override
   public CommentResponse createCommentSrc(CommentRequest comment) {
-    Post post = postPort.findPostByPostId(comment.getPostId());
+    PostEntity postEntity = postPort.findPostByPostId(comment.getPostId());
     UserEntity userEntity = getUserAuth();
-    checkCommentValid(post, userEntity);
+    checkCommentValid(postEntity, userEntity);
 
-    Comment newComment = new Comment(
+    CommentEntity newCommentEntity = new CommentEntity(
             new Date(),
             comment.getContent(),
             userEntity,
-            post
+            postEntity
     );
-    Comment saveComment = commentPostPort.saveComment(newComment);
+    CommentEntity saveCommentEntity = commentPostPort.saveComment(newCommentEntity);
 
-    ImageComment imageComment = saveImageCommentRedis(comment.getPublicId(), getUserAuth(), newComment);
+    ImageCommentEntity imageCommentEntity = saveImageCommentRedis(comment.getPublicId(), getUserAuth(), newCommentEntity);
 
-    CommentResponse response = CommentMapper.INSTANCE.commentToCommentResponse(saveComment);
-    if (imageComment != null) {
-      response.setImage(imageComment.getImageUrl());
+    CommentResponse response = CommentMapper.INSTANCE.commentToCommentResponse(saveCommentEntity);
+    if (imageCommentEntity != null) {
+      response.setImage(imageCommentEntity.getImageUrl());
     }
     return response;
   }
@@ -100,38 +100,38 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
 
   @Override
   public CommentResponse createCommentChild(Long commentIdSrc, CommentRequest comment) {
-    Post post = postPort.findPostByPostId(comment.getPostId());
+    PostEntity postEntity = postPort.findPostByPostId(comment.getPostId());
     UserEntity userEntity = getUserAuth();
-    checkCommentValid(post, userEntity);
-    Comment parentComment = commentPostPort.findCommentById(commentIdSrc);
-    if (parentComment == null) {
+    checkCommentValid(postEntity, userEntity);
+    CommentEntity parentCommentEntity = commentPostPort.findCommentById(commentIdSrc);
+    if (parentCommentEntity == null) {
       throw new CustomException("Parent comment not found", HttpStatus.NOT_FOUND);
     }
 
-    Comment newComment = new Comment(
+    CommentEntity newCommentEntity = new CommentEntity(
             new Date(),
             comment.getContent(),
             userEntity,
-            post
+            postEntity
     );
 
-    ImageComment imageComment = saveImageCommentRedis(comment.getPublicId(), getUserAuth(), newComment);
+    ImageCommentEntity imageCommentEntity = saveImageCommentRedis(comment.getPublicId(), getUserAuth(), newCommentEntity);
 
-    parentComment.addChildComment(newComment);
+    parentCommentEntity.addChildComment(newCommentEntity);
 
-    newComment = commentPostPort.saveComment(newComment);
+    newCommentEntity = commentPostPort.saveComment(newCommentEntity);
 
-    CommentResponse response = CommentMapper.INSTANCE.commentToCommentResponse(newComment);
-    if (imageComment != null) {
-      response.setImage(imageComment.getImageUrl());
+    CommentResponse response = CommentMapper.INSTANCE.commentToCommentResponse(newCommentEntity);
+    if (imageCommentEntity != null) {
+      response.setImage(imageCommentEntity.getImageUrl());
     }
     return response;
   }
 
   @Override
   public List<CommentResponse> getCommentsByPostId(Long postId) {
-    Post post = postPort.findPostByPostId(postId);
-    checkCommentValid(post, getUserAuth());
+    PostEntity postEntity = postPort.findPostByPostId(postId);
+    checkCommentValid(postEntity, getUserAuth());
 
     return commentPostPort.findCommentByPostId(postId).stream().map(
             CommentMapper.INSTANCE::commentToCommentResponse
@@ -140,8 +140,8 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
 
   @Override
   public MessageResponse deleteComment(Long commentId) {
-    Comment comment = commentPostPort.findCommentById(commentId);
-    if (comment == null || !Objects.equals(comment.getUserEntity().getUserId(), getUserAuth().getUserId())) {
+    CommentEntity commentEntity = commentPostPort.findCommentById(commentId);
+    if (commentEntity == null || !Objects.equals(commentEntity.getUserEntity().getUserId(), getUserAuth().getUserId())) {
       throw new CustomException("Comment not found", HttpStatus.NOT_FOUND);
     }
     try {
@@ -154,64 +154,64 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
 
   @Override
   public CommentResponse updateComment(Long commentId, CommentRequest comment) {
-    Post post = postPort.findPostByPostId(comment.getPostId());
+    PostEntity postEntity = postPort.findPostByPostId(comment.getPostId());
     UserEntity userEntity = getUserAuth();
-    checkCommentValid(post, userEntity);
+    checkCommentValid(postEntity, userEntity);
 
-    Comment updatedComment = commentPostPort.findCommentById(commentId);
+    CommentEntity updatedCommentEntity = commentPostPort.findCommentById(commentId);
 
-    ImageComment imageComment = saveImageCommentRedis(comment.getPublicId(), getUserAuth(), updatedComment);
+    ImageCommentEntity imageCommentEntity = saveImageCommentRedis(comment.getPublicId(), getUserAuth(), updatedCommentEntity);
 
     imageCommentPostPort.deleteImageCommentById(comment.getImageDbId());
 
-    updatedComment.setContent(comment.getContent());
+    updatedCommentEntity.setContent(comment.getContent());
 
-    CommentResponse response = CommentMapper.INSTANCE.commentToCommentResponse(updatedComment);
-    if (imageComment != null) {
-      response.setImage(imageComment.getImageUrl());
+    CommentResponse response = CommentMapper.INSTANCE.commentToCommentResponse(updatedCommentEntity);
+    if (imageCommentEntity != null) {
+      response.setImage(imageCommentEntity.getImageUrl());
     }
     return response;
   }
 
-  private ImageComment saveImageCommentRedis(String publicId, UserEntity userEntitySave, Comment commentSave) {
-    ImageComment imageComment = null;
+  private ImageCommentEntity saveImageCommentRedis(String publicId, UserEntity userEntitySave, CommentEntity commentEntitySave) {
+    ImageCommentEntity imageCommentEntity = null;
     if (Boolean.TRUE.equals(imageRedisTemplate.hasKey(publicId)) && !publicId.isEmpty()) {
-      imageComment = new ImageComment(
+      imageCommentEntity = new ImageCommentEntity(
               userEntitySave,
-              commentSave,
+              commentEntitySave,
               imageRedisTemplate.opsForValue().get(publicId),
               new Date()
       );
-      imageCommentPostPort.saveImageComment(imageComment);
+      imageCommentPostPort.saveImageComment(imageCommentEntity);
     }
-    return imageComment;
+    return imageCommentEntity;
   }
 
   @Override
   public ReactionResponse handleReactionComment(Long commentId, String reactionType) {
-    Post post = postPort.findPostByPostId(commentId);
-    Comment updatedComment = commentPostPort.findCommentById(commentId);
-    checkCommentValid(post, updatedComment.getUserEntity());
+    PostEntity postEntity = postPort.findPostByPostId(commentId);
+    CommentEntity updatedCommentEntity = commentPostPort.findCommentById(commentId);
+    checkCommentValid(postEntity, updatedCommentEntity.getUserEntity());
 
-    EReactionType newReactionType;
+    EReactionTypeEntity newReactionType;
     try {
-      newReactionType = EReactionType.valueOf(reactionType.toUpperCase());
+      newReactionType = EReactionTypeEntity.valueOf(reactionType.toUpperCase());
     } catch (IllegalArgumentException e) {
       throw new CustomException("Invalid reaction type", HttpStatus.BAD_REQUEST);
     }
 
-    ReactionComment reactionComment = commentPostPort.findByCommentIdAndUserID(commentId, getUserAuth().getUserId());
-    if (reactionComment == null) {
-      ReactionComment newReactionComment = new ReactionComment(
+    ReactionCommentEntity reactionCommentEntity = commentPostPort.findByCommentIdAndUserID(commentId, getUserAuth().getUserId());
+    if (reactionCommentEntity == null) {
+      ReactionCommentEntity newReactionCommentEntity = new ReactionCommentEntity(
               newReactionType,
-              updatedComment,
+              updatedCommentEntity,
               getUserAuth()
       );
-      return ReactionCommentMapper.INSTANCE.toReactionResponse(commentPostPort.saveReactionComment(newReactionComment));
+      return ReactionCommentMapper.INSTANCE.toReactionResponse(commentPostPort.saveReactionComment(newReactionCommentEntity));
     }
 
-    reactionComment.setReactionType(newReactionType);
-    return ReactionCommentMapper.INSTANCE.toReactionResponse(commentPostPort.saveReactionComment(reactionComment));
+    reactionCommentEntity.setReactionType(newReactionType);
+    return ReactionCommentMapper.INSTANCE.toReactionResponse(commentPostPort.saveReactionComment(reactionCommentEntity));
   }
 
   @Override

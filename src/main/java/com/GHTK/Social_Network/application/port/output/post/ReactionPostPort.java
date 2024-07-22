@@ -1,15 +1,15 @@
 package com.GHTK.Social_Network.application.port.output.post;
 
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionPost;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionPostEntity;
 
 import java.util.List;
 
 public interface ReactionPostPort {
-  ReactionPost  findByPostIdAndUserID(Long postId, Long userId);
+  ReactionPostEntity findByPostIdAndUserID(Long postId, Long userId);
 
-  ReactionPost saveReaction(ReactionPost reactionPost);
+  ReactionPostEntity saveReaction(ReactionPostEntity reactionPostEntity);
 
-  void deleteReaction(ReactionPost reactionPost);
+  void deleteReaction(ReactionPostEntity reactionPostEntity);
 
-  List<ReactionPost> findByPostId(Long postId);
+  List<ReactionPostEntity> findByPostId(Long postId);
 }

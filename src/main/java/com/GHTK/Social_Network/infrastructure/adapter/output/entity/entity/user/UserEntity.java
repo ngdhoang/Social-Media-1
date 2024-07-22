@@ -1,12 +1,12 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user;
 
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.FriendShip;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.Post;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionPost;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.TagUser;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.Comment;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ImageComment;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ReactionComment;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.FriendShipEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionPostEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.TagUserEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.CommentEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ImageCommentEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ReactionCommentEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -55,7 +55,7 @@ public class UserEntity {
   private EStatusUser statusUser;
 
   @Enumerated(EnumType.STRING)
-  private ERole role;
+  private ERoleEntity role;
 
 //  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
 //          cascade = CascadeType.ALL)
@@ -67,31 +67,31 @@ public class UserEntity {
 
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<Post> posts;
+  private List<PostEntity> postEntities;
 
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<TagUser> tagUsers;
+  private List<TagUserEntity> tagUserEntities;
 
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<FriendShip> friendShips;
+  private List<FriendShipEntity> friendShipEntities;
 
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<ReactionPost> reactionPosts;
+  private List<ReactionPostEntity> reactionPostEntities;
 
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<ReactionComment> reactionComments;
+  private List<ReactionCommentEntity> reactionCommentEntities;
 
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<Comment> comments;
+  private List<CommentEntity> commentEntities;
 
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<ImageComment> imageComments;
+  private List<ImageCommentEntity> imageCommentEntities;
 
   public UserEntity(String firstName, String lastName, String userEmail, String password) {
     this.firstName = firstName;

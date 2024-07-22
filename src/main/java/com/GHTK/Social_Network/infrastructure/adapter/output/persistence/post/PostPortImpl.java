@@ -1,9 +1,9 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.post;
 
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePost;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.Post;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.TagUser;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePostEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.TagUserEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.PostRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.TagUserRepository;
@@ -23,27 +23,27 @@ public class PostPortImpl implements PostPort {
   private final TagUserRepository tagUserRepository;
 
   @Override
-  public Post savePost(Post post) {
-    return postRepository.save(post);
+  public PostEntity savePost(PostEntity postEntity) {
+    return postRepository.save(postEntity);
   }
 
   @Override
-  public Post findPostById(Long id) {
+  public PostEntity findPostById(Long id) {
     return postRepository.findById(id).orElse(null);
   }
 
   @Override
-  public UserEntity findUserByPost(Post post) {
-    return userRepository.findByPosts(post).orElse(null);
+  public UserEntity findUserByPost(PostEntity postEntity) {
+    return userRepository.findByPosts(postEntity).orElse(null);
   }
 
   @Override
-  public List<Post> findAllPostByUser(UserEntity userEntity) {
+  public List<PostEntity> findAllPostByUser(UserEntity userEntity) {
     return postRepository.findAllByUser(userEntity);
   }
 
   @Override
-  public Post findPostByPostId(Long postId) {
+  public PostEntity findPostByPostId(Long postId) {
     return postRepository.findById(postId).orElse(null);
   }
 
@@ -68,22 +68,22 @@ public class PostPortImpl implements PostPort {
   }
 
   @Override
-  public List<Post> findAllPostTagMe(UserEntity userEntity) {
-    List<TagUser> tagUserList = tagUserRepository.findAllByUser(userEntity);
-    List<Post> postList = new ArrayList<>();
-    tagUserList.forEach(tagUser -> {
-      postList.add(postRepository.findByTagUsers(tagUser));
+  public List<PostEntity> findAllPostTagMe(UserEntity userEntity) {
+    List<TagUserEntity> tagUserEntityList = tagUserRepository.findAllByUser(userEntity);
+    List<PostEntity> postEntityList = new ArrayList<>();
+    tagUserEntityList.forEach(tagUser -> {
+      postEntityList.add(postRepository.findByTagUsers(tagUser));
     });
-    return postList;
+    return postEntityList;
   }
 
   @Override
-  public Post findPostByImagePost(ImagePost imagePost) {
-    return postRepository.findByImagePosts(imagePost).orElse(null);
+  public PostEntity findPostByImagePost(ImagePostEntity imagePostEntity) {
+    return postRepository.findByImagePosts(imagePostEntity).orElse(null);
   }
 
   @Override
-  public TagUser saveTagUser(TagUser tagUser) {
-    return tagUserRepository.save(tagUser);
+  public TagUserEntity saveTagUser(TagUserEntity tagUserEntity) {
+    return tagUserRepository.save(tagUserEntity);
   }
 }

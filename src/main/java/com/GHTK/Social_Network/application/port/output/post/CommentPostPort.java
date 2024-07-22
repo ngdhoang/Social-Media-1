@@ -1,20 +1,20 @@
 package com.GHTK.Social_Network.application.port.output.post;
 
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.Comment;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ReactionComment;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.CommentEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ReactionCommentEntity;
 
 import java.util.List;
 
 public interface CommentPostPort {
-  Comment saveComment(Comment comment);
+  CommentEntity saveComment(CommentEntity commentEntity);
 
-  Comment findCommentById(Long id);
+  CommentEntity findCommentById(Long id);
 
-  List<Comment> findCommentByPostId(Long postId);
+  List<CommentEntity> findCommentByPostId(Long postId);
 
   void deleteCommentById(Long id);
 
-  ReactionComment findByCommentIdAndUserID(Long commentId, Long userID);
+  ReactionCommentEntity findByCommentIdAndUserID(Long commentId, Long userID);
 
-  ReactionComment saveReactionComment(ReactionComment reactionComment);
+  ReactionCommentEntity saveReactionComment(ReactionCommentEntity reactionCommentEntity);
 }

@@ -1,13 +1,12 @@
 package com.GHTK.Social_Network.application.service.post;
 
-import com.GHTK.Social_Network.application.port.input.CloudServicePortInput;
 import com.GHTK.Social_Network.application.port.input.RandomStringGeneratorPortInput;
 import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePost;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.Post;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePostEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ImagePostMapper;
@@ -96,16 +95,16 @@ public class ImagePostService implements ImagePostInput {
 
   @Override
   public MessageResponse deleteImage(Long id) {
-    ImagePost imagePost = imagePostPort.findImageById(id);
-    if (imagePost == null) {
+    ImagePostEntity imagePostEntity = imagePostPort.findImageById(id);
+    if (imagePostEntity == null) {
       throw new CustomException("Image not found", HttpStatus.NOT_FOUND);
     }
 
-    if (!getUserAuth().equals(postPort.findUserById(postPort.findPostByImagePost(imagePost).getPostId()))) {
+    if (!getUserAuth().equals(postPort.findUserById(postPort.findPostByImagePost(imagePostEntity).getPostId()))) {
       throw new CustomException("User not authorized", HttpStatus.FORBIDDEN);
     }
 
-    if (!cloudServicePortInput.deletePictureByUrl(imagePost.getImageUrl())) {
+    if (!cloudServicePortInput.deletePictureByUrl(imagePostEntity.getImageUrl())) {
       throw new CustomException("Image cannot delete", HttpStatus.FORBIDDEN);
     }
 
@@ -129,10 +128,10 @@ public class ImagePostService implements ImagePostInput {
 
   @Override
   public List<ImageDto> getImageByPostId(Long id) {
-    Post post = postPort.findPostById(id);
-    List<ImagePost> imagePosts = post.getImagePosts();
+    PostEntity postEntity = postPort.findPostById(id);
+    List<ImagePostEntity> imagePostEntities = postEntity.getImagePostEntities();
     List<ImageDto> imageResponseList = new ArrayList<>();
-    imagePosts.forEach(imagePost -> {
+    imagePostEntities.forEach(imagePost -> {
       imageResponseList.add(ImagePostMapper.INSTANCE.imagePostToImageDto(imagePost));
     });
     return imageResponseList;

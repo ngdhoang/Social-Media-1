@@ -1,6 +1,5 @@
 package com.GHTK.Social_Network.application.service.post;
 
-import com.GHTK.Social_Network.application.port.input.CloudServicePortInput;
 import com.GHTK.Social_Network.application.port.input.ImageHandlerPortInput;
 import com.GHTK.Social_Network.application.service.cloud.CustomMultipartFile;
 import lombok.RequiredArgsConstructor;

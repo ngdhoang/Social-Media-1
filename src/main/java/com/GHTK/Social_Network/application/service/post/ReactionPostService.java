@@ -5,9 +5,9 @@ import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
 import com.GHTK.Social_Network.application.port.output.post.ReactionPostPort;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EReactionType;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.Post;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionPost;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EReactionTypeEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionPostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ReactionPostMapper;
@@ -54,12 +54,12 @@ public class ReactionPostService implements ReactionPostInput {
             .orElseThrow(() -> new UsernameNotFoundException("Invalid token"));
   }
 
-  private void validatePostAccess(Post post) {
-    if (post == null) {
+  private void validatePostAccess(PostEntity postEntity) {
+    if (postEntity == null) {
       throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
     }
 
-    UserEntity postOwner = post.getUserEntity();
+    UserEntity postOwner = postEntity.getUserEntity();
     UserEntity currentUserEntity = getUserAuth();
 
     if (!postOwner.getIsProfilePublic()) {
@@ -73,28 +73,28 @@ public class ReactionPostService implements ReactionPostInput {
 
   @Override
   public ReactionResponse handleReactionPost(Long postId, String reactionType) {
-    Post post = postPort.findPostByPostId(postId);
-    validatePostAccess(post);
+    PostEntity postEntity = postPort.findPostByPostId(postId);
+    validatePostAccess(postEntity);
 
-    EReactionType newReactionType;
+    EReactionTypeEntity newReactionType;
     try {
-      newReactionType = EReactionType.valueOf(reactionType.toUpperCase());
+      newReactionType = EReactionTypeEntity.valueOf(reactionType.toUpperCase());
     } catch (IllegalArgumentException e) {
       throw new CustomException("Invalid reaction type", HttpStatus.BAD_REQUEST);
     }
 
-    ReactionPost reactionPost = reactionPostPort.findByPostIdAndUserID(postId, getUserAuth().getUserId());
+    ReactionPostEntity reactionPostEntity = reactionPostPort.findByPostIdAndUserID(postId, getUserAuth().getUserId());
 
-    if (reactionPost == null) {
-      ReactionPost newReactionPost = new ReactionPost(post, getUserAuth(), newReactionType);
-      return ReactionPostMapper.INSTANCE.toReactionPostResponse(reactionPostPort.saveReaction(newReactionPost));
+    if (reactionPostEntity == null) {
+      ReactionPostEntity newReactionPostEntity = new ReactionPostEntity(postEntity, getUserAuth(), newReactionType);
+      return ReactionPostMapper.INSTANCE.toReactionPostResponse(reactionPostPort.saveReaction(newReactionPostEntity));
     } else {
-      if (reactionPost.getReactionType() == newReactionType) {
-        reactionPostPort.deleteReaction(reactionPost);
+      if (reactionPostEntity.getReactionType() == newReactionType) {
+        reactionPostPort.deleteReaction(reactionPostEntity);
         return null;
       } else {
-        reactionPost.setReactionType(newReactionType);
-        return ReactionPostMapper.INSTANCE.toReactionPostResponse(reactionPostPort.saveReaction(reactionPost));
+        reactionPostEntity.setReactionType(newReactionType);
+        return ReactionPostMapper.INSTANCE.toReactionPostResponse(reactionPostPort.saveReaction(reactionPostEntity));
       }
     }
   }

@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
 
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.Post;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -57,5 +57,5 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
           """)
   List<UserEntity> searchUsersByNameOrEmail(String name);
 
-  Optional<UserEntity> findByPosts(Post post);
+  Optional<UserEntity> findByPosts(PostEntity postEntity);
 }

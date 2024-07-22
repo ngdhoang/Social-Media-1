@@ -4,9 +4,12 @@ import com.GHTK.Social_Network.application.port.input.FriendShipPortInput;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.ProfilePort;
+import com.GHTK.Social_Network.domain.model.EFriendshipStatus;
+import com.GHTK.Social_Network.domain.model.FriendShip;
+import com.GHTK.Social_Network.domain.model.User;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.EFriendshipStatus;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.FriendShip;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.FriendShipEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.User;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ProfileMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
@@ -32,7 +35,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class FriendShipService implements FriendShipPortInput {
-
   private final Map<EFriendshipStatus, Integer> status = Map.of(
           EFriendshipStatus.PENDING, 0,
           EFriendshipStatus.CLOSE_FRIEND, 1,
@@ -41,59 +43,45 @@ public class FriendShipService implements FriendShipPortInput {
           EFriendshipStatus.BLOCK, 4,
           EFriendshipStatus.OTHER, 5
   );
-  private final AuthPort authenticationRepositoryPort;
-
+  private final AuthPort authPort;
   private final FriendShipPort friendShipPort;
-
   private final ProfilePort profilePort;
 
-  private UserEntity getUserAuth() {
-    Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    String username;
+  private final ProfileMapper profileMapper;
 
-    if (principal instanceof UserDetails) {
-      username = ((UserDetails) principal).getUsername();
-    } else if (principal instanceof String) {
-      username = (String) principal;
-    } else {
-      throw new IllegalStateException("Unexpected principal type: " + principal.getClass());
-    }
-
-    return authenticationRepositoryPort.findByEmail(username)
-            .orElseThrow(() -> new UsernameNotFoundException("Invalid token"));
-  }
 
   @Override
   public List<ProfileDto> getFriendShip(GetFriendShipRequest getFriendShipRequest) {
-    UserEntity userEntity = getUserAuth();
+    User user = authPort.getUserAuth();
 
-    if (getFriendShipRequest.getUserId() == null || getFriendShipRequest.getUserId().equals(userEntity.getUserId())) {
-      getFriendShipRequest.setUserId(userEntity.getUserId());
+    if (getFriendShipRequest.getUserId() == null || getFriendShipRequest.getUserId().equals(user.getUserId())) {
+      getFriendShipRequest.setUserId(user.getUserId());
       List<FriendShip> friendShips = friendShipPort.getListFriendShip(getFriendShipRequest);
       if (getFriendShipRequest.getStatus() != null && getFriendShipRequest.getStatus().equals(EFriendshipStatus.BLOCK)) {
-        List<UserEntity> profileUserEntity = friendShips.stream()
+        List<User> profileUser = friendShips.stream()
                 .map(friendShip -> profilePort.takeProfileById(friendShip.getUserReceiveId())
                         .orElseThrow(() -> new CustomException("Not found", HttpStatus.NOT_FOUND)))
                 .toList();
-        return profileUserEntity.stream()
-                .map(ProfileMapper.INSTANCE::userToProfileDto)
+        return profileUser.stream()
+                .map(profileMapper::userToProfileDto)
                 .toList();
       }
-      return getProfileDtos(userEntity, friendShips);
+      return getProfileDtos(user, friendShips);
     }
 
     if(getFriendShipRequest.getStatus() == EFriendshipStatus.PENDING){
       throw new CustomException("Not permission", HttpStatus.FORBIDDEN);
     }
-    UserEntity userEntityReceive = profilePort.takeProfileById(getFriendShipRequest.getUserId())
+    User userReceive = profilePort.takeProfileById(getFriendShipRequest.getUserId())
             .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
-    if (!userEntity.getUserId().equals(userEntityReceive.getUserId()) && !userEntityReceive.getIsProfilePublic()) {
+    if (!user.getUserId().equals(userReceive.getUserId()) && !userReceive.getIsProfilePublic()) {
       throw new CustomException("Not permission", HttpStatus.FORBIDDEN);
     }
 
-    FriendShip friendShip = friendShipPort.getFriendShip(userEntity.getUserId(), userEntityReceive.getUserId());
-    FriendShip friendShipReverse = friendShipPort.getFriendShip(userEntityReceive.getUserId(), userEntity.getUserId());
+    FriendShip friendShip = friendShipPort.getFriendShip(user.getUserId(), userReceive.getUserId());
+    FriendShip friendShipReverse = friendShipPort.getFriendShip(userReceive.getUserId(), user.getUserId());
+
 
     if ((friendShip == null && friendShipReverse == null)
             || (friendShip != null && friendShip.getFriendshipStatus().equals(EFriendshipStatus.BLOCK))
@@ -103,30 +91,30 @@ public class FriendShipService implements FriendShipPortInput {
       throw new CustomException("Not permission", HttpStatus.FORBIDDEN);
     }
 
-    if (getFriendShipRequest.equals(EFriendshipStatus.BLOCK)) {
+    if (getFriendShipRequest.getStatus().equals(EFriendshipStatus.BLOCK)) {
       throw new CustomException("Not permission", HttpStatus.FORBIDDEN);
     }
 
     List<FriendShip> friendShips = friendShipPort.getListFriendShip(getFriendShipRequest);
-    return getProfileDtos(userEntity, friendShips);
+    return getProfileDtos(user, friendShips);
 
   }
 
-  private List<ProfileDto> getProfileDtos(UserEntity userEntity, List<FriendShip> friendShips) {
-    List<UserEntity> profileUserEntities = friendShips.stream()
-            .map(friendShip -> (friendShip.getUserInitiatorId().equals(userEntity.getUserId()) ? friendShip.getUserReceiveId() : friendShip.getUserInitiatorId()))
+  private List<ProfileDto> getProfileDtos(User user, List<FriendShip> friendShips) {
+    List<User> profileUsers = friendShips.stream()
+            .map(friendShip -> (friendShip.getUserInitiatorId().equals(user.getUserId()) ? friendShip.getUserReceiveId() : friendShip.getUserInitiatorId()))
             .map(profilePort::takeProfileById)
             .filter(Optional::isPresent)
             .map(Optional::get)
             .toList();
-    return profileUserEntities.stream()
+    return profileUsers.stream()
             .map(ProfileMapper.INSTANCE::userToProfileDto)
             .toList();
   }
 
   @Override
   public MessageResponse setRequestFriendShip(SetRequestFriendRequest setRequestFriendRequest) {
-    UserEntity userEntity = getUserAuth();
+    User user = authPort.getUserAuth();
     Long userReceiveId = setRequestFriendRequest.getUserReceiveId();
 
     if (!friendShipPort.findUserById(userReceiveId)) {
@@ -135,50 +123,50 @@ public class FriendShipService implements FriendShipPortInput {
 
     EFriendshipStatus requestedStatus = getKey(status, setRequestFriendRequest.getStatus());
 
-    if (userEntity.getUserId().equals(userReceiveId)) {
+    if (user.getUserId().equals(userReceiveId)) {
       throw new CustomException("Invalid request: Cannot send request to yourself", HttpStatus.BAD_REQUEST);
     }
 
-    FriendShip friendShip = friendShipPort.getFriendShip(userEntity.getUserId(), userReceiveId);
-    FriendShip friendShipReverse = friendShipPort.getFriendShip(userReceiveId, userEntity.getUserId());
+    FriendShip friendShip = friendShipPort.getFriendShip(user.getUserId(), userReceiveId);
+    FriendShip friendShipReverse = friendShipPort.getFriendShip(userReceiveId, user.getUserId());
 
     if (friendShip == null && friendShipReverse == null) {
-      return handleNoFriendShips(userEntity, setRequestFriendRequest);
+      return handleNoFriendShips(user, setRequestFriendRequest);
     } else if (friendShip == null) {
-      return handleReverseFriendShip(friendShipReverse, userEntity, setRequestFriendRequest, requestedStatus);
+      return handleReverseFriendShip(friendShipReverse, user, setRequestFriendRequest, requestedStatus);
     } else if (friendShipReverse == null) {
-      return handleUserFriendShip(friendShip, userEntity, setRequestFriendRequest, requestedStatus);
+      return handleUserFriendShip(friendShip, user, setRequestFriendRequest, requestedStatus);
     } else {
-      handleBothFriendShips(friendShip, friendShipReverse, userEntity, setRequestFriendRequest, requestedStatus);
+      handleBothFriendShips(friendShip, friendShipReverse, user, setRequestFriendRequest, requestedStatus);
     }
     return null;
   }
 
-  private MessageResponse handleNoFriendShips(UserEntity userEntity, SetRequestFriendRequest setRequestFriendRequest) {
+  private MessageResponse handleNoFriendShips(User user, SetRequestFriendRequest setRequestFriendRequest) {
     Integer status = setRequestFriendRequest.getStatus();
     if (Objects.equals(status, this.status.get(EFriendshipStatus.BLOCK))) {
-      friendShipPort.addFriendShip(userEntity.getUserId(), setRequestFriendRequest.getUserReceiveId(), EFriendshipStatus.BLOCK);
+      friendShipPort.addFriendShip(user.getUserId(), setRequestFriendRequest.getUserReceiveId(), EFriendshipStatus.BLOCK);
       return new MessageResponse("Request successfully");
     }
     if (Objects.equals(status, this.status.get(EFriendshipStatus.CLOSE_FRIEND))) {
-      friendShipPort.addFriendShip(userEntity.getUserId(), setRequestFriendRequest.getUserReceiveId(), EFriendshipStatus.PENDING);
+      friendShipPort.addFriendShip(user.getUserId(), setRequestFriendRequest.getUserReceiveId(), EFriendshipStatus.PENDING);
       return new MessageResponse("Request successfully");
     }
     throw new CustomException("Request is invalid", HttpStatus.BAD_REQUEST);
   }
 
 
-  private MessageResponse handleUserFriendShip(FriendShip friendShip, UserEntity userEntity, SetRequestFriendRequest setRequestFriendRequest, EFriendshipStatus requestedStatus) {
-    Boolean statusNotNull = requestedStatus != null;
+  private MessageResponse handleUserFriendShip(FriendShip friendShip, User user, SetRequestFriendRequest setRequestFriendRequest, EFriendshipStatus requestedStatus) {
+    boolean statusNotNull = requestedStatus != null;
     if (statusNotNull && friendShip.getFriendshipStatus().equals(requestedStatus) ||
-            (friendShip.getFriendshipStatus().equals(EFriendshipStatus.PENDING) && requestedStatus.equals(EFriendshipStatus.CLOSE_FRIEND))) {
+            (friendShip.getFriendshipStatus().equals(EFriendshipStatus.PENDING) && Objects.equals(requestedStatus, EFriendshipStatus.CLOSE_FRIEND))) {
       throw new CustomException("Request is duplicated", HttpStatus.BAD_REQUEST);
     }
-    if (friendShip.getFriendshipStatus().equals(EFriendshipStatus.PENDING) &&
+    if (friendShipEntity.getFriendshipStatus().equals(EFriendshipStatus.PENDING) &&
             requestedStatus != EFriendshipStatus.CLOSE_FRIEND && requestedStatus != EFriendshipStatus.BLOCK) {
       throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
     }
-    if (friendShip.getFriendshipStatus().equals(EFriendshipStatus.BLOCK) &&
+    if (friendShipEntity.getFriendshipStatus().equals(EFriendshipStatus.BLOCK) &&
             requestedStatus != EFriendshipStatus.BLOCK) {
       throw new CustomException("This user was blocked", HttpStatus.BAD_REQUEST);
     }
@@ -186,8 +174,8 @@ public class FriendShipService implements FriendShipPortInput {
     return new MessageResponse("Request sent successfully");
   }
 
-  private MessageResponse handleReverseFriendShip(FriendShip friendShip, UserEntity userEntity, SetRequestFriendRequest setRequestFriendRequest, EFriendshipStatus requestedStatus) {
-    Boolean statusNotNull = requestedStatus != null;
+  private MessageResponse handleReverseFriendShip(FriendShip friendShip, User user, SetRequestFriendRequest setRequestFriendRequest, EFriendshipStatus requestedStatus) {
+    boolean statusNotNull = requestedStatus != null;
     if (statusNotNull && friendShip.getFriendshipStatus().equals(requestedStatus) &&
             requestedStatus != EFriendshipStatus.BLOCK) {
       throw new CustomException("Request is duplicated", HttpStatus.BAD_REQUEST);
@@ -210,11 +198,11 @@ public class FriendShipService implements FriendShipPortInput {
     return new MessageResponse("Request sent successfully");
   }
 
-  private void handleBothFriendShips(FriendShip friendShip, FriendShip friendShipReverse, UserEntity userEntity, SetRequestFriendRequest setRequestFriendRequest, EFriendshipStatus requestedStatus) {
+  private void handleBothFriendShips(FriendShip friendShip, FriendShip friendShipReverse, User user, SetRequestFriendRequest setRequestFriendRequest, EFriendshipStatus requestedStatus) {
     if (friendShip.getFriendshipStatus().equals(requestedStatus)) {
       throw new CustomException("Request is duplicated", HttpStatus.BAD_REQUEST);
     }
-    if (setRequestFriendRequest.getStatus() != status.get(EFriendshipStatus.BLOCK)
+    if (!Objects.equals(setRequestFriendRequest.getStatus(), status.get(EFriendshipStatus.BLOCK))
     ) {
       throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
     }
@@ -239,7 +227,7 @@ public class FriendShipService implements FriendShipPortInput {
 
   @Override
   public MessageResponse unFriendShip(UnFriendShipRequest unFriendShipRequest) {
-    UserEntity userEntity = getUserAuth();
+    User userEntity = authPort.getUserAuth();
     if (userEntity.getUserId().equals(unFriendShipRequest.getFriendId())) {
       throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
     }

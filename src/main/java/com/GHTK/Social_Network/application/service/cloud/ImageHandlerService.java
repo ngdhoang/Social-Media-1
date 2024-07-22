@@ -1,7 +1,9 @@
 package com.GHTK.Social_Network.application.service.cloud;
 
 import com.GHTK.Social_Network.application.port.input.ImageHandlerPortInput;
+import com.GHTK.Social_Network.common.customException.CustomException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -189,6 +191,17 @@ public class ImageHandlerService implements ImageHandlerPortInput {
     } catch (IOException e) {
       e.printStackTrace();
       return null;
+    }
+  }
+
+  @Override
+  public void checkImageValid(MultipartFile file) {
+    if (!isImage(file)) {
+      throw new CustomException("Input not image", HttpStatus.BAD_REQUEST);
+    }
+
+    if (!checkSizeValid(file, ImageHandlerPortInput.MAX_SIZE_NOT_VALID)) {
+      throw new CustomException("Size not valid", HttpStatus.BAD_REQUEST);
     }
   }
 

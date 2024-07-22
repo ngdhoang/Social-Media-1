@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
 
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionPost;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.postEntity.ReactionPostEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -8,14 +8,14 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ReactionPostRepository extends JpaRepository<ReactionPost, Long> {
+public interface ReactionPostRepository extends JpaRepository<ReactionPostEntity, Long> {
   @Query("""
-                 select r from ReactionPost r where r.userEntity.userId = ?2 and r.post.postId = ?1
+                 select r from ReactionPostEntity r where r.userEntity.userId = ?2 and r.postEntity.postId = ?1
           """)
-  ReactionPost findByPostIdAndUserID(Long postId, Long userId);
+  ReactionPostEntity findByPostIdAndUserID(Long postId, Long userId);
 
   @Query("""
-                 select r from ReactionPost r where r.post.postId = ?1
+                 select r from ReactionPostEntity r where r.postEntity.postId = ?1
           """)
-  List<ReactionPost> findByPostId(Long postId);
+  List<ReactionPostEntity> findByPostId(Long postId);
 }

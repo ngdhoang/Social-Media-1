@@ -1,13 +1,13 @@
 package com.GHTK.Social_Network.application.port.output;
 
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.EFriendshipStatus;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.FriendShip;
+import com.GHTK.Social_Network.domain.model.EFriendshipStatus;
+import com.GHTK.Social_Network.domain.model.FriendShip;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetFriendShipRequest;
 
 import java.util.List;
 
 public interface FriendShipPort {
-    Boolean addFriendShip(Long userInitiatorId, Long userReceiveId, EFriendshipStatus status);
+    FriendShip addFriendShip(Long userInitiatorId, Long userReceiveId, EFriendshipStatus status);
 
     Boolean setRequestFriendShip(Long friendShipId, EFriendshipStatus status);
 

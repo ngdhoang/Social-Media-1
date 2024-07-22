@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.Comment;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.CommentEntity;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.CommentResponse;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
@@ -18,12 +18,12 @@ public interface CommentMapper {
   @Mapping(source = "parentComment.commentId", target = "parentCommentId")
   @Mapping(target = "childComments", expression = "java(mapChildComments(comment.getChildComments()))")
   @Mapping(target = "image", expression = "java(getFirstImageUrl(comment))")
-  CommentResponse commentToCommentResponse(Comment comment);
+  CommentResponse commentToCommentResponse(CommentEntity commentEntity);
 
-  List<CommentResponse> mapChildComments(List<Comment> childComments);
+  List<CommentResponse> mapChildComments(List<CommentEntity> childCommentEntities);
 
-  default String getFirstImageUrl(Comment comment) {
-    return Optional.ofNullable(comment.getImageComments())
+  default String getFirstImageUrl(CommentEntity commentEntity) {
+    return Optional.ofNullable(commentEntity.getImageCommentEntities())
             .orElse(Collections.emptyList())
             .stream()
             .findFirst()
@@ -32,9 +32,9 @@ public interface CommentMapper {
   }
 
   @AfterMapping
-  default void setAdditionalFields(Comment comment, @MappingTarget CommentResponse commentResponse) {
-    if (comment.getImageComments() != null && !comment.getImageComments().isEmpty()) {
-      commentResponse.setImage(comment.getImageComments().get(0).getImageUrl());
+  default void setAdditionalFields(CommentEntity commentEntity, @MappingTarget CommentResponse commentResponse) {
+    if (commentEntity.getImageCommentEntities() != null && !commentEntity.getImageCommentEntities().isEmpty()) {
+      commentResponse.setImage(commentEntity.getImageCommentEntities().get(0).getImageUrl());
     }
   }
 }

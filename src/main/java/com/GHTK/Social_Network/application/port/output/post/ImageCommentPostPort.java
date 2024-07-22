@@ -1,11 +1,11 @@
 package com.GHTK.Social_Network.application.port.output.post;
 
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ImageComment;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ImageCommentEntity;
 
 public interface ImageCommentPostPort {
-  ImageComment saveImageComment(ImageComment imageComment);
+  ImageCommentEntity saveImageComment(ImageCommentEntity imageCommentEntity);
 
-  ImageComment getImageCommentById(Long id);
+  ImageCommentEntity getImageCommentById(Long id);
 
   void deleteImageCommentById(Long id);
 }

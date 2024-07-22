@@ -1,8 +1,8 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePost;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.Post;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.TagUser;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePostEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.TagUserEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
@@ -26,15 +26,15 @@ public interface PostMapper {
   PostResponse postToPostResponse(Post post);
 
   @Named("imagePostsToUrls")
-  default List<ImageDto> imagePostsToUrls(List<ImagePost> imagePosts) {
-    return imagePosts.stream()
+  default List<ImageDto> imagePostsToUrls(List<ImagePostEntity> imagePostEntities) {
+    return imagePostEntities.stream()
             .map((imagePost) -> new ImageDto(imagePost.getImagePostId(), imagePost.getImageUrl(), imagePost.getCreateAt()))
             .collect(Collectors.toList());
   }
 
   @Named("tagUserToTagUserDto")
-  default List<ProfileDto> tagUserToTagUserDto(List<TagUser> tagUserList) {
-    return Optional.ofNullable(tagUserList)
+  default List<ProfileDto> tagUserToTagUserDto(List<TagUserEntity> tagUserEntityList) {
+    return Optional.ofNullable(tagUserEntityList)
             .orElse(Collections.emptyList())
             .stream()
             .map(tu -> {

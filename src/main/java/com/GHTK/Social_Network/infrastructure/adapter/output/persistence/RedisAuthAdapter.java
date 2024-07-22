@@ -17,9 +17,8 @@ public class RedisAuthAdapter implements RedisAuthPort {
   }
 
   @Override
-  public AuthRedisDto createOrUpdate(String key, AuthRedisDto authRedisDto) {
+  public void createOrUpdate(String key, AuthRedisDto authRedisDto) {
     authRedisTemplate.opsForValue().set(key, authRedisDto);
-    return this.findByKey(key);
   }
 
   @Override

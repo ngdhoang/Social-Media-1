@@ -5,15 +5,15 @@ import com.GHTK.Social_Network.domain.model.Token;
 import com.GHTK.Social_Network.domain.model.User;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsImpl;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.TokenEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.TokenRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
-import com.GHTK.Social_Network.infrastructure.mapper.TokenMapper;
-import com.GHTK.Social_Network.infrastructure.mapper.UserMapper;
+import com.GHTK.Social_Network.infrastructure.mapper.TokenMapperETD;
+import com.GHTK.Social_Network.infrastructure.mapper.UserMapperETD;
 import lombok.AllArgsConstructor;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,13 +25,13 @@ public class AuthAdapter implements AuthPort {
   private final TokenRepository tokenRepository;
   private final UserRepository userRepository;
 
-  private final TokenMapper tokenMapper;
-  private final UserMapper userMapper;
+  private final TokenMapperETD tokenMapperETD;
+  private final UserMapperETD userMapperETD;
 
   @Override
   public List<Token> findAllValidTokenByUser(Long id) {
     return tokenRepository.findAllValidTokenByUser(id).stream().map(
-            tokenMapper::toDomain
+            tokenMapperETD::toDomain
     ).toList();
   }
 
@@ -42,11 +42,11 @@ public class AuthAdapter implements AuthPort {
 
   @Override
   public Token saveToken(Token token) {
-    TokenEntity newToken = tokenMapper.toEntity(token);
+    TokenEntity newToken = tokenMapperETD.toEntity(token);
     newToken.setUserEntity(
             userRepository.findById(token.getUserId()).orElse(null)
     );
-    return tokenMapper.toDomain(tokenRepository.save(newToken));
+    return tokenMapperETD.toDomain(tokenRepository.save(newToken));
   }
 
   @Override
@@ -56,12 +56,12 @@ public class AuthAdapter implements AuthPort {
 
   @Override
   public Optional<User> findByEmail(String input) {
-    return Optional.ofNullable(userMapper.toDomain(userRepository.findByUserEmail(input).orElse(null)));
+    return Optional.ofNullable(userMapperETD.toDomain(userRepository.findByUserEmail(input).orElse(null)));
   }
 
   @Override
   public User saveUser(User user) {
-    return userMapper.toDomain(userRepository.save(userMapper.toEntity(user)));
+    return userMapperETD.toDomain(userRepository.save(userMapperETD.toEntity(user)));
   }
 
   @Override
@@ -76,7 +76,7 @@ public class AuthAdapter implements AuthPort {
 
   @Override
   public Token findByToken(String jwt) {
-    return tokenMapper.toDomain(tokenRepository.findByToken(jwt).orElse(null));
+    return tokenMapperETD.toDomain(tokenRepository.findByToken(jwt).orElse(null));
   }
 
   @Override
@@ -86,28 +86,38 @@ public class AuthAdapter implements AuthPort {
 
   @Override
   public User getUserById(Long id) {
-    return userMapper.toDomain(userRepository.findById(id).orElse(null));
+    return userMapperETD.toDomain(userRepository.findById(id).orElse(null));
   }
 
   @Override
   public User getUserAuth() {
-    Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    String username;
-
-    if (principal instanceof UserDetails) {
-      username = ((UserDetails) principal).getUsername();
-    } else if (principal instanceof String) {
-      username = (String) principal;
-    } else {
-      throw new IllegalStateException("Unexpected principal type: " + principal.getClass());
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (isInvalidAuthentication(authentication)) {
+      return null;
     }
 
-    return this.findByEmail(username)
-            .orElseThrow(() -> new UsernameNotFoundException("Invalid token"));
+    String username = extractUsername(authentication.getPrincipal());
+    return findByEmail(username).orElse(null);
+  }
+
+  private boolean isInvalidAuthentication(Authentication authentication) {
+    return authentication == null
+            || !authentication.isAuthenticated()
+            || authentication instanceof AnonymousAuthenticationToken;
+  }
+
+  private String extractUsername(Object principal) {
+    if (principal instanceof UserDetails) {
+      return ((UserDetails) principal).getUsername();
+    }
+    if (principal instanceof String) {
+      return (String) principal;
+    }
+    throw new IllegalStateException("Unexpected principal type: " + principal.getClass());
   }
 
   @Override
   public UserDetailsImpl getUserDetails(User user) {
-    return new UserDetailsImpl(userMapper.toEntity(user));
+    return new UserDetailsImpl(userMapperETD.toEntity(user));
   }
 }
