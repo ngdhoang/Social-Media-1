@@ -23,4 +23,7 @@ public interface AuthPort {
 
   Optional<Token> findByToken(String jwt);
 
+  void deleteUserByEmail(String email);
+
+  User getUserById(Long id);
 }

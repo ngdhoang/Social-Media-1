@@ -7,18 +7,20 @@ import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateProfileRequ
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class ProfilePortImpl implements ProfilePort {
   private final UserRepository userRepository;
 
   @Override
-  public User takeProfileById(Long id) {
-    return userRepository.findById(id).orElse(null);
+  public Optional<User> takeProfileById(Long id) {
+    return Optional.ofNullable(userRepository.findById(id).orElse(null));
   }
 
   @Override
-  public void updateProfile(UpdateProfileRequest updateProfileRequest, Long userId) {
+  public Boolean updateProfile(UpdateProfileRequest updateProfileRequest, Long userId) {
     User savedUser = userRepository.findById(userId).orElse(null);
 
     savedUser.setFirstName(updateProfileRequest.getFirstName());
@@ -30,6 +32,7 @@ public class ProfilePortImpl implements ProfilePort {
     savedUser.setWorkPlace(updateProfileRequest.getWorkPlace());
     savedUser.setIsProfilePublic(updateProfileRequest.getIsProfilePublic());
     userRepository.save(savedUser);
+    return true;
   }
 
   @Override

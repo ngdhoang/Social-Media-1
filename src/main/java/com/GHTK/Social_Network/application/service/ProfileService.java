@@ -9,7 +9,6 @@ import com.GHTK.Social_Network.application.port.output.ProfilePort;
 import com.GHTK.Social_Network.domain.entity.user.User;
 import com.GHTK.Social_Network.infrastructure.exception.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ProfileMapper;
-import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.ProfileStateRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateProfileRequest;
@@ -22,6 +21,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -61,22 +64,25 @@ public class ProfileService implements ProfilePortInput {
 
   @Override
   public ProfileDto getProfile(Long id) {
+    if (id < 0) {
+      id = getUserAuth().getUserId();
+    }
     if (Boolean.TRUE.equals(profileDtoRedisTemplate.hasKey(String.valueOf(id)))) {
-      if (!profileDtoRedisTemplate.opsForValue().get(String.valueOf(id)).getIsProfilePublic() && !getUserAuth().getUserId().equals(id)) {
+      if (!Objects.requireNonNull(profileDtoRedisTemplate.opsForValue().get(String.valueOf(id))).getIsProfilePublic() && !getUserAuth().getUserId().equals(id)) {
         return null;
       }
       return profileDtoRedisTemplate.opsForValue().get(String.valueOf(id));
     }
-    User user = profilePort.takeProfileById(id);
+    Optional<User> user = profilePort.takeProfileById(id);
 
-    if (user == null) {
+    if (user.isEmpty()) {
       return null;
     }
 
-    Boolean isProfilePublic = user.getIsProfilePublic();
+    Boolean isProfilePublic = user.get().getIsProfilePublic();
 
-    ProfileDto profileDto = ProfileMapper.INSTANCE.userToProfileDto(user);
-    if (isProfilePublic || user.getUserId().equals(getUserAuth().getUserId())) {
+    ProfileDto profileDto = ProfileMapper.INSTANCE.userToProfileDto(user.get());
+    if (isProfilePublic || user.get().getUserId().equals(getUserAuth().getUserId())) {
       profileDtoRedisTemplate.opsForValue().set(String.valueOf(id), profileDto);
       return profileDto;
     }
@@ -86,10 +92,12 @@ public class ProfileService implements ProfilePortInput {
   @Override
   public ProfileDto updateProfile(UpdateProfileRequest updateProfileRequest) {
     Long userId = getUserAuth().getUserId();
-    profilePort.updateProfile(updateProfileRequest, userId);
-    User profileDto = profilePort.takeProfileById(userId);
-    profileDtoRedisTemplate.opsForValue().set(String.valueOf(userId), ProfileMapper.INSTANCE.userToProfileDto(profileDto));
 
+    Boolean isUpdateProfile = profilePort.updateProfile(updateProfileRequest, userId);
+    Optional<User> profileDto = profilePort.takeProfileById(userId);
+    if (isUpdateProfile) {
+      profileDtoRedisTemplate.opsForValue().set(String.valueOf(userId), ProfileMapper.INSTANCE.userToProfileDto(profileDto.get()));
+    }
     return profileDtoRedisTemplate.opsForValue().get(String.valueOf(userId));
   }
 
@@ -108,8 +116,8 @@ public class ProfileService implements ProfilePortInput {
   }
 
   @Override
-  public ProfileDto updateAvatarProfile(ImageDto imageDto) {
-    String url = cloudServicePortInput.uploadPictureSetSize(imageDto.getImage(), ImageHandlerPortInput.MAX_SIZE_AVATAR);
+  public ProfileDto updateAvatarProfile(MultipartFile file) {
+    String url = (String) cloudServicePortInput.uploadPictureByFile(file, ImageHandlerPortInput.MAX_SIZE_AVATAR).get("url");
     Boolean check = imageHandlerPort.saveAvatar(url, getUserAuth().getUserId());
     if (check) {
       ProfileDto profileDto = profileDtoRedisTemplate.opsForValue().get(String.valueOf(getUserAuth().getUserId()));
