@@ -21,7 +21,7 @@ public interface ReactionPostPort {
 
   int countReactionByPostIdAndType(Long postId, EReactionType reactionType);
 
-  Map<EReactionType, Set<ReactionPost>> getReactionGroupByPostId(Long postId);
+  List<Map<EReactionType, Set<ReactionPost>>> getReactionGroupByPostId(Long postId);
 
   List<ReactionPost> getByPostIdAndType(Long postId, GetReactionPostRequest getReactionPostRequest);
 
