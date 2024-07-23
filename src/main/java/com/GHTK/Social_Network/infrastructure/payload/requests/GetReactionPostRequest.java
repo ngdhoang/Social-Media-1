@@ -9,7 +9,7 @@ import lombok.Data;
 public class GetReactionPostRequest extends PaginationRequest {
 
   @ValidEReactionPostType
-  private EReactionType reactionType;
+  private String reactionType;
 
   @Min(value = 1, message = "postId must be greater than or equal to 1")
   private Long postId;

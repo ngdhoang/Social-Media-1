@@ -9,8 +9,8 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class GetFriendShipRequest extends PaginationRequest{
-//    @ValidEFriendShipStatus
-    private EFriendshipStatus status;
+    @ValidEFriendShipStatus
+    private String status;
 
     @Min(value = 1, message = "userId must be greater than or equal to 1")
     private Long userId;

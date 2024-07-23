@@ -17,8 +17,8 @@ public interface FriendShipRepository extends JpaRepository<FriendShipEntity, Lo
 
   @Query("""
           select f from FriendShipEntity f
-          where f.userReceiveId = :userId or f.userInitiatorId = :userId
-              and (:status is null and f.friendshipStatus <> 'BLOCK') or f.friendshipStatus = :status
+          where (f.userReceiveId = :userId or f.userInitiatorId = :userId)
+              and ((:status is null and f.friendshipStatus <> 'BLOCK' and f.friendshipStatus <> 'PENDING') or f.friendshipStatus = :status)
           """)
   List<FriendShipEntity> getListFriend(
           @Param("userId") Long userId,

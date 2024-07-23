@@ -34,6 +34,11 @@ public class ReactionPostAdapter implements ReactionPostPort {
 
   @Override
   public ReactionPost saveReaction(ReactionPost reactionPost) {
+    if (reactionPost.getReactionType() == null) {
+      reactionPost.setReactionType(EReactionType.LIKE);
+    }
+    System.out.println("reactionPostMapperETD.toEntity(reactionPost)");
+    System.out.println(reactionPostMapperETD.toEntity(reactionPost));
     return reactionPostMapperETD.toDomain(reactionPostRepository.save(reactionPostMapperETD.toEntity(reactionPost)));
   }
 
@@ -59,13 +64,31 @@ public class ReactionPostAdapter implements ReactionPostPort {
 
   @Override
   public Map<EReactionType, Set<ReactionPost>> getReactionGroupByPostId(Long postId){
-    return reactionPostRepository.getReactionGroupByPostId(postId).entrySet().stream()
+//    return reactionPostRepository.getReactionGroupByPostId(postId).entrySet().stream()
+//            .collect(Collectors.toMap(
+//                    entry -> reactionPostTypeMapperETD.toDomain(EReactionTypeEntity.valueOf(entry.getKey())),
+//                    entry -> ((List<Map<String, Object>>) entry.getValue()).stream()
+//                            .map(map -> ReactionPost.builder()
+//                                    .userId((Long) map.get("userId"))
+//                                    .postId((Long) map.get("postId"))
+//                                    .build())
+//                            .collect(Collectors.toSet())
+//            ));
+
+    Map<String, Object> map = reactionPostRepository.getReactionGroupByPostId(postId);
+
+    System.out.println("map");
+    map.forEach((key, value) -> {
+      System.out.println("key: " + key + " value: " + value);
+    });
+
+    return map.entrySet().stream()
             .collect(Collectors.toMap(
                     entry -> reactionPostTypeMapperETD.toDomain(EReactionTypeEntity.valueOf(entry.getKey())),
                     entry -> ((List<Map<String, Object>>) entry.getValue()).stream()
-                            .map(map -> ReactionPost.builder()
-                                    .userId((Long) map.get("userId"))
-                                    .postId((Long) map.get("postId"))
+                            .map(map1 -> ReactionPost.builder()
+                                    .userId((Long) map1.get("userId"))
+                                    .postId((Long) map1.get("postId"))
                                     .build())
                             .collect(Collectors.toSet())
             ));
@@ -78,7 +101,7 @@ public class ReactionPostAdapter implements ReactionPostPort {
     int size = getReactionPostRequest.getSize();
     String orderBy = getReactionPostRequest.getOrderBy();
     String sortBy = getReactionPostRequest.getSortBy();
-    EReactionType reactionType = getReactionPostRequest.getReactionType();
+    EReactionType reactionType = getReactionPostRequest.getReactionType() == null ? null : EReactionType.valueOf(getReactionPostRequest.getReactionType());
     sortBy = sortBy.equals(ESortBy.CREATED_AT.toString()) ? "createAt" : "reactionPostId";
     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderBy), sortBy));
     return reactionPostRepository.getByPostIdAndType(postId, reactionPostTypeMapperETD.toEntity(reactionType), pageable).stream().map(reactionPostMapperETD::toDomain).toList();
@@ -91,7 +114,7 @@ public class ReactionPostAdapter implements ReactionPostPort {
     int size = getReactionPostRequest.getSize();
     String orderBy = getReactionPostRequest.getOrderBy();
     String sortBy = getReactionPostRequest.getSortBy();
-    EReactionType reactionType = getReactionPostRequest.getReactionType();
+    EReactionType reactionType = getReactionPostRequest.getReactionType() == null ? null : EReactionType.valueOf(getReactionPostRequest.getReactionType());
     sortBy = sortBy.equals(ESortBy.CREATED_AT.toString()) ? "createAt" : "reactionPostId";
     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderBy), sortBy));
     if (reactionType == null) {

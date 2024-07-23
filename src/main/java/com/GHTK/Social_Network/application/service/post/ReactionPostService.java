@@ -7,8 +7,10 @@ import com.GHTK.Social_Network.application.port.output.post.PostPort;
 import com.GHTK.Social_Network.application.port.output.post.ReactionPostPort;
 import com.GHTK.Social_Network.application.port.output.post.RedisReactionPostPort;
 import com.GHTK.Social_Network.domain.model.EReactionType;
+import com.GHTK.Social_Network.domain.model.FriendShip;
 import com.GHTK.Social_Network.domain.model.ReactionPost;
 import com.GHTK.Social_Network.domain.model.User;
+import com.GHTK.Social_Network.domain.model.post.EPostStatus;
 import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ReactionPostInfoMapper;
@@ -18,6 +20,7 @@ import com.GHTK.Social_Network.infrastructure.payload.dto.post.ReactionPostCount
 import com.GHTK.Social_Network.infrastructure.payload.dto.post.ReactionPostRedisDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.post.ReactionPostUserDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionPostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionPostResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionResponse;
 import lombok.RequiredArgsConstructor;
@@ -66,22 +69,37 @@ public class ReactionPostService implements ReactionPostInput {
     if (friendShipPort.isBlock(postOwnerId, currentUserId)) {
       throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
     }
+
+    FriendShip friendShip = friendShipPort.getFriendShip(postOwnerId, currentUserId);
+    FriendShip friendShipReverse = friendShipPort.getFriendShip(currentUserId, postOwnerId);
+
+    if(post.getPostStatus() == EPostStatus.PRIVATE){
+      throw new CustomException("Post not accessible", HttpStatus.FORBIDDEN);
+    }
+
+    if(post.getPostStatus() == EPostStatus.FRIEND){
+      if(friendShipPort.isFriend(postOwnerId, currentUserId)){
+        return;
+      }
+    }
+
+    return;
   }
 
   @Override
-  public ReactionResponse handleReactionPost(Long postId, String reactionType) {
-    User user = authPort.getUserAuth();
+  public ReactionResponse handleReactionPost(Long postId, ReactionPostRequest reactionPostRequest) {
+    User user = getUserAuth();
     Post post = postPort.findPostByPostId(postId);
     validatePostAccess(post);
 
     EReactionType newReactionType;
     try {
-      newReactionType = EReactionType.valueOf(reactionType.toUpperCase());
+      newReactionType = reactionPostRequest.getReactionType() == null ? null : EReactionType.valueOf(reactionPostRequest.getReactionType());
     } catch (IllegalArgumentException e) {
       throw new CustomException("Invalid reaction type", HttpStatus.BAD_REQUEST);
     }
     ReactionPost reactionPost;
-    ReactionPostRedisDto reactionPostRedisDto = redisReactionPostPort.findByKey(postId.toString());
+//    ReactionPostRedisDto reactionPostRedisDto = redisReactionPostPort.findByKey(postId.toString());
 //        if (reactionPostRedisDto != null) {
 //            reactionPost = reactionPostMapper.toReactionPost(reactionPostRedisDto);
 //            if (reactionPost.getReactionType() == newReactionType) {
@@ -103,17 +121,18 @@ public class ReactionPostService implements ReactionPostInput {
               .reactionType(newReactionType)
               .build();
       ReactionPost savedReactionPost = reactionPostPort.saveReaction(newReactionPost);
-      if (reactionPostRedisDto == null) {
-        // get reactionPost from db
-        // save to redis
-      } else {
-        // update redis by add a new reaction to type
-      }
+
+//      if (reactionPostRedisDto == null) {
+//        // get reactionPost from db
+//        // save to redis
+//      } else {
+//        // update redis by add a new reaction to type
+//      }
 
 //      redisReactionPostPort.createOrUpdate(savedReactionPost);
       return reactionPostMapper.postToResponse(savedReactionPost);
     } else {
-      if (reactionPost.getReactionType() == newReactionType) {
+      if (reactionPost.getReactionType() == newReactionType || newReactionType == null) {
         reactionPostPort.deleteReaction(reactionPost);
         // delete from redis
         return null;
@@ -140,7 +159,7 @@ public class ReactionPostService implements ReactionPostInput {
 
     if (getReactionPostRequest.getReactionType() == null) {
       // check in redis data example: reaction-post:1 - {postId: 1, userId: 1, reactionPostObjectRedisDtos: [{userId: 1, reactionType: LIKE}, {userId: 2, reactionType: LOVE}]}
-      ReactionPostRedisDto reactionPostRedisDto = redisReactionPostPort.findByKey(postId.toString());
+//      ReactionPostRedisDto reactionPostRedisDto = redisReactionPostPort.findByKey(postId.toString());
 
 
       // if not exist in redis, get from db

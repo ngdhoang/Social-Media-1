@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.application.port.input;
 
+import com.GHTK.Social_Network.infrastructure.payload.dto.FriendShipUserDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.AcceptFriendRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetFriendShipRequest;
@@ -10,7 +11,7 @@ import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import java.util.List;
 
 public interface FriendShipPortInput {
-  List<ProfileDto> getFriendShip(GetFriendShipRequest getFriendShipRequest);
+  List<FriendShipUserDto> getFriendShip(GetFriendShipRequest getFriendShipRequest);
 
   MessageResponse setRequestFriendShip(SetRequestFriendRequest setRequestFriendRequest);
 
