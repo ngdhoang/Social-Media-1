@@ -5,7 +5,7 @@ import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionRes
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface ReactionCommentMapper {
   @Mapping(source = "reactionCommentId", target = "reactionPostId")
   @Mapping(source = "commentId", target = "postId")

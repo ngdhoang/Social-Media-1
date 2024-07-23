@@ -57,35 +57,35 @@ public class UserEntity {
   @Enumerated(EnumType.STRING)
   private ERoleEntity role;
 
-  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
+  @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<TokenEntity> tokenEntities;
 
-  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
+  @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<PostEntity> postEntities;
 
-  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
+  @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<TagUserEntity> tagUserEntities;
 
-  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
+  @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<FriendShipEntity> friendShipEntities;
 
-  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
+  @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<ReactionPostEntity> reactionPostEntities;
 
-  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
+  @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<ReactionCommentEntity> reactionCommentEntities;
 
-  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
+  @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<CommentEntity> commentEntities;
 
-  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
+  @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<ImageCommentEntity> imageCommentEntities;
 

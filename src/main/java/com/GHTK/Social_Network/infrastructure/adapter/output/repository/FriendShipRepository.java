@@ -27,44 +27,44 @@ public interface FriendShipRepository extends JpaRepository<FriendShipEntity, Lo
 
 
   @Query("""
-          select f from FriendShipEntity f
-          where f.userInitiatorId = :userId
-              and f.friendshipStatus = 'BLOCK'
+          select f from FriendShipEntity f\s
+          where f.userInitiatorId = :userId\s
+              and f.friendshipStatus = 'BLOCK'\s
           """)
   List<FriendShipEntity> getListBlock(
           @Param("userId") Long userId,
           Pageable pageable);
 
   @Query(value = """
-          select f from FriendShipEntity f
-          where f.userReceiveId = :userReceiveId 
-          and f.userInitiatorId = :userInitiateId
+          select f from FriendShipEntity f\s
+          where f.userReceiveId = :userReceiveId\s
+          and f.userInitiatorId = :userInitiateId\s
           """)
   FriendShipEntity findFriendShip(@Param("userInitiateId") Long userInitiateId, @Param("userReceiveId") Long userReceiveId);
 
   @Modifying
   @Transactional
   @Query(value = """
-          update FriendShipEntity f
-          set f.friendshipStatus = :status
-          where f.userReceiveId = :userReceiveId
-          and f.userInitiatorId = :userInitiateId
+          update FriendShipEntity f\s
+          set f.friendshipStatus = :status\s
+          where f.userReceiveId = :userReceiveId\s
+          and f.userInitiatorId = :userInitiateId\s
           """)
   void setRequestFriendShip(@Param("userReceiveId") Long userReceiveId, @Param("userInitiateId") Long userInitiateId, @Param("status") String status);
 
   @Modifying
   @Transactional
   @Query(value = """
-          update FriendShipEntity f
-          set f.friendshipStatus = :status
-          where f.friendShipId = :friendShipId
+          update FriendShipEntity f\s
+          set f.friendshipStatus = :status\s
+          where f.friendShipId = :friendShipId\s
           """)
   void setRequestFriendShip(@Param("friendShipId") Long friendShipId, @Param("status") String status);
 
   @Modifying
   @Transactional
   @Query(value = """
-          insert into FriendShip (user_receive_id, user_initiator_id, friendship_status)
+          insert into FriendShip (user_receive_id, user_initiator_id, friendship_status)\s
           values (:userReceiveId, :userInitiateId, :status)
           """, nativeQuery = true)
   void addFriendShip(@Param("userReceiveId") Long userReceiveId, @Param("userInitiateId") Long userInitiateId, @Param("status") String status);

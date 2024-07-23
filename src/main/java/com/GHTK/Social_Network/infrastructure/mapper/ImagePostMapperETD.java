@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
 
 import java.util.Date;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface ImagePostMapperETD {
   @Mapping(source = "postEntity.postId", target = "postId")
   ImagePost toDomain(ImagePostEntity imagePostEntity);

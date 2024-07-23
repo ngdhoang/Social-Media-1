@@ -65,9 +65,9 @@ public class AuthService implements AuthPortInput {
   public MessageResponse checkOtpRegister(RegisterRequest registerRequest, int attemptCount, Long timeInterval) {
     validateOtp(registerRequest.getUserEmail(), registerRequest.getOtp(), attemptCount, timeInterval);
 
-    User user = createUser(registerRequest);
-    UserDetailsImpl userDetails = authPort.getUserDetails(user);
-    authPort.saveUser(user);
+    User userSave = createUser(registerRequest);
+    userSave = authPort.saveUser(userSave);
+    UserDetailsImpl userDetails = authPort.getUserDetails(userSave);
     String jwtToken = jwtUtils.generateToken(userDetails);
     saveUserToken(userDetails, jwtToken);
 
@@ -195,17 +195,18 @@ public class AuthService implements AuthPortInput {
   }
 
   private User createUser(RegisterRequest registerRequest) {
-    User User = new User(
+    User user = new User(
             registerRequest.getFirstName(),
             registerRequest.getLastName(),
             registerRequest.getUserEmail(),
             passwordEncoder.encode(registerRequest.getPassword())
     );
-    User.setRole(ERole.USER);
-    return User;
+    user.setRole(ERole.USER);
+    return user;
   }
 
   private void saveUserToken(UserDetailsImpl userDetails, String jwtToken) {
+    System.out.println(userDetails.getUserEntity());
     var token = Token.builder()
             .userId(userDetails.getUserEntity().getUserId())
             .token(jwtToken)

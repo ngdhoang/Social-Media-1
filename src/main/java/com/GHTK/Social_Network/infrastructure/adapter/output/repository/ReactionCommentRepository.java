@@ -8,8 +8,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ReactionCommentRepository extends JpaRepository<ReactionCommentEntity, Long> {
   @Query("""
-                  select r from ReactionCommentEntity r 
-                  where r.commentEntity.commentId = ?2 
+                  select r from ReactionCommentEntity r
+                  where r.commentEntity.commentId = ?2
                   and r.userEntity.userId = ?1
           """)
   ReactionCommentEntity findByCommentIdAndUserId(Long userId, Long commentId);

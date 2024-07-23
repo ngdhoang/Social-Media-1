@@ -67,11 +67,12 @@ public class PostService implements PostPortInput {
     deleteRedisImages(postRequest.getDeletePublicIds(), currentUser.getUserEmail());
 
     Post post = createNewPost(postRequest, currentUser);
-    List<TagUser> tagUserList = handleTagUsers(postRequest.getTagUserIds(), post);
-    List<ImagePost> imagePostEntities = handleImagePosts(postRequest.getPublicIds(), post);
+    Post newPost = portPost.savePost(post);
+    List<TagUser> tagUserList = handleTagUsers(postRequest.getTagUserIds(), newPost);
+    List<ImagePost> imagePostEntities = handleImagePosts(postRequest.getPublicIds(), newPost);
 
     post.setCreatedAt(new Date());
-    Post newPost = portPost.savePost(post);
+    portPost.savePost(post);
 
     return postMapper.postToPostResponse(newPost, imagePostEntities, tagUserList);
   }
@@ -110,7 +111,7 @@ public class PostService implements PostPortInput {
       }
     }
 
-    imagePostPort.saveImageSequence(new ImageSequenceDomain(post.getPostId(), imagePostSort));
+    imagePostPort.saveImageSequence(new ImageSequenceDomain(post.getPostId().toString(), imagePostSort));
     imagePostPort.saveAllImagePost(imagePostEntities);
     return imagePostEntities;
   }
@@ -161,7 +162,7 @@ public class PostService implements PostPortInput {
       }
     }
 
-    imagePostPort.saveImageSequence(new ImageSequenceDomain(post.getPostId(), imageIds));
+    imagePostPort.saveImageSequence(new ImageSequenceDomain(post.getPostId().toString(), imageIds));
     return sortImagePosts(post.getPostId(), portPost.findAllImageByPostId(post.getPostId()));
   }
 

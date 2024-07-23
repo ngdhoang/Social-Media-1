@@ -26,10 +26,10 @@ public class ReactionPostController {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, Objects.requireNonNullElseGet(response, () -> new MessageResponse("Delete reaction success")));
   }
 
-  @GetMapping("/{p}/reaction")
-  public ResponseEntity<Object> getReactionPostHandler(@PathVariable Long p) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionPostInput.getAllReactionInPost(p));
-  }
+//  @GetMapping("/{p}/reaction")
+//  public ResponseEntity<Object> getReactionPostHandler(@PathVariable Long p) {
+//    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionPostInput.getAllReactionInPost(p));
+//  }
 
   @GetMapping("/{p}/reaction")
   public ResponseEntity<Object> getReactionPostHandler(@PathVariable Long p, @Valid @ModelAttribute GetReactionPostRequest getReactionPostRequest) {

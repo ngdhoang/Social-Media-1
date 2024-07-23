@@ -16,7 +16,7 @@ import java.util.List;
 @Data
 public class ImageSequence {
   @Id
-  private Long postId;
+  private String postId;
 
   private List<Long> listImageSort;
 }

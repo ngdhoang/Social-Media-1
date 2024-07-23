@@ -36,15 +36,15 @@ public class CommentController {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByPostId(id));
   }
 
-  @GetMapping("{id}/comment")
-  public ResponseEntity<Object> getCommentById(@PathVariable Long id) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByPostId(id));
-  }
-
-  @GetMapping("{id}/comment")
-  public ResponseEntity<Object> getAllCommentChildByCommentParentId(@PathVariable Long id) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByPostId(id));
-  }
+//  @GetMapping("{id}/comment")
+//  public ResponseEntity<Object> getCommentById(@PathVariable Long id) {
+//    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByPostId(id));
+//  }
+//
+//  @GetMapping("{id}/comment")
+//  public ResponseEntity<Object> getAllCommentChildByCommentParentId(@PathVariable Long id) {
+//    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByPostId(id));
+//  }
 
   @DeleteMapping("/comment/{id}/delete")
   public ResponseEntity<Object> deleteComment(@PathVariable Long id) {

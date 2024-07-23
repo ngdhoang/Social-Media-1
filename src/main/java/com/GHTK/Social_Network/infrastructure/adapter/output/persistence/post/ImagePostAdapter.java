@@ -67,7 +67,6 @@ public class ImagePostAdapter implements ImagePostPort {
             .listImageSort(imageSequence.getListImageSort())
             .build();
     return imagePostMapperETD.toDomain(imageSequenceRepository.save(newImageSequence));
-
   }
 
   @Override

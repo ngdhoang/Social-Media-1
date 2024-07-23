@@ -1,26 +1,26 @@
 package com.GHTK.Social_Network.common.customAnnotation.logic;
 
 import com.GHTK.Social_Network.common.customAnnotation.config.ValidEFriendShipStatus;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.EFriendshipStatusEntity;
+import com.GHTK.Social_Network.domain.model.EFriendshipStatus;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 public class EFriendShipStatusValidator implements ConstraintValidator<ValidEFriendShipStatus, String> {
-    @Override
-    public void initialize(ValidEFriendShipStatus constraintAnnotation) {
+  @Override
+  public void initialize(ValidEFriendShipStatus constraintAnnotation) {
+  }
+
+  @Override
+  public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {
+    if (value == null) {
+      return true;
     }
 
-    @Override
-    public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {
-        if (value == null) {
-            return true;
-        }
-
-        try {
-            EFriendshipStatusEntity.valueOf(value.toUpperCase());
-            return true;
-        } catch (IllegalArgumentException e) {
-            return false;
-        }
+    try {
+      EFriendshipStatus.valueOf(value.toUpperCase());
+      return true;
+    } catch (IllegalArgumentException e) {
+      return false;
     }
+  }
 }

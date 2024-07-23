@@ -7,7 +7,7 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface TagUserMapperETD {
   @Mapping(source = "postEntity.postId", target = "postId")
   @Mapping(source = "userEntity.userId", target = "userId")

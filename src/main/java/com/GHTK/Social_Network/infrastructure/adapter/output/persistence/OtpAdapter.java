@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -64,6 +65,7 @@ public class OtpAdapter implements OtpPort {
     return String.format("%06d", random.nextInt(1000000));
   }
 
+  @Async
   @Override
   public void sendOtpEmail(String email, String otp) {
     log.info("Preparing to send OTP email to: {}", email);

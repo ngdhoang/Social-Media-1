@@ -5,9 +5,8 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface ReactionPostMapperETD {
-
   @Mapping(source = "reactionPostId", target = "reactionPostId")
   ReactionPost toDomain(ReactionPostEntity reactionPostEntity);
 

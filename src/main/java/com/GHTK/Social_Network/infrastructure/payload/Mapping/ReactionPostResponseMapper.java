@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface ReactionPostResponseMapper {
   @Mapping(source = "postId", target = "postId")
   @Mapping(source = "reactionUsers", target = "reactionUsers")

@@ -10,7 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class ImageSequenceDomain {
-  private Long postId;
+  private String postId;
 
   private List<Long> listImageSort;
 }

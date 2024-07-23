@@ -34,6 +34,7 @@ public class CommentEntity {
 
   @OneToMany(mappedBy = "parentCommentEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
   private List<CommentEntity> childCommentEntities = new ArrayList<>();
+
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "user_id", nullable = false)
   private UserEntity userEntity;
@@ -42,11 +43,11 @@ public class CommentEntity {
   @JoinColumn(name = "post_id", nullable = false)
   private PostEntity postEntity;
 
-  @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY,
+  @OneToMany(mappedBy = "commentEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<ImageCommentEntity> imageCommentEntities;
 
-  @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY,
+  @OneToMany(mappedBy = "commentEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<ReactionCommentEntity> reactionCommentEntities;
 
@@ -61,5 +62,4 @@ public class CommentEntity {
     childCommentEntities.add(childCommentEntity);
     childCommentEntity.setParentCommentEntity(this);
   }
-
 }

@@ -5,7 +5,7 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface TokenMapperETD {
   @Mapping(source = "tokenId", target = "tokenId")
   @Mapping(source = "userEntity.userId", target = "userId")

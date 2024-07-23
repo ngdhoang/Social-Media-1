@@ -34,7 +34,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
           update UserEntity u
           set u.isProfilePublic = ?1
           where u.userId = ?2
-            """)
+          """)
   int changeStateProfile(Boolean state, Long userId);
 
   @Modifying

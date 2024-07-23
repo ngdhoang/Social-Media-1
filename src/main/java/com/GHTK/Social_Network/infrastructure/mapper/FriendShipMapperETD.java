@@ -4,12 +4,9 @@ import com.GHTK.Social_Network.domain.model.FriendShip;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.FriendShipEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface FriendShipMapperETD {
-  FriendShipMapperETD INSTANCE = Mappers.getMapper(FriendShipMapperETD.class);
-
   @Mapping(source = "friendShipId", target = "friendShipId")
   FriendShip toDomain(FriendShipEntity friendShipEntity);
 

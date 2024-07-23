@@ -5,7 +5,7 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface ReactionCommentMapperETD {
   @Mapping(source = "commentEntity.commentId", target = "commentId")
   @Mapping(source = "userEntity.userId", target = "userId")

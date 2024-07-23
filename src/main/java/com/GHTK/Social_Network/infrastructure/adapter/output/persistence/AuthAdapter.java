@@ -5,6 +5,7 @@ import com.GHTK.Social_Network.domain.model.Token;
 import com.GHTK.Social_Network.domain.model.User;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsImpl;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.TokenEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.TokenRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.TokenMapperETD;
@@ -42,6 +43,9 @@ public class AuthAdapter implements AuthPort {
 
   @Override
   public Token saveToken(Token token) {
+    System.out.println("------------------------------------------------------------------------------");
+    System.out.println(token);
+    System.out.println("------------------------------------------------------------------------------");
     TokenEntity newToken = tokenMapperETD.toEntity(token);
     newToken.setUserEntity(
             userRepository.findById(token.getUserId()).orElse(null)

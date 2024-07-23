@@ -37,19 +37,19 @@ public class PostEntity {
   @JoinColumn(name = "user_id", nullable = false)
   private UserEntity userEntity;
 
-  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY,
+  @OneToMany(mappedBy = "postEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<ImagePostEntity> imagePostEntities;
 
-  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY,
+  @OneToMany(mappedBy = "postEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<TagUserEntity> tagUserEntities;
 
-  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY,
+  @OneToMany(mappedBy = "postEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<ReactionPostEntity> reactionPostEntities;
 
-  @OneToMany(mappedBy = "post", fetch = FetchType.LAZY,
+  @OneToMany(mappedBy = "postEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<CommentEntity> commentEntities;
 }

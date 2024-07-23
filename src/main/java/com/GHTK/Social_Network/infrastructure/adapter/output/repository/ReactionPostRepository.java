@@ -32,11 +32,12 @@ public interface ReactionPostRepository extends JpaRepository<ReactionPostEntity
             """)
   int countReactionByPostIdAndType(Long postId, EReactionTypeEntity reactionType);
 
-  @Query(value = "SELECT r.reactionType AS reactionType, " +
-          "       JSON_ARRAYAGG(JSON_OBJECT('userId', r.userId, 'postId', r.postId, 'reactionPostId', r.reactionPostId, 'createdAt', r.createdAt)) AS reaction_posts " +
-          "FROM ReactionPostEntity r " +
-          "WHERE r.postId = ?1 " +
-          "GROUP BY r.reactionType", nativeQuery = true)
+  @Query("""
+                 select r.reactionType as reactionType 
+                 from ReactionPostEntity r 
+                 where r.postEntity.postId = ?1 
+                 group by r.reactionType
+          """)
   Map<String, Object> getReactionGroupByPostId(Long postId);
 
   @Query("""
