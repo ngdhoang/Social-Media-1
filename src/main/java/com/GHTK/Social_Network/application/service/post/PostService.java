@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,7 +32,7 @@ public class PostService implements PostPortInput {
   private final PostPort portPost;
   private final ImagePostPort imagePostPort;
   private final FriendShipPort friendShipPort;
-  private final RedisImageTemplatePort imageRedisTemplatePort;
+  private final RedisImageTemplatePort redisImageTemplatePort;
 
   private final PostMapper postMapper;
 
@@ -64,15 +65,16 @@ public class PostService implements PostPortInput {
   @Override
   public PostResponse createPost(PostRequest postRequest) {
     User currentUser = authPort.getUserAuth();
-    deleteRedisImages(postRequest.getDeletePublicIds(), currentUser.getUserEmail());
 
     Post post = createNewPost(postRequest, currentUser);
+    post.setCreatedAt(new Date());
     Post newPost = portPost.savePost(post);
     List<TagUser> tagUserList = handleTagUsers(postRequest.getTagUserIds(), newPost);
     List<ImagePost> imagePostEntities = handleImagePosts(postRequest.getPublicIds(), newPost);
 
-    post.setCreatedAt(new Date());
     portPost.savePost(post);
+
+    deleteRedisImages(postRequest.getDeletePublicIds(), currentUser.getUserEmail());
 
     return postMapper.postToPostResponse(newPost, imagePostEntities, tagUserList);
   }
@@ -101,13 +103,14 @@ public class PostService implements PostPortInput {
     List<Long> imagePostSort = new ArrayList<>();
 
     for (String key : publicIds) {
-      if (Boolean.TRUE.equals(imageRedisTemplatePort.findByKey(key))) {
-        String url = imageRedisTemplatePort.findByKey(key);
+      key += "_" + authPort.getUserAuth().getUserEmail();
+      if (redisImageTemplatePort.existsByKey(key)) {
+        String url = redisImageTemplatePort.findByKey(key);
         ImagePost imagePost = new ImagePost(url, new Date(), post.getPostId());
         ImagePost savedImagePost = imagePostPort.saveImagePost(imagePost);
         imagePostEntities.add(savedImagePost);
         imagePostSort.add(savedImagePost.getImagePostId());
-        imageRedisTemplatePort.deleteByKey(key);
+        redisImageTemplatePort.deleteByKey(key);
       }
     }
 
@@ -119,7 +122,6 @@ public class PostService implements PostPortInput {
   @Override
   public PostResponse updatePost(PostRequest postRequest) {
     User currentUser = authPort.getUserAuth();
-    deleteRedisImages(postRequest.getDeletePublicIds(), currentUser.getUserEmail());
 
     Post post = getAndValidatePost(postRequest.getId(), currentUser);
     updatePostDetails(post, postRequest);
@@ -128,6 +130,8 @@ public class PostService implements PostPortInput {
     List<ImagePost> imagePostList = updateImagePosts(postRequest, post);
 
     Post newPost = portPost.savePost(post);
+
+    deleteRedisImages(postRequest.getDeletePublicIds(), currentUser.getUserEmail());
     return postMapper.postToPostResponse(newPost, imagePostList, tagUserList);
   }
 
@@ -158,7 +162,7 @@ public class PostService implements PostPortInput {
         ImagePost imagePost = new ImagePost(publicIds.get(i), new Date(), post.getPostId());
         ImagePost newImagePost = imagePostPort.saveImagePost(imagePost);
         imageIds.set(i, newImagePost.getImagePostId());
-        imageRedisTemplatePort.deleteByKey(publicIds.get(i));
+        redisImageTemplatePort.deleteByKey(publicIds.get(i));
       }
     }
 
@@ -244,13 +248,26 @@ public class PostService implements PostPortInput {
   }
 
   private List<ImagePost> sortImagePosts(Long postId, List<ImagePost> imagePosts) {
-    List<Long> sortOrder = imagePostPort.findImageSequenceByPostId(postId).getListImageSort();
-    Map<Long, ImagePost> imagePostMap = imagePosts.stream()
-            .collect(Collectors.toMap(ImagePost::getImagePostId, imagePost -> imagePost));
+    Optional<ImageSequenceDomain> imageSequenceOpt = imagePostPort.findImageSequenceByPostId(postId);
 
-    return sortOrder.stream()
+    if (imageSequenceOpt.isEmpty()) {
+      return imagePosts;
+    }
+
+    List<Long> sortOrder = imageSequenceOpt.get().getListImageSort();
+
+    if (sortOrder == null || sortOrder.isEmpty()) {
+      return imagePosts;
+    }
+
+    Map<Long, ImagePost> imagePostMap = imagePosts.stream()
+            .collect(Collectors.toMap(ImagePost::getImagePostId, Function.identity(), (e1, e2) -> e1));
+
+    List<ImagePost> sortedPosts = sortOrder.stream()
             .filter(imagePostMap::containsKey)
             .map(imagePostMap::get)
             .collect(Collectors.toList());
+
+    return sortedPosts;
   }
 }

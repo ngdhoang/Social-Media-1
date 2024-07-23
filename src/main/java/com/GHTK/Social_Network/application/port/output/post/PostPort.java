@@ -1,6 +1,5 @@
 package com.GHTK.Social_Network.application.port.output.post;
 
-import com.GHTK.Social_Network.domain.model.User;
 import com.GHTK.Social_Network.domain.model.post.ImagePost;
 import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.domain.model.post.TagUser;

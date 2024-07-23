@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface ImageSequenceRepository extends MongoRepository<ImageSequence, Long> {
+public interface ImageSequenceRepository extends MongoRepository<ImageSequence, String> {
   @Query("{ 'postId' : ?0 }")
-  ImageSequence findByPostId(Long postId);
+  Optional<ImageSequence> findByPostId(Long postId);
 }

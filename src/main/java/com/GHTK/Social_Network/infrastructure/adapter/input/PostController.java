@@ -49,12 +49,12 @@ public class PostController {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.getAllPostsByUserId(u));
   }
 
-  @PostMapping("/delete/{id}")
+  @DeleteMapping("/delete/{id}")
   public ResponseEntity<Object> deletePostById(@PathVariable Long id) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.deletePost(id));
   }
 
-  @DeleteMapping("/update")
+  @PutMapping("/update")
   public ResponseEntity<Object> updatePost(@RequestBody @Valid PostRequest postRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.updatePost(postRequest));
   }

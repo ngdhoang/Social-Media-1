@@ -2,10 +2,10 @@ package com.GHTK.Social_Network.application.port.output.post;
 
 import com.GHTK.Social_Network.domain.model.collection.ImageSequenceDomain;
 import com.GHTK.Social_Network.domain.model.post.ImagePost;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.ImageSequence;
 import org.springframework.scheduling.annotation.Async;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ImagePostPort {
   ImagePost findImageById(Long id);
@@ -21,5 +21,5 @@ public interface ImagePostPort {
 
   ImageSequenceDomain saveImageSequence(ImageSequenceDomain imageSequence);
 
-  ImageSequenceDomain findImageSequenceByPostId(Long postId);
+  Optional<ImageSequenceDomain> findImageSequenceByPostId(Long postId);
 }

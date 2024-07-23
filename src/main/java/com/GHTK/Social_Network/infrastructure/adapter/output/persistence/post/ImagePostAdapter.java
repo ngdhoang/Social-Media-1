@@ -12,6 +12,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -70,12 +71,15 @@ public class ImagePostAdapter implements ImagePostPort {
   }
 
   @Override
-  public ImageSequenceDomain findImageSequenceByPostId(Long postId) {
-    ImageSequence imageSequence = imageSequenceRepository.findByPostId(postId);
-    ImageSequenceDomain imageSequenceDomain = new ImageSequenceDomain(
-            imageSequence.getPostId(),
-            imageSequence.getListImageSort()
-    );
-    return imageSequenceDomain;
+  public Optional<ImageSequenceDomain> findImageSequenceByPostId(Long postId) {
+    try {
+      return imageSequenceRepository.findByPostId(postId)
+              .map(imageSequence -> new ImageSequenceDomain(
+                      imageSequence.getPostId(),
+                      imageSequence.getListImageSort()
+              ));
+    } catch (Exception e) {
+      return Optional.empty();
+    }
   }
 }

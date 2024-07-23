@@ -8,10 +8,11 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class RedisImageAdapter implements RedisImageTemplatePort {
-  RedisTemplate<String, String> imageRedisTemplate;
+  private final RedisTemplate<String, String> imageRedisTemplate;
 
   @Override
   public String findByKey(String key) {
+    System.out.println(key);
     return imageRedisTemplate.opsForValue().get(key);
   }
 

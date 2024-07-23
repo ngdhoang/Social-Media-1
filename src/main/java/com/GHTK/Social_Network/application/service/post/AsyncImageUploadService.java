@@ -22,8 +22,8 @@ public class AsyncImageUploadService implements AsyncImageUploadPortInput {
 
   @Async
   @Override
-  public void uploadImageAsync(MultipartFile file, String publicId) {
-    CompletableFuture.supplyAsync(() -> {
+  public CompletableFuture<String> uploadImageAsync(MultipartFile file, String publicId) {
+    return CompletableFuture.supplyAsync(() -> {
       try {
         byte[] fileData = file.getBytes();
         String originalFilename = file.getOriginalFilename();
@@ -31,11 +31,10 @@ public class AsyncImageUploadService implements AsyncImageUploadPortInput {
 
         CustomMultipartFile customFile = new CustomMultipartFile(fileData, "file", originalFilename, contentType);
 
-        Map uploadResult = cloudPort.uploadPictureByFile(customFile, ImageHandlerPortInput.MAX_SIZE_POST);
+        Map<String, Object> uploadResult = cloudPort.uploadPictureByFile(customFile, ImageHandlerPortInput.MAX_SIZE_POST);
         String imageUrl = cloudPort.extractUrl(uploadResult);
-
+        System.out.println(imageUrl);
         redisImageTemplatePort.createOrUpdate(publicId, imageUrl);
-
         return imageUrl;
       } catch (IOException e) {
         throw new RuntimeException("Failed to process image upload", e);
