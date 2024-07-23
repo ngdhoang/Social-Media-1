@@ -1,0 +1,12 @@
+package com.GHTK.Social_Network.application.port.output.post;
+
+import com.GHTK.Social_Network.application.port.output.template.RedisTemplatePort;
+import com.GHTK.Social_Network.infrastructure.payload.dto.post.ReactionPostRedisDto;
+import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionPostRequest;
+
+import java.util.List;
+
+public interface RedisReactionPostPort extends RedisTemplatePort<String, ReactionPostRedisDto>{
+
+  List<ReactionPostRedisDto> getListsReactionPostByPostId(GetReactionPostRequest getReactionPostRequest, Long postId);
+}

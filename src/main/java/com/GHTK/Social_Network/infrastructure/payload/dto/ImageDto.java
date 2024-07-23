@@ -16,4 +16,5 @@ public class ImageDto {
 
   private Date createAt;
 
+  private Long postId;
 }

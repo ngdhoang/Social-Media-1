@@ -57,8 +57,8 @@ public class AuthJwtFilter extends OncePerRequestFilter {
         UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
         var tokenOptional = tokenRepository.findByToken(jwt);
 
-        if (tokenOptional.isPresent()) {
-          var token = tokenOptional.get();
+        if (tokenOptional != null) {
+          var token = tokenOptional;
           if (token.isExpired() || token.isRevoked()) {
             sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Token has expired or revoked");
             return;

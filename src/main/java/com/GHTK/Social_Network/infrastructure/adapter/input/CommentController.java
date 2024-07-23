@@ -22,17 +22,27 @@ public class CommentController {
   private final ImagePostInput imagePostInput;
 
   @PostMapping("/comment")
-  public ResponseEntity<Object> postComment(@RequestBody @Valid CommentRequest commentRequest) {
+  public ResponseEntity<Object> createComment(@RequestBody @Valid CommentRequest commentRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentSrc(commentRequest));
   }
 
   @PostMapping("/comment/{u}")
-  public ResponseEntity<Object> postCommentChild(@PathVariable Long u, @RequestBody @Valid CommentRequest commentRequest) {
+  public ResponseEntity<Object> createCommentChild(@PathVariable Long u, @RequestBody @Valid CommentRequest commentRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentChild(u, commentRequest));
   }
 
   @GetMapping("{id}/comment")
-  public ResponseEntity<Object> getCommentPost(@PathVariable Long id) {
+  public ResponseEntity<Object> getAllCommentInPost(@PathVariable Long id) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByPostId(id));
+  }
+
+  @GetMapping("{id}/comment")
+  public ResponseEntity<Object> getCommentById(@PathVariable Long id) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByPostId(id));
+  }
+
+  @GetMapping("{id}/comment")
+  public ResponseEntity<Object> getAllCommentChildByCommentParentId(@PathVariable Long id) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByPostId(id));
   }
 

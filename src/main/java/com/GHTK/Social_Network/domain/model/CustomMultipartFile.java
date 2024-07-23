@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.application.service.cloud;
+package com.GHTK.Social_Network.domain.model;
 
 import org.springframework.web.multipart.MultipartFile;
 

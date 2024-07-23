@@ -8,9 +8,9 @@ import org.mapstruct.Mapping;
 
 @Mapper
 public interface ProfileMapperETD {
-  @Mapping(source = "profileId", target = "userId")
-  User toDomain(ProfileDto profile);
+  @Mapping(source = "userId", target = "userId")
+  User toDomain(User user);
 
-  @Mapping(source = "userId", target = "profileId")
+  @Mapping(source = "userId", target = "userId")
   UserEntity toEntity(User user);
 }

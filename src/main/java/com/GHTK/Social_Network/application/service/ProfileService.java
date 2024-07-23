@@ -70,7 +70,7 @@ public class ProfileService implements ProfilePortInput {
     Boolean isUpdateProfile = profilePort.updateProfile(updateProfileRequest, userId);
     Optional<User> profileDto = profilePort.takeProfileById(userId);
     if (isUpdateProfile) {
-      redisProfilePort.createOrUpdate(String.valueOf(userId), profileMapper.userToProfileDto(profileDto.get());
+      redisProfilePort.createOrUpdate(String.valueOf(userId), profileMapper.userToProfileDto(profileDto.get()));
     }
     return redisProfilePort.findByKey(String.valueOf(userId));
   }

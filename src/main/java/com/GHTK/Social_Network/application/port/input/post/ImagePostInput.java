@@ -19,7 +19,7 @@ public interface ImagePostInput {
   MessageResponse deleteImage(Long id);
 
   @Async
-  MessageResponse deleteImageInRedis(String public_id);
+  MessageResponse deleteImageInRedis(String publicId);
 
   ImageResponse getImageById(Long id);
 

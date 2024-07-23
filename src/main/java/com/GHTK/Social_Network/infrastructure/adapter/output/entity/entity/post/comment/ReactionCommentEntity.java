@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "reaction_comment")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

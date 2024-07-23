@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.util.Date;
 
 @Entity
+@Table(name = "image_post")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

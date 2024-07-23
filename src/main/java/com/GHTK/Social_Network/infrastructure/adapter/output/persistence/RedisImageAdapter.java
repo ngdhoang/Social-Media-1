@@ -24,4 +24,14 @@ public class RedisImageAdapter implements RedisImageTemplatePort {
   public void deleteByKey(String key) {
     imageRedisTemplate.delete(key);
   }
+
+  @Override
+  public String formatKey(String key) {
+    return "";
+  }
+
+  @Override
+  public Boolean existsByKey(String key) {
+    return imageRedisTemplate.hasKey(key);
+  }
 }

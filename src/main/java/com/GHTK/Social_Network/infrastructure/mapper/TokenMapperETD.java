@@ -8,10 +8,10 @@ import org.mapstruct.Mapping;
 @Mapper
 public interface TokenMapperETD {
   @Mapping(source = "tokenId", target = "tokenId")
-  @Mapping(source = "user.userId", target = "userID")
+  @Mapping(source = "userEntity.userId", target = "userId")
   Token toDomain(TokenEntity tokenEntity);
 
   @Mapping(source = "tokenId", target = "tokenId")
-  @Mapping(source = "userId", target = "user.userID")
+  @Mapping(source = "userId", target = "userEntity.userId")
   TokenEntity toEntity(Token token);
 }

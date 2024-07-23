@@ -25,4 +25,14 @@ public class RedisAuthAdapter implements RedisAuthPort {
   public void deleteByKey(String key) {
     authRedisTemplate.delete(key);
   }
+
+  @Override
+  public String formatKey(String key) {
+    return "";
+  }
+
+  @Override
+  public Boolean existsByKey(String key) {
+    return authRedisTemplate.hasKey(key);
+  }
 }

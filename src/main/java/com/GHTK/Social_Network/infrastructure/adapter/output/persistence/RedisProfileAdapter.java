@@ -25,4 +25,14 @@ public class RedisProfileAdapter implements RedisProfilePort {
   public void deleteByKey(String key) {
     profileDtoRedisTemplate.delete(key);
   }
+
+  @Override
+  public String formatKey(String key) {
+    return "";
+  }
+
+  @Override
+  public Boolean existsByKey(String key) {
+    return profileDtoRedisTemplate.hasKey(key);
+  }
 }

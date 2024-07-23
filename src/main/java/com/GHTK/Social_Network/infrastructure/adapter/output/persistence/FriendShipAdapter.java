@@ -59,31 +59,32 @@ public class FriendShipAdapter implements FriendShipPort {
     FriendShipEntity friendShipEntity = new FriendShipEntity();
     friendShipEntity.setUserInitiatorId(userInitiatorId);
     friendShipEntity.setUserReceiveId(userReceiveId);
-    friendShipEntity.setFriendshipStatus(status);
-    friendShipRepository.save(friendShipEntity);
-    return true;
+    friendShipEntity.setFriendshipStatus(eFriendShipStatusMapperETD.toEntity(status));
+    FriendShip friendShip = friendShipMapperETD.toDomain(friendShipRepository.save(friendShipEntity));
+    return friendShip;
   }
 
   @Override
-  public Boolean setRequestFriendShip(Long friendShipId, EFriendshipStatusEntity status) {
+  public Boolean setRequestFriendShip(Long friendShipId, EFriendshipStatus status) {
     FriendShipEntity friendShipEntity = friendShipRepository.findById(friendShipId).orElse(null);
     if (friendShipEntity == null) {
       return false;
     }
-    friendShipEntity.setFriendshipStatus(status);
+    friendShipEntity.setFriendshipStatus(eFriendShipStatusMapperETD.toEntity(status));
     friendShipRepository.save(friendShipEntity);
     return true;
   }
 
   @Override
-  public FriendShipEntity getFriendShip(Long userInitiatorId, Long userReceiveId) {
+  public FriendShip getFriendShip(Long userInitiatorId, Long userReceiveId) {
     FriendShipEntity friendShipEntity = friendShipRepository.findFriendShip(userInitiatorId, userReceiveId);
-    return friendShipEntity;
+    return friendShipMapperETD.toDomain(friendShipEntity);
   }
 
   @Override
-  public FriendShipEntity getFriendShipById(Long id) {
-    return friendShipRepository.findById(id).orElse(null);
+  public FriendShip getFriendShipById(Long id) {
+    FriendShipEntity friendShipEntity= friendShipRepository.findById(id).orElse(null);
+    return friendShipMapperETD.toDomain(friendShipEntity);
   }
 
   @Override

@@ -1,14 +1,16 @@
 package com.GHTK.Social_Network.application.service.post;
 
-import com.GHTK.Social_Network.application.port.input.RandomStringGeneratorPortInput;
+import com.GHTK.Social_Network.application.port.input.AsyncImageUploadPortInput;
+import com.GHTK.Social_Network.application.port.input.ImageHandlerPortInput;
 import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
+import com.GHTK.Social_Network.application.port.output.CloudPort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePostEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
+import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
 import com.GHTK.Social_Network.common.customException.CustomException;
+import com.GHTK.Social_Network.domain.model.post.ImagePost;
+import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ImagePostMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.post.ImagePostDto;
@@ -17,56 +19,42 @@ import com.GHTK.Social_Network.infrastructure.payload.requests.post.CreateImageR
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ImageResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ImagePostService implements ImagePostInput {
-  private final CloudServicePortInput cloudServicePortInput;
-
-  private final RedisTemplate<String, String> imageRedisTemplate;
-
+  private final AsyncImageUploadPortInput asyncImageUploadPortInputs;
+  private final ImageHandlerPortInput imageHandlerPortInput;
+  private final RedisImageTemplatePort redisImageTemplatePort;
   private final ImagePostPort imagePostPort;
-
-  private final AuthPort authenticationRepositoryPort;
-
+  private final AuthPort authPort;
   private final PostPort postPort;
+  private final CloudPort cloudPort;
 
-  private final RandomStringGeneratorPortInput randomStringGeneratorPortInput;
+  private String generateRandomPublicId(int n) {
+    String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    SecureRandom RANDOM = new SecureRandom();
 
-  private final AsyncImageUpload asyncImageUpload;
-
-  private UserEntity getUserAuth() {
-    Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    String username;
-
-    if (principal instanceof UserDetails) {
-      username = ((UserDetails) principal).getUsername();
-    } else if (principal instanceof String) {
-      username = (String) principal;
-    } else {
-      throw new IllegalStateException("Unexpected principal type: " + principal.getClass());
+    StringBuilder sb = new StringBuilder(n);
+    for (int i = 0; i < n; i++) {
+      int index = RANDOM.nextInt(CHARACTERS.length());
+      sb.append(CHARACTERS.charAt(index));
     }
-
-    return authenticationRepositoryPort.findByEmail(username)
-            .orElseThrow(() -> new UsernameNotFoundException("Invalid token"));
+    return sb.toString();
   }
-
 
   @Override
   public ImagePostDto createImage(CreateImageRequest request) {
-    cloudServicePortInput.checkImageValid(request.getFile());
-    String publicId = randomStringGeneratorPortInput.generateRandomPublicId(8);
+    imageHandlerPortInput.checkImageValid(request.getFile());
+    String publicId = this.generateRandomPublicId(8);
 
-    asyncImageUpload.uploadImageAsync(request.getFile(), publicId + "_" + getUserAuth().getUserEmail());
+    asyncImageUploadPortInputs.uploadImageAsync(request.getFile(), publicId + "_" + authPort.getUserAuth().getUserEmail());
 
     return new ImagePostDto(publicId, "");
   }
@@ -80,31 +68,27 @@ public class ImagePostService implements ImagePostInput {
 //    List<ImagePostDto> imageDtoList = new ArrayList<>();
 //    imageDtoList.add(imageDto);
 //    imageResponse.setImageDtoList(imageDtoList);
-//
-//
-//
 //    return imageResponse;
 //  }
 
   @Override
   public ImagePostDto updateImage(UpdateImagePostDto request) {
     deleteImage(request.getImageId());
-
     return createImage(new CreateImageRequest(request.getImage()));
   }
 
   @Override
   public MessageResponse deleteImage(Long id) {
-    ImagePostEntity imagePostEntity = imagePostPort.findImageById(id);
-    if (imagePostEntity == null) {
+    ImagePost imagePost = imagePostPort.findImageById(id);
+    if (imagePost == null) {
       throw new CustomException("Image not found", HttpStatus.NOT_FOUND);
     }
 
-    if (!getUserAuth().equals(postPort.findUserById(postPort.findPostByImagePost(imagePostEntity).getPostId()))) {
+    if (!authPort.getUserAuth().equals(authPort.getUserById(postPort.findPostByImagePostId(imagePost.getImagePostId()).getPostId()))) {
       throw new CustomException("User not authorized", HttpStatus.FORBIDDEN);
     }
 
-    if (!cloudServicePortInput.deletePictureByUrl(imagePostEntity.getImageUrl())) {
+    if (!cloudPort.deletePictureByUrl(imagePost.getImageUrl())) {
       throw new CustomException("Image cannot delete", HttpStatus.FORBIDDEN);
     }
 
@@ -113,9 +97,9 @@ public class ImagePostService implements ImagePostInput {
   }
 
   @Override
-  public MessageResponse deleteImageInRedis(String public_id) {
-    if (Boolean.TRUE.equals(imageRedisTemplate.hasKey(public_id))) {
-      imageRedisTemplate.delete(public_id);
+  public MessageResponse deleteImageInRedis(String publicId) {
+    if (Boolean.TRUE.equals(redisImageTemplatePort.existsByKey(publicId))) {
+      redisImageTemplatePort.deleteByKey(publicId);
       return new MessageResponse("Image deleted successfully");
     }
     throw new CustomException("Image not found", HttpStatus.NOT_FOUND);
@@ -128,8 +112,8 @@ public class ImagePostService implements ImagePostInput {
 
   @Override
   public List<ImageDto> getImageByPostId(Long id) {
-    PostEntity postEntity = postPort.findPostById(id);
-    List<ImagePostEntity> imagePostEntities = postEntity.getImagePostEntities();
+    Post post = postPort.findPostById(id);
+    List<ImagePost> imagePostEntities = postPort.findAllImageByPostId(post.getPostId());
     List<ImageDto> imageResponseList = new ArrayList<>();
     imagePostEntities.forEach(imagePost -> {
       imageResponseList.add(ImagePostMapper.INSTANCE.imagePostToImageDto(imagePost));

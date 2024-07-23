@@ -1,6 +1,5 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
 
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -33,8 +32,8 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
   @Transactional
   @Query("""
           update UserEntity u
-                  set u.isProfilePublic = ?1
-                  where u.userId = ?2
+          set u.isProfilePublic = ?1
+          where u.userId = ?2
             """)
   int changeStateProfile(Boolean state, Long userId);
 
@@ -57,5 +56,5 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
           """)
   List<UserEntity> searchUsersByNameOrEmail(String name);
 
-  Optional<UserEntity> findByPosts(PostEntity postEntity);
+//  Optional<UserEntity> findByPosts(PostEntity postEntity);
 }

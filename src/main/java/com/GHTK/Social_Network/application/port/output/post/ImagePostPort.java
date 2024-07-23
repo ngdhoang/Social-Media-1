@@ -17,9 +17,9 @@ public interface ImagePostPort {
 
   ImagePost saveImagePost(ImagePost imagePost);
 
-  ImagePost saveAllImagePost(List<ImagePost> imagePost);
+  List<ImagePost> saveAllImagePost(List<ImagePost> imagePost);
 
-  ImageSequence saveImageSequence(ImageSequenceDomain imageSequence);
+  ImageSequenceDomain saveImageSequence(ImageSequenceDomain imageSequence);
 
-  ImageSequence findImageSequenceByPostId(Long postId);
+  ImageSequenceDomain findImageSequenceByPostId(Long postId);
 }

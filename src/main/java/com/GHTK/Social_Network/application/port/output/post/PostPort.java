@@ -4,7 +4,6 @@ import com.GHTK.Social_Network.domain.model.User;
 import com.GHTK.Social_Network.domain.model.post.ImagePost;
 import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.domain.model.post.TagUser;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 
 import java.util.List;
 
@@ -13,23 +12,21 @@ public interface PostPort {
 
   Post findPostById(Long id);
 
-  User findUserByPost(Post post);
-
-  List<Post> findAllPostByUser(User user);
+  List<Post> findAllPostByUserId(Long userId);
 
   Post findPostByPostId(Long postId);
 
-  User findFriendById(Long id);
-
-  User findUserById(Long id);
-
   Boolean deletePostById(Long id);
 
-  List<Post> findAllPostTagMe(User user);
+  List<Post> findAllPostTagMe(Long userId);
 
-  Post findPostByImagePost(ImagePost imagePost);
+  Post findPostByImagePostId(Long imagePostId);
 
   TagUser saveTagUser(TagUser tagUser);
 
-  TagUser saveAllTagUser(List<TagUser> tagUser);
+  List<TagUser> saveAllTagUser(List<TagUser> tagUser);
+
+  List<ImagePost> findAllImageByPostId(Long postId);
+
+  List<TagUser> findAllTagUserByPostId(Long postId);
 }

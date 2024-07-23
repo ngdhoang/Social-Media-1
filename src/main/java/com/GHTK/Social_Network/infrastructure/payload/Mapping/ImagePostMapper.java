@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
+import com.GHTK.Social_Network.domain.model.post.ImagePost;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePostEntity;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import org.mapstruct.Mapper;
@@ -11,5 +12,5 @@ public interface ImagePostMapper {
   ImagePostMapper INSTANCE = Mappers.getMapper(ImagePostMapper.class);
 
   @Mapping(source = "imagePostId", target = "id")
-  ImageDto imagePostToImageDto(ImagePostEntity imagePostEntity);
+  ImageDto imagePostToImageDto(ImagePost imagePost);
 }

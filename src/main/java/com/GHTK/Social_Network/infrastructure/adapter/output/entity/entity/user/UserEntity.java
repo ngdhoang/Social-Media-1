@@ -57,10 +57,6 @@ public class UserEntity {
   @Enumerated(EnumType.STRING)
   private ERoleEntity role;
 
-//  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
-//          cascade = CascadeType.ALL)
-//  private List<Devices> devicesList;
-
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<TokenEntity> tokenEntities;

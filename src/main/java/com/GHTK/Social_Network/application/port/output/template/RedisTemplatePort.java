@@ -6,4 +6,8 @@ public interface RedisTemplatePort<K, V> {
   void createOrUpdate(K key, V value);
 
   void deleteByKey(K key);
+
+  String formatKey(K key);
+
+  Boolean existsByKey(K key);
 }
