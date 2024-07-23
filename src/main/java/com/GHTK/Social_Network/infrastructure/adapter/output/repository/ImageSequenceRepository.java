@@ -10,5 +10,5 @@ import java.util.Optional;
 @Repository
 public interface ImageSequenceRepository extends MongoRepository<ImageSequence, String> {
   @Query("{ 'postId' : ?0 }")
-  Optional<ImageSequence> findByPostId(Long postId);
+  Optional<ImageSequence> findByPostId(String postId);
 }

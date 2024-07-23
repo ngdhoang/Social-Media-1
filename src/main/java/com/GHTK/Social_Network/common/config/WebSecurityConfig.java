@@ -63,6 +63,7 @@ public class WebSecurityConfig {
                             "/api/post")
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/post/{p}/reaction").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/post", "/api/post/{id}").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/post/{id}/comment").permitAll()
                     .anyRequest().authenticated()
             )

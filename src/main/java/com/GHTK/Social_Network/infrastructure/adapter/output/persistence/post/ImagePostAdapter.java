@@ -6,8 +6,10 @@ import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePo
 import com.GHTK.Social_Network.domain.model.collection.ImageSequenceDomain;
 import com.GHTK.Social_Network.domain.model.post.ImagePost;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.ImageSequence;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ImagePostRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ImageSequenceRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.PostRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.ImagePostMapperETD;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -23,6 +25,7 @@ public class ImagePostAdapter implements ImagePostPort {
   private final ImagePostRepository imagePostRepository;
   private final RedisImageTemplatePort redisImageTemplatePort;
   private final ImageSequenceRepository imageSequenceRepository;
+  private final PostRepository postRepository;
   private final ImagePostMapperETD imagePostMapperETD;
   private final CloudPort cloudPort;
 
@@ -73,7 +76,7 @@ public class ImagePostAdapter implements ImagePostPort {
   @Override
   public Optional<ImageSequenceDomain> findImageSequenceByPostId(Long postId) {
     try {
-      return imageSequenceRepository.findByPostId(postId)
+      return imageSequenceRepository.findByPostId(postId.toString())
               .map(imageSequence -> new ImageSequenceDomain(
                       imageSequence.getPostId(),
                       imageSequence.getListImageSort()

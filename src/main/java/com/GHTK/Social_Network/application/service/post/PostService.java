@@ -36,6 +36,11 @@ public class PostService implements PostPortInput {
 
   private final PostMapper postMapper;
 
+  private User getUserAuth() {
+    User user = authPort.getUserAuth();
+    return user == null ? User.builder().userId(0L).build() : user;
+  }
+
   private EPostStatus filterStatusPost(String status) {
     return switch (status.toLowerCase()) {
       case "private" -> EPostStatus.PRIVATE;
@@ -64,7 +69,7 @@ public class PostService implements PostPortInput {
 
   @Override
   public PostResponse createPost(PostRequest postRequest) {
-    User currentUser = authPort.getUserAuth();
+    User currentUser = this.getUserAuth();
 
     Post post = createNewPost(postRequest, currentUser);
     post.setCreatedAt(new Date());
@@ -103,7 +108,7 @@ public class PostService implements PostPortInput {
     List<Long> imagePostSort = new ArrayList<>();
 
     for (String key : publicIds) {
-      key += "_" + authPort.getUserAuth().getUserEmail();
+      key += "_" + this.getUserAuth().getUserEmail();
       if (redisImageTemplatePort.existsByKey(key)) {
         String url = redisImageTemplatePort.findByKey(key);
         ImagePost imagePost = new ImagePost(url, new Date(), post.getPostId());
@@ -121,15 +126,16 @@ public class PostService implements PostPortInput {
 
   @Override
   public PostResponse updatePost(PostRequest postRequest) {
-    User currentUser = authPort.getUserAuth();
+    User currentUser = this.getUserAuth();
 
     Post post = getAndValidatePost(postRequest.getId(), currentUser);
     updatePostDetails(post, postRequest);
 
-    List<TagUser> tagUserList = handleTagUsers(postRequest.getTagUserIds(), post);
-    List<ImagePost> imagePostList = updateImagePosts(postRequest, post);
-
     Post newPost = portPost.savePost(post);
+    List<TagUser> tagUserList = handleTagUsers(postRequest.getTagUserIds(), newPost);
+    List<ImagePost> imagePostList = updateImagePosts(postRequest, newPost);
+    portPost.savePost(newPost);
+
 
     deleteRedisImages(postRequest.getDeletePublicIds(), currentUser.getUserEmail());
     return postMapper.postToPostResponse(newPost, imagePostList, tagUserList);
@@ -157,14 +163,20 @@ public class PostService implements PostPortInput {
     List<Long> imageIds = postRequest.getImageIds();
     List<String> publicIds = postRequest.getPublicIds();
 
+    int cnt = 0;
     for (int i = 0; i < imageIds.size(); i++) {
-      if (imageIds.get(i) == 0 && i < publicIds.size()) {
-        ImagePost imagePost = new ImagePost(publicIds.get(i), new Date(), post.getPostId());
+      if (imageIds.get(i) == 0) {
+        ImagePost imagePost = new ImagePost(redisImageTemplatePort.findByKey(publicIds.get(cnt) + "_" + getUserAuth().getUserEmail()), new Date(), post.getPostId());
         ImagePost newImagePost = imagePostPort.saveImagePost(imagePost);
         imageIds.set(i, newImagePost.getImagePostId());
-        redisImageTemplatePort.deleteByKey(publicIds.get(i));
+        redisImageTemplatePort.deleteByKey(publicIds.get(cnt) + "_" + getUserAuth().getUserEmail());
+        cnt++;
+      }
+      if (cnt > postRequest.getImageIds().size()) {
+        break;
       }
     }
+    System.out.println(imageIds);
 
     imagePostPort.saveImageSequence(new ImageSequenceDomain(post.getPostId().toString(), imageIds));
     return sortImagePosts(post.getPostId(), portPost.findAllImageByPostId(post.getPostId()));
@@ -172,7 +184,7 @@ public class PostService implements PostPortInput {
 
   @Override
   public MessageResponse deletePost(Long id) {
-    User currentUser = authPort.getUserAuth();
+    User currentUser = this.getUserAuth();
     getAndValidatePost(id, currentUser);
 
     if (!portPost.deletePostById(id)) {
@@ -183,8 +195,17 @@ public class PostService implements PostPortInput {
 
   @Override
   public List<PostResponse> getAllPostsByUserId(Long userId) {
+//    List<Post> postList = new ArrayList<>();
+//    if (getUserAuth().getUserId() != 0) {
     User targetUser = getUserAndCheckAccess(userId);
     List<Post> postList = portPost.findAllPostByUserId(targetUser.getUserId());
+//    } else {
+//      User u = authPort.getUserById(userId);
+//      if (u == null || !u.getIsProfilePublic()) {
+//        throw new CustomException("User not found or private", HttpStatus.NOT_FOUND);
+//      }
+//      postList = portPost.findAllPostByUserId(userId);
+//    }
 
     return postList.stream()
             .map(this::mapPostToResponse)
@@ -197,7 +218,7 @@ public class PostService implements PostPortInput {
       throw new CustomException("User does not exist or profile private", HttpStatus.NOT_FOUND);
     }
 
-    User currentUser = authPort.getUserAuth();
+    User currentUser = this.getUserAuth();
     if (friendShipPort.isBlock(userId, currentUser.getUserId()) && !userId.equals(currentUser.getUserId())) {
       throw new CustomException("User has blocked", HttpStatus.FORBIDDEN);
     }
@@ -207,7 +228,7 @@ public class PostService implements PostPortInput {
 
   @Override
   public List<PostResponse> getAllPostsTagMe() {
-    User currentUser = authPort.getUserAuth();
+    User currentUser = this.getUserAuth();
     List<Post> postList = portPost.findAllPostTagMe(currentUser.getUserId());
     return postList.stream()
             .map(this::mapPostToResponse)
@@ -239,7 +260,7 @@ public class PostService implements PostPortInput {
       throw new CustomException("User does not exist or profile private", HttpStatus.FORBIDDEN);
     }
 
-    User currentUser = authPort.getUserAuth();
+    User currentUser = this.getUserAuth();
     if (friendShipPort.isBlock(post.getUserId(), currentUser.getUserId()) && !post.getUserId().equals(currentUser.getUserId())) {
       throw new CustomException("User has blocked", HttpStatus.FORBIDDEN);
     }
@@ -249,6 +270,7 @@ public class PostService implements PostPortInput {
 
   private List<ImagePost> sortImagePosts(Long postId, List<ImagePost> imagePosts) {
     Optional<ImageSequenceDomain> imageSequenceOpt = imagePostPort.findImageSequenceByPostId(postId);
+    System.out.println(imageSequenceOpt);
 
     if (imageSequenceOpt.isEmpty()) {
       return imagePosts;
