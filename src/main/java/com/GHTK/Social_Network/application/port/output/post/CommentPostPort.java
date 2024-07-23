@@ -3,6 +3,7 @@ package com.GHTK.Social_Network.application.port.output.post;
 import com.GHTK.Social_Network.domain.model.Comment;
 import com.GHTK.Social_Network.domain.model.ReactionComment;
 
+import java.awt.print.Pageable;
 import java.util.List;
 
 public interface CommentPostPort {
@@ -11,6 +12,10 @@ public interface CommentPostPort {
   Comment findCommentById(Long id);
 
   List<Comment> findCommentByPostId(Long postId);
+
+  List<Comment> findCommentByParentId(Long commentId);
+
+  List<Comment> findCommentParentByPostId(Long postId);
 
   void deleteCommentById(Long id);
 

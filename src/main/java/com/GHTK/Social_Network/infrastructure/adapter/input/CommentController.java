@@ -14,50 +14,50 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/post")
+@RequestMapping("/api/posts")
 @RequiredArgsConstructor
 public class CommentController {
   private final CommentPostInput commentPostInput;
-
   private final ImagePostInput imagePostInput;
 
-  @PostMapping("/comment")
+  @PostMapping("/comments")
   public ResponseEntity<Object> createComment(@RequestBody @Valid CommentRequest commentRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentSrc(commentRequest));
   }
 
-  @PostMapping("/comment/{u}")
-  public ResponseEntity<Object> createCommentChild(@PathVariable Long u, @RequestBody @Valid CommentRequest commentRequest) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentChild(u, commentRequest));
+  @PostMapping("/comments/{parentCommentId}/replies")
+  public ResponseEntity<Object> createReply(@PathVariable Long parentCommentId, @RequestBody @Valid CommentRequest commentRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentChild(parentCommentId, commentRequest));
   }
 
-  @GetMapping("{id}/comment")
-  public ResponseEntity<Object> getAllCommentInPost(@PathVariable Long id) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByPostId(id));
+  @GetMapping("/{postId}/comments")
+  public ResponseEntity<Object> getAllCommentForPost(@PathVariable Long postId) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByPostId(postId));
   }
 
-//  @GetMapping("{id}/comment")
-//  public ResponseEntity<Object> getCommentById(@PathVariable Long id) {
-//    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByPostId(id));
-//  }
-//
-//  @GetMapping("{id}/comment")
-//  public ResponseEntity<Object> getAllCommentChildByCommentParentId(@PathVariable Long id) {
-//    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByPostId(id));
-//  }
-
-  @DeleteMapping("/comment/{id}/delete")
-  public ResponseEntity<Object> deleteComment(@PathVariable Long id) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.deleteComment(id));
+  @GetMapping("/comments/{commentId}")
+  public ResponseEntity<Object> getCommentById(@PathVariable Long commentId) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentById(commentId));
   }
 
-  @PutMapping("/comment/{u}/update")
-  public ResponseEntity<Object> updateComment(@PathVariable Long u, @RequestBody @Valid CommentRequest commentRequest) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.updateComment(u, commentRequest));
+  @GetMapping("/comments/{commentId}/replies")
+  public ResponseEntity<Object> getAllCommentChildByCommentParentId(@PathVariable Long commentId) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getAllCommentChildById(commentId));
   }
 
-  @PutMapping("/comment/up-image")
-  public ResponseEntity<Object> upImageComment(@ModelAttribute @Valid CreateImageRequest request) throws IOException {
+  @DeleteMapping("/comments/{commentId}")
+  public ResponseEntity<Object> deleteComment(@PathVariable Long commentId) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.deleteComment(commentId));
+  }
+
+  @PutMapping("/comments/{commentId}")
+  public ResponseEntity<Object> updateComment(@PathVariable Long commentId, @RequestBody @Valid CommentRequest commentRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.updateComment(commentId, commentRequest));
+  }
+
+  @PostMapping("/comments/images")
+  public ResponseEntity<Object> addImageToComment(@ModelAttribute @Valid CreateImageRequest request) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, imagePostInput.createImage(request));
   }
 }
+

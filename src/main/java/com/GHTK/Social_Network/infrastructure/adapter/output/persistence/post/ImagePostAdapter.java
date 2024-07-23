@@ -1,6 +1,8 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.post;
 
+import com.GHTK.Social_Network.application.port.output.CloudPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
+import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
 import com.GHTK.Social_Network.domain.model.collection.ImageSequenceDomain;
 import com.GHTK.Social_Network.domain.model.post.ImagePost;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.ImageSequence;
@@ -8,7 +10,7 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ImagePos
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ImageSequenceRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.ImagePostMapperETD;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,12 +21,10 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class ImagePostAdapter implements ImagePostPort {
   private final ImagePostRepository imagePostRepository;
-
-  private final RedisTemplate<String, String> imageRedisTemplate;
-
+  private final RedisImageTemplatePort redisImageTemplatePort;
   private final ImageSequenceRepository imageSequenceRepository;
-
   private final ImagePostMapperETD imagePostMapperETD;
+  private final CloudPort cloudPort;
 
   @Override
   public ImagePost findImageById(Long id) {
@@ -36,16 +36,16 @@ public class ImagePostAdapter implements ImagePostPort {
     imagePostRepository.deleteById(id);
   }
 
+  @Async
   @Override
   public void deleteImageRedisByPublicId(List<String> publicIds, String tail) {
-//    publicIds.forEach(publicId -> {
-//      imageRedisTemplate.delete(publicId);
-//      imageRedisTemplate.delete(publicId);
-//    });
-    Set<String> keys = imageRedisTemplate.keys("*" + tail);
+    Set<String> keys = redisImageTemplatePort.findAllByKeys("*" + tail);
 
     if (keys != null) {
-      keys.forEach(imageRedisTemplate::delete);
+      keys.forEach(k -> {
+        cloudPort.deletePictureByUrl(redisImageTemplatePort.findByKey(k));
+        redisImageTemplatePort.deleteByKey(k);
+      });
     }
   }
 

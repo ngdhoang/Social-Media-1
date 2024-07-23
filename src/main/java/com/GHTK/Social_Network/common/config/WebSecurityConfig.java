@@ -57,7 +57,11 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(request -> request
                     .requestMatchers("/api/auth/**", "/api/search", "/api/post/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/profile").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/post/**", "/api/post").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/posts/{postId}/comments",
+                            "/api/posts/comments/{commentId}",
+                            "/api/posts/comments/{commentId}/replies",
+                            "/api/post")
+                    .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/post/{p}/reaction").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/post/{id}/comment").permitAll()
                     .anyRequest().authenticated()

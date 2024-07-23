@@ -10,7 +10,18 @@ import java.util.List;
 @Repository
 public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
   @Query("""
-              select c from CommentEntity c where c.postEntity.postId= ?1
+          select c from CommentEntity c where c.postEntity.postId= ?1
           """)
   List<CommentEntity> findAllByPostId(Long postId);
+
+  @Query("""
+          select c from CommentEntity c where c.parentCommentEntity.commentId = ?1    
+          """)
+  List<CommentEntity> findAllByCommentParentId(Long commentParentId);
+
+  @Query("""
+              select c from CommentEntity c where c.postEntity.postId = ?1 and c.parentCommentEntity = null
+          """)
+  List<CommentEntity> findAllCommentParentIdByPostId(Long postId);
+
 }

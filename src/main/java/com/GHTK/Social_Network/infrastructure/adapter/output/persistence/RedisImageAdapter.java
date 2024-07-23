@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 public class RedisImageAdapter implements RedisImageTemplatePort {
@@ -34,5 +36,10 @@ public class RedisImageAdapter implements RedisImageTemplatePort {
   @Override
   public Boolean existsByKey(String key) {
     return imageRedisTemplate.hasKey(key);
+  }
+
+  @Override
+  public Set<String> findAllByKeys(String key) {
+    return imageRedisTemplate.keys(key);
   }
 }

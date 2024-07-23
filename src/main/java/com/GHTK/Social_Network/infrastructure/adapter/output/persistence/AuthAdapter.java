@@ -43,9 +43,6 @@ public class AuthAdapter implements AuthPort {
 
   @Override
   public Token saveToken(Token token) {
-    System.out.println("------------------------------------------------------------------------------");
-    System.out.println(token);
-    System.out.println("------------------------------------------------------------------------------");
     TokenEntity newToken = tokenMapperETD.toEntity(token);
     newToken.setUserEntity(
             userRepository.findById(token.getUserId()).orElse(null)

@@ -15,7 +15,7 @@ public class CommentResponse {
 
   private Long parentCommentId;
 
-//  private List<CommentResponse> childComments;
+  private List<CommentResponse> childComments;
 
   private Long postId;
 

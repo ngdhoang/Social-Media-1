@@ -5,15 +5,17 @@ import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.model.Comment;
 import com.GHTK.Social_Network.domain.model.ReactionComment;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.CommentEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ReactionCommentEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.CommentRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ReactionCommentRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.CommentMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.ReactionCommentMapperETD;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.awt.print.Pageable;
 import java.util.List;
 
 @Service
@@ -43,6 +45,20 @@ public class CommentPostAdapter implements CommentPostPort {
     return commentRepository.findAllByPostId(postId).stream().map(
             commentMapperETD::toDomain
     ).toList();
+  }
+
+  @Override
+  public List<Comment> findCommentByParentId(Long commentId) {
+    return commentRepository.findAllByCommentParentId(commentId).stream()
+            .map(commentMapperETD::toDomain)
+            .toList();
+  }
+
+  @Override
+  public List<Comment> findCommentParentByPostId(Long postId) {
+    return commentRepository.findAllCommentParentIdByPostId(postId).stream()
+            .map(commentMapperETD::toDomain)
+            .toList();
   }
 
   @Override
