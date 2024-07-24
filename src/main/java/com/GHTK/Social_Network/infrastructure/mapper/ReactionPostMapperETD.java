@@ -7,9 +7,11 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface ReactionPostMapperETD {
-  @Mapping(source = "reactionPostId", target = "reactionPostId")
+  @Mapping(source = "postEntity.postId", target = "postId")
+  @Mapping(source = "userEntity.userId", target = "userId")
   ReactionPost toDomain(ReactionPostEntity reactionPostEntity);
 
-  @Mapping(source = "reactionPostId", target = "reactionPostId")
+  @Mapping(source = "postId", target = "postEntity.postId")
+  @Mapping(source = "userId", target = "userEntity.userId")
   ReactionPostEntity toEntity(ReactionPost reactionPost);
 }

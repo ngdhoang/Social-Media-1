@@ -37,12 +37,12 @@ public class FriendShipAdapter implements FriendShipPort {
     int size = getFriendShipRequest.getSize();
     String orderBy = getFriendShipRequest.getOrderBy();
     String sortBy = getFriendShipRequest.getSortBy();
-    EFriendshipStatus status = getFriendShipRequest.getStatus();
-    EFriendshipStatusEntity statusEntity = eFriendShipStatusMapperETD.toEntity(status);
+    EFriendshipStatus status = getFriendShipRequest.getStatus() != null ? EFriendshipStatus.valueOf(getFriendShipRequest.getStatus().toUpperCase()) : null;
+    EFriendshipStatusEntity statusEntity = status != null ? eFriendShipStatusMapperETD.toEntity(status) : null;
     Long userId = getFriendShipRequest.getUserId();
     sortBy = Objects.equals(sortBy, ESortBy.CREATED_AT.toString()) ? "createAt" : "friendShipId";
     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderBy), sortBy));
-    if (statusEntity == null || !status.equals(EFriendshipStatus.BLOCK)) {
+    if (status == null || !status.equals(EFriendshipStatus.BLOCK)) {
       List<FriendShipEntity> listFriendShipEntity = friendShipRepository.getListFriend(userId, statusEntity, pageable);
       return listFriendShipEntity.stream().map(friendShipMapperETD::toDomain).toList();
     }

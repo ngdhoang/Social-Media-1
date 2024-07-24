@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "reaction_post")
 @Data
@@ -26,6 +28,21 @@ public class ReactionPostEntity {
 
   @Enumerated(EnumType.STRING)
   private EReactionTypeEntity reactionType;
+
+  private LocalDate createAt;
+
+  private LocalDate updateAt;
+
+  @PreUpdate
+  public void preUpdate() {
+        updateAt = LocalDate.now();
+    }
+
+  @PrePersist
+  public void prePersist() {
+        createAt = LocalDate.now();
+    }
+
 
   public ReactionPostEntity(PostEntity postEntity, UserEntity userEntity, EReactionTypeEntity reactionType) {
     this.postEntity = postEntity;
