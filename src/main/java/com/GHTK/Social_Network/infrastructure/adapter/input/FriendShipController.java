@@ -13,32 +13,49 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/friendship")
+@RequestMapping("/api/relationships")
 @RequiredArgsConstructor
 public class FriendShipController {
 
   private final FriendShipPortInput friendShipService;
 
-  @GetMapping("")
-  public ResponseEntity<Object> getFriendShip(
+  @GetMapping("/friend")
+  public ResponseEntity<Object> getListFriend(
           @Valid @ModelAttribute GetFriendShipRequest getFriendShipRequest
   ) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, friendShipService.getFriendShip(getFriendShipRequest));
   }
 
-  @PostMapping("/set-request")
-  public ResponseEntity<Object> setRequestFriendShip(@RequestBody @Valid SetRequestFriendRequest setRequestFriendRequest) {
+  @GetMapping("/block")
+  public ResponseEntity<Object> getListBlock(
+          @Valid @ModelAttribute GetFriendShipRequest getFriendShipRequest
+  ) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, friendShipService.getFriendShip(getFriendShipRequest));
+  }
+
+  @PostMapping("/friend")
+  public ResponseEntity<Object> createRequestFriend(@RequestBody @Valid SetRequestFriendRequest setRequestFriendRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, friendShipService.setRequestFriendShip(setRequestFriendRequest));
   }
 
-  @PostMapping("/accept-request")
+  @PostMapping("/block")
+  public ResponseEntity<Object> blockRequest(@RequestBody @Valid SetRequestFriendRequest setRequestFriendRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, friendShipService.setRequestFriendShip(setRequestFriendRequest));
+  }
+
+  @PostMapping("/friend")
   public ResponseEntity<Object> acceptRequestFriendShip(@RequestBody @Valid AcceptFriendRequest acceptFriendRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, friendShipService.acceptRequestFriendShip(acceptFriendRequest));
 
   }
 
-  @PostMapping("/un-friendship")
+  @DeleteMapping("/friend")
   public ResponseEntity<Object> unFriendShip(@RequestBody @Valid UnFriendShipRequest unFriendShipRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, friendShipService.unFriendShip(unFriendShipRequest));
+  }
+
+  @PutMapping("/friend/status")
+  public ResponseEntity<Object> updateStateFriend(@RequestBody @Valid SetRequestFriendRequest setRequestFriendRequest){
+    return ResponseHandler.generateResponse((ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, fi))
   }
 }

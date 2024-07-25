@@ -11,8 +11,8 @@ import java.time.LocalDate;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProfileDto {
-  private Long profileId;
+public class UserDto {
+  private Long userId;
 
   private String lastName;
 
@@ -34,8 +34,8 @@ public class ProfileDto {
 
   private Boolean isProfilePublic;
 
-  public ProfileDto(Long userId, String firstName, String lastName, String avatar) {
-    this.profileId = userId;
+  public UserDto(Long userId, String firstName, String lastName, String avatar) {
+    this.userId = userId;
     this.lastName = lastName;
     this.firstName = firstName;
     this.avatar = avatar;

@@ -7,7 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.cglib.core.Local;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -26,9 +28,13 @@ public class PostEntity {
   @Column(columnDefinition = "TEXT")
   private String content;
 
-  private Date createdAt;
+  private LocalDate createdAt;
 
-  private Date updateAt;
+  private LocalDate updateAt;
+
+  private Long reactionsQuantity = 0L;
+
+  private Long commentQuantity = 0L;
 
   @Enumerated(EnumType.STRING)
   private EPostStatusEntity postStatus;

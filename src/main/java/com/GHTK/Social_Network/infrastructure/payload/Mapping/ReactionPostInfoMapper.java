@@ -9,7 +9,6 @@ import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring")
 public interface ReactionPostInfoMapper {
-
   @Mapping(source = "user.userId", target = "profileId")
   @Mapping(source = "user", target = ".")
   @Mapping(source = "reactionType", target = "reactionType")

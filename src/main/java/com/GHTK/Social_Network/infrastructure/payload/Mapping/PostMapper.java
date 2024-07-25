@@ -5,19 +5,17 @@ import com.GHTK.Social_Network.domain.model.post.EPostStatus;
 import com.GHTK.Social_Network.domain.model.post.ImagePost;
 import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
-import com.GHTK.Social_Network.infrastructure.payload.dto.UserBasicInfoDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.UserBasicDto;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.PostResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface PostMapper {
-
   @Mapping(source = "post.postId", target = "postId")
   @Mapping(source = "post.content", target = "content")
   @Mapping(source = "post.createdAt", target = "createdAt")
@@ -47,15 +45,15 @@ public interface PostMapper {
   List<ImageDto> mapImagePosts(List<ImagePost> imagePosts);
 
   @Named("mapTagUsers")
-  default List<UserBasicInfoDto> mapTagUsers(List<?> tagUsers) {
+  default List<UserBasicDto> mapTagUsers(List<?> tagUsers) {
     if (tagUsers == null) {
       return null;
     }
     if (tagUsers.isEmpty()) {
       return List.of();
     }
-    if (tagUsers.get(0) instanceof UserBasicInfoDto) {
-      return (List<UserBasicInfoDto>) tagUsers;
+    if (tagUsers.get(0) instanceof UserBasicDto) {
+      return (List<UserBasicDto>) tagUsers;
     } else if (tagUsers.get(0) instanceof User) {
       return ((List<User>) tagUsers).stream()
               .map(this::userToUserBasicInfoDto)
@@ -68,5 +66,5 @@ public interface PostMapper {
   ImageDto imagePostToImageDto(ImagePost imagePost);
 
   @Mapping(source = "userId", target = "userId")
-  UserBasicInfoDto userToUserBasicInfoDto(User user);
+  UserBasicDto userToUserBasicInfoDto(User user);
 }

@@ -1,0 +1,69 @@
+s// Reaction api/v1/posts/reaction
+// POST /{postId}
+{
+    "roleId":
+    "userId":
+	"reactionType":
+}
+
+// GET
+{
+	"roleId":
+	"role": "comment|post"
+	"users": {
+			"userId":
+			"firstName":
+			"lastName":
+			"userEmail":
+			"avatar":
+			"type":
+		}
+	"reactions": [
+		{
+			"type":
+			"quantity":
+		}
+	]
+}
+
+
+// Reaction api/v1/posts/comment
+// POST /{commentId}
+{
+
+	"reactionType":
+}
+
+// GET
+{
+	"roleId":
+	"role": "comment|post"
+	"users": {
+			"userId":
+			"firstName":
+			"lastName":
+			"userEmail":
+			"avatar":
+			"type":
+		}
+	"reactions": [
+		{
+			"type":
+			"quantity":
+		}
+	]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

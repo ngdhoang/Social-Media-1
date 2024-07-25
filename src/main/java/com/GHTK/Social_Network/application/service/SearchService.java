@@ -2,10 +2,12 @@ package com.GHTK.Social_Network.application.service;
 
 import com.GHTK.Social_Network.application.port.input.SearchPortInput;
 import com.GHTK.Social_Network.application.port.output.SearchPort;
+import com.GHTK.Social_Network.domain.model.User;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
-import com.GHTK.Social_Network.infrastructure.payload.Mapping.SearchMapper;
-import com.GHTK.Social_Network.infrastructure.payload.dto.SearchDto;
+import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
+import com.GHTK.Social_Network.infrastructure.payload.dto.UserBasicDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,18 +18,18 @@ import java.util.List;
 public class SearchService implements SearchPortInput {
   private final SearchPort searchPort;
 
+  private final UserMapper userMapper;
+
   @Override
-  public List<SearchDto> searchPublic(String keyword, Integer scope) {
+  public List<UserBasicDto> searchPublic(String keyword, Integer scope) {
     if (keyword != null) {
       keyword = keyword.replaceAll("^\\s+", "");
     }
 
-    List<SearchDto> results = new ArrayList<>();
+    List<UserBasicDto> results = new ArrayList<>();
 
-    List<UserEntity> userEntities = searchPort.searchUserInPage(keyword);
-    userEntities.forEach(user -> {
-      results.add(SearchMapper.INSTANCE.UserToSearchDto(user));
-    });
+    List<User> userEntities = searchPort.searchUserInPage(keyword);
+    userEntities.forEach(user -> results.add(userMapper.userToUserBasicDto(user)));
 
     return results;
   }

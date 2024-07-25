@@ -47,11 +47,4 @@ public class GlobalExceptionHandler {
     log.error(ex.getMessage(), ex);
     return ResponseHandler.generateErrorResponse("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
   }
-
-
-  @ExceptionHandler(MultipartException.class)
-  public ResponseEntity<Object> handleMultipartException(MultipartException ex) {
-    String errorMessage = "File error";
-    return ResponseHandler.generateErrorResponse(errorMessage, HttpStatus.BAD_REQUEST);
-  }
 }

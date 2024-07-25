@@ -9,9 +9,8 @@ import com.GHTK.Social_Network.domain.model.FriendShip;
 import com.GHTK.Social_Network.domain.model.User;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.FriendShipUserMapper;
-import com.GHTK.Social_Network.infrastructure.payload.Mapping.ProfileMapper;
+import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.FriendShipUserDto;
-import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.AcceptFriendRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetFriendShipRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.SetRequestFriendRequest;
@@ -20,9 +19,6 @@ import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -52,7 +48,7 @@ public class FriendShipService implements FriendShipPortInput {
   private final FriendShipPort friendShipPort;
   private final ProfilePort profilePort;
 
-  private final ProfileMapper profileMapper;
+  private final UserMapper userMapper;
   private final FriendShipUserMapper friendShipUserMapper;
 
 

@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.common.config;
 
 import com.GHTK.Social_Network.infrastructure.payload.dto.AuthRedisDto;
-import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.UserDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.post.ReactionPostRedisDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -36,11 +36,11 @@ public class RedisConfig {
   }
 
   @Bean
-  public RedisTemplate<String, ProfileDto> profileDtoRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-    RedisTemplate<String, ProfileDto> template = new RedisTemplate<>();
+  public RedisTemplate<String, UserDto> profileDtoRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    RedisTemplate<String, UserDto> template = new RedisTemplate<>();
     template.setConnectionFactory(redisConnectionFactory);
     template.setKeySerializer(new StringRedisSerializer());
-    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(ProfileDto.class));
+    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(UserDto.class));
     return template;
   }
 

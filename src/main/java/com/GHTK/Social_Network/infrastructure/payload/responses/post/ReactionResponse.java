@@ -6,9 +6,7 @@ import lombok.Data;
 
 @Data
 public class ReactionResponse {
-  private Long reactionPostId;
-
-  private Long postId;
+  private Long roleId;
 
   private Long userId;
 

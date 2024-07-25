@@ -12,7 +12,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Table(name = "user")
@@ -37,16 +36,6 @@ public class UserEntity {
   private String oldPassword;
 
   private String avatar;
-
-  private LocalDate dob;
-
-  private String phoneNumber;
-
-  private String homeTown;
-
-  private String schoolName;
-
-  private String workPlace;
 
   private Boolean isProfilePublic = true;
 
@@ -83,6 +72,9 @@ public class UserEntity {
   @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<CommentEntity> commentEntities;
+
+  @OneToOne(mappedBy = "userEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private ProfileEntity profile;
 
   public UserEntity(String firstName, String lastName, String userEmail, String password) {
     this.firstName = firstName;

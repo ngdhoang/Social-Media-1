@@ -16,6 +16,7 @@ import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.domain.model.post.TagUser;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.PostMapper;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.PostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.responses.InteractionResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.PostResponse;
 import lombok.RequiredArgsConstructor;
@@ -61,8 +62,12 @@ public class PostService implements PostPortInput {
   }
 
 
+  //Lấy những bài viết mình đã bình luận
+  //Lấy những bài viết mình thả reaction
   @Override
-  public List<PostResponse> getPostsByInteractions() {
+  public List<InteractionResponse> getPostsByInteractions() {
+    String role = "POST";
+
     return null;
   }
 

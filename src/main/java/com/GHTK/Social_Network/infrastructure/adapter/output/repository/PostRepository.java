@@ -11,7 +11,6 @@ import java.util.List;
 
 @Repository
 public interface PostRepository extends JpaRepository<PostEntity, Long> {
-
   @Query("""
           select p from PostEntity p where p.userEntity.userId = ?1
           """)
@@ -29,15 +28,29 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
 
 
   @Query("""
-              SELECT p FROM PostEntity p
-              WHERE p.userEntity.userId = :userId
-              AND (
+              select p from PostEntity p
+              where p.userEntity.userId = :userId
+              and (
                   p.postStatus = :status
-                  OR (:status = 'PRIVATE' AND p.postStatus IN (com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.PRIVATE))
-                  OR (:status = 'PUBLIC' AND p.postStatus IN (com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.PUBLIC))
-                  OR (:status = 'FRIEND' AND p.postStatus IN (com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.FRIEND, com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.PUBLIC))
-                  OR (:status = 'ALL' AND p.postStatus IN (com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.FRIEND, com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.PUBLIC, com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.PRIVATE))
+                  or (:status = 'PRIVATE' and p.postStatus in (com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.PRIVATE))
+                  or (:status = 'PUBLIC' and p.postStatus in (com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.PUBLIC))
+                  or (:status = 'FRIEND' and p.postStatus in (com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.FRIEND, com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.PUBLIC))
+                  or (:status = 'ALL' and p.postStatus in (com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.FRIEND, com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.PUBLIC, com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.PRIVATE))
               )
           """)
   List<PostEntity> findAllByUserIdAndFriendStatus(@Param("userId") Long userId, @Param("status") String status);
+
+
+    @Query(value = """
+                select distinct * from PostEntity p
+                where p.postStatus = 'PUBLIC'
+                and (
+                    exists (select c from CommentEntity c where c.postEntity = p and c.userEntity.userId = :userId)
+                    or
+                    exists (select r from ReactionPostEntity r where r.postEntity = p and r.userEntity.userId = :userId)
+                )
+                order by p.createdAt desc
+            """, nativeQuery = true)
+    List<PostEntity> findPostsWithUserInteractions(@Param("userId") Long userId);
+
 }

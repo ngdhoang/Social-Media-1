@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
 import com.GHTK.Social_Network.application.port.output.RedisProfilePort;
-import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -9,15 +9,15 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class RedisProfileAdapter implements RedisProfilePort {
-  private final RedisTemplate<String, ProfileDto> profileDtoRedisTemplate;
+  private final RedisTemplate<String, UserDto> profileDtoRedisTemplate;
 
   @Override
-  public ProfileDto findByKey(String key) {
+  public UserDto findByKey(String key) {
     return profileDtoRedisTemplate.opsForValue().get(key);
   }
 
   @Override
-  public void createOrUpdate(String key, ProfileDto value) {
+  public void createOrUpdate(String key, UserDto value) {
     profileDtoRedisTemplate.opsForValue().set(key, value);
   }
 

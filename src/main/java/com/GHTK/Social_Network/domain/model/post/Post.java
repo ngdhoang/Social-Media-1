@@ -20,6 +20,10 @@ public class Post {
 
   private Date updateAt;
 
+  private Long reactionsQuantity = 0L;
+
+  private Long commentQuantity = 0L;
+
   private EPostStatus postStatus;
 
   private Long userId;

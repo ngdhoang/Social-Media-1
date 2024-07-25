@@ -3,7 +3,7 @@ package com.GHTK.Social_Network.infrastructure.adapter.input;
 import com.GHTK.Social_Network.application.port.input.AuthPortInput;
 import com.GHTK.Social_Network.application.port.input.ProfilePortInput;
 import com.GHTK.Social_Network.application.service.Authentication.AuthService;
-import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.UserDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.*;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
@@ -72,11 +72,11 @@ public class AuthController {
 
   @GetMapping("/verify-token")
   public ResponseEntity<Object> verifyToken() {
-    ProfileDto profileDto = profilePort.getProfile(-26022004L);
-    if (profileDto == null) {
+    UserDto userDto = profilePort.getProfile(-26022004L);
+    if (userDto == null) {
       return ResponseHandler.generateErrorResponse("Profile not found or private", HttpStatus.NOT_FOUND);
     }
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profileDto);
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, userDto);
   }
 
   @GetMapping("/logout")

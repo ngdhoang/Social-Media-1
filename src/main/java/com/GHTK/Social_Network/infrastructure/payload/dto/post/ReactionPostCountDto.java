@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReactionPostCountDto {
-
   private Long count;
 
   private EReactionType reactionType;

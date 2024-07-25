@@ -10,10 +10,11 @@ import java.util.List;
 @Data
 @Builder
 public class ReactionPostResponse {
+  private Long roleId;
 
-  private Long postId;
+  private String role;
 
-  private List<ReactionPostUserDto> reactionUsers;
+  private List<ReactionPostUserDto> users;
 
-  private List<ReactionPostCountDto> reactionCount;
+  private List<ReactionPostCountDto> reactions;
 }
