@@ -2,61 +2,71 @@ package com.GHTK.Social_Network.infrastructure.adapter.input;
 
 import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
 import com.GHTK.Social_Network.application.port.input.post.PostPortInput;
-import com.GHTK.Social_Network.infrastructure.payload.requests.post.CreateImageRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.PostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/post")
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/posts")
 public class PostController {
   private final PostPortInput postService;
-
   private final ImagePostInput imagePostInput;
 
-  @PostMapping("/create")
-  public ResponseEntity<Object> create(@RequestBody @Valid PostRequest postRequest) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.createPost(postRequest));
+  @GetMapping
+  public ResponseEntity<Object> getAllPostsRecommend() {
+    return null;
   }
 
-  @PostMapping("/up-image")
-  public ResponseEntity<Object> upImage(@ModelAttribute @Valid CreateImageRequest request) {
-    System.out.println("jashfjkashdf");
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, imagePostInput.createImage(request));
+  @GetMapping("/user/{userId}")
+  public ResponseEntity<Object> getPostsByUser(@PathVariable Long userId) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.getPostsByUserId(userId));
   }
 
-//  @PostMapping("/delete-image")
-//  public ResponseEntity<Object> deleteImage(@RequestParam String p) {
-//    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, imagePostInput.deleteImageInRedis(p));
-//  }
-
-  @GetMapping("/{id}")
-  public ResponseEntity<Object> getPostById(@PathVariable Long id) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.getPostsByPostId(id));
+  @GetMapping("/interactions") // Get by reaction or comment
+  public ResponseEntity<Object> getPostsByInteractions() {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.getPostsByInteractions());
   }
 
-  @GetMapping("/tag")
-  public ResponseEntity<Object> getPostTagMe() {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.getAllPostsTagMe());
+  @GetMapping("/tags")
+  public ResponseEntity<Object> getPostsWithUserTag() {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.getPostsTagMe());
   }
 
-  @GetMapping("")
-  public ResponseEntity<Object> getPostByUser(@RequestParam Long u) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.getAllPostsByUserId(u));
+  @GetMapping("/{postId}")
+  public ResponseEntity<Object> getPostById(@PathVariable Long postId) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.getPostByPostId(postId));
   }
 
-  @PostMapping("/delete/{id}")
-  public ResponseEntity<Object> deletePostById(@PathVariable Long id) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.deletePost(id));
+  @PostMapping
+  public ResponseEntity<Object> createPost(@RequestBody @Valid PostRequest postRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.CREATED, postService.createPost(postRequest));
   }
 
-  @DeleteMapping("/update")
-  public ResponseEntity<Object> updatePost(@RequestBody @Valid PostRequest postRequest) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.updatePost(postRequest));
+  @PutMapping("/{postId}")
+  public ResponseEntity<Object> updatePost(
+          @PathVariable
+          @NotNull(message = "Post id cannot be null")
+          @NotBlank(message = "Post id cannot be blank")
+          Long postId,
+          @RequestBody @Valid PostRequest postRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.updatePost(postId, postRequest));
+  }
+
+  @DeleteMapping("/{postId}")
+  public ResponseEntity<Object> deletePost(@PathVariable Long postId) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.deletePost(postId));
+  }
+
+  @PostMapping("/images")
+  public ResponseEntity<Object> uploadImage(@RequestParam MultipartFile image) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.CREATED, imagePostInput.createImage(image, ImagePostInput.POST_TAIL));
   }
 }

@@ -13,6 +13,12 @@ public interface CommentPostInput {
 
   List<CommentResponse> getCommentsByPostId(Long postId);
 
+  List<CommentResponse> getCommentsParentByPostId(Long postId);
+
+  CommentResponse getCommentById(Long commentId);
+
+  List<CommentResponse> getAllCommentChildById(Long id);
+
   MessageResponse deleteComment(Long commentId);
 
   CommentResponse updateComment(Long commentId, CommentRequest comment);

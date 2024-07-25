@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.payload.requests;
 
-import com.GHTK.Social_Network.application.customAnnotation.config.ValidPhoneNumber;
+import com.GHTK.Social_Network.common.customAnnotation.config.ValidPhoneNumber;
 import jakarta.validation.constraints.Email;
 import lombok.Data;
 
@@ -15,7 +15,7 @@ public class UpdateProfileRequest {
     @Email(message = "Email invalidate")
     private String email;
 
-//    @ValidPhoneNumber(message = "Phone invalidate")
+    @ValidPhoneNumber
     private String phoneNumber;
 
     private LocalDate dob;

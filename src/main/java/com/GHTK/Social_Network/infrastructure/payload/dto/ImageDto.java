@@ -10,10 +10,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ImageDto {
-  private Long id;
+  private Long imageId;
 
   private String imageUrl;
-
-  private Date createAt;
-
 }

@@ -14,5 +14,5 @@ public class CommentRequest {
 
   private String publicId;
 
-  private Long imageDbId;
+  private Long imageUrl;
 }

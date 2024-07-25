@@ -1,17 +1,17 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
-import com.GHTK.Social_Network.domain.entity.post.ReactionPost;
+import com.GHTK.Social_Network.domain.model.ReactionPost;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionPostEntity;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface ReactionPostMapper {
-  ReactionPostMapper INSTANCE = Mappers.getMapper(ReactionPostMapper.class);
+  ReactionResponse postToResponse(ReactionPost post);
 
-  @Mapping(source = "reactionPostId", target = "reactionPostId")
-  @Mapping(source = "post.postId", target = "postId")
-  @Mapping(source = "user.userId", target = "userId")
-  ReactionResponse toReactionPostResponse(ReactionPost reactionPost);
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "updateAt", ignore = true)
+  ReactionPost responseToPost(ReactionResponse response);
 }

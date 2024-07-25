@@ -1,16 +1,17 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input;
 
 import com.GHTK.Social_Network.application.port.input.ProfilePortInput;
-import com.GHTK.Social_Network.infrastructure.payload.dto.OneMultipartFileDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.ProfileStateRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateProfileRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping({"/api/profile"})
@@ -38,7 +39,7 @@ public class ProfileController {
   }
 
   @PutMapping("/change-avatar")
-  public ResponseEntity<Object> updateAvatarProfile(@ModelAttribute @Valid OneMultipartFileDto imageDto) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.updateAvatarProfile(imageDto.getFile()));
+  public ResponseEntity<Object> updateAvatarProfile(@RequestParam(value = "file") @Valid @NotNull(message = "File cannot null") MultipartFile avatar) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.updateAvatarProfile(avatar));
   }
 }

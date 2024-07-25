@@ -17,11 +17,9 @@ public class CommentResponse {
 
   private List<CommentResponse> childComments;
 
-//  private Long commentOriginal;
-
   private Long postId;
 
   private Long userId;
 
-  private String image;
+  private String imageUrl;
 }

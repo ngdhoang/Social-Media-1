@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.application.port.output.post;
 
-import com.GHTK.Social_Network.domain.entity.post.comment.Comment;
-import com.GHTK.Social_Network.domain.entity.post.comment.ReactionComment;
+import com.GHTK.Social_Network.domain.model.Comment;
+import com.GHTK.Social_Network.domain.model.ReactionComment;
 
 import java.util.List;
 
@@ -12,9 +12,15 @@ public interface CommentPostPort {
 
   List<Comment> findCommentByPostId(Long postId);
 
+  List<Comment> findCommentByParentId(Long commentId);
+
+  List<Comment> findCommentParentByPostId(Long postId);
+
   void deleteCommentById(Long id);
 
   ReactionComment findByCommentIdAndUserID(Long commentId, Long userID);
 
   ReactionComment saveReactionComment(ReactionComment reactionComment);
+
+  Comment setParentComment(Long commentParentId, Comment commentChild);
 }

@@ -7,8 +7,6 @@ import java.util.List;
 
 @Data
 public class PostRequest {
-  private Long id;
-
   private String content;
 
   private String status = "public";
@@ -18,6 +16,4 @@ public class PostRequest {
   private List<Long> imageIds = new ArrayList<>();
 
   private List<String> publicIds = new ArrayList<>();
-
-  private List<String> deletePublicIds = new ArrayList<>();
 }

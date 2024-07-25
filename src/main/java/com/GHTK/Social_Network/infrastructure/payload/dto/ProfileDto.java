@@ -33,4 +33,11 @@ public class ProfileDto {
   private String workPlace;
 
   private Boolean isProfilePublic;
+
+  public ProfileDto(Long userId, String firstName, String lastName, String avatar) {
+    this.profileId = userId;
+    this.lastName = lastName;
+    this.firstName = firstName;
+    this.avatar = avatar;
+  }
 }

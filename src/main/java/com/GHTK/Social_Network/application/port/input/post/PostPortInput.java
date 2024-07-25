@@ -7,15 +7,17 @@ import com.GHTK.Social_Network.infrastructure.payload.responses.post.PostRespons
 import java.util.List;
 
 public interface PostPortInput {
-  PostResponse createPost(PostRequest postRequest);
+  List<PostResponse> getPostsByUserId(Long userId); // No auth or auth
 
-  PostResponse updatePost(PostRequest postRequest);
+  List<PostResponse> getPostsByInteractions(); // Auth
 
-  MessageResponse deletePost(Long id);
+  List<PostResponse> getPostsTagMe(); // Auth
 
-  List<PostResponse> getAllPostsByUserId(Long userId);
+  PostResponse getPostByPostId(Long postId); // No auth or auth
 
-  List<PostResponse> getAllPostsTagMe();
+  PostResponse createPost(PostRequest postRequest); // Auth
 
-  PostResponse getPostsByPostId(Long postId);
+  PostResponse updatePost(Long postId, PostRequest postRequest); // Auth
+
+  MessageResponse deletePost(Long id); // Auth
 }
