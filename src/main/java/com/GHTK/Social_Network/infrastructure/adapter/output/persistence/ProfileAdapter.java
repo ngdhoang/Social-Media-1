@@ -1,6 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
 import com.GHTK.Social_Network.application.port.output.ProfilePort;
+
 import com.GHTK.Social_Network.domain.model.Profile;
 import com.GHTK.Social_Network.domain.model.User;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.ProfileEntity;
@@ -10,6 +11,7 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepo
 import com.GHTK.Social_Network.infrastructure.mapper.UserMapperETD;
 import com.GHTK.Social_Network.infrastructure.payload.requests.profile.UpdateProfileRequest;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileStateDto;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

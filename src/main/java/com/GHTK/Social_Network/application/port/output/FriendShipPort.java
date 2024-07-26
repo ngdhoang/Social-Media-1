@@ -2,7 +2,7 @@ package com.GHTK.Social_Network.application.port.output;
 
 import com.GHTK.Social_Network.domain.model.EFriendshipStatus;
 import com.GHTK.Social_Network.domain.model.FriendShip;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetFriendShipRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.GetFriendShipRequest;
 
 import java.util.List;
 
@@ -21,10 +21,13 @@ public interface FriendShipPort {
 
     List<FriendShip> getListFriendShip(GetFriendShipRequest getFriendShipRequest);
 
+    Long countByUserReceiveIdAndFriendshipStatus(GetFriendShipRequest getFriendShipRequest);
+
+    Long countByUserReceiveIdAndFriendshipStatus(Long userReceiveId, EFriendshipStatus status);
+
     Boolean findUserById(Long id);
 
     Boolean isFriend(Long fistUserId, Long secondUserId);
 
     Boolean isBlock(Long fistUserId, Long secondUserId);
-
 }

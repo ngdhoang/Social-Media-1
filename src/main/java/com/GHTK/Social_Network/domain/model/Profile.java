@@ -22,7 +22,6 @@ public class Profile {
 
   private String workPlace;
 
-
   private EGender gender;
 
   private Boolean isDobPublic;
@@ -36,4 +35,5 @@ public class Profile {
   private Boolean isWorkPlacePublic;
 
   private Boolean isGenderPublic;
+
 }

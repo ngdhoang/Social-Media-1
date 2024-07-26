@@ -12,7 +12,7 @@ import java.util.List;
 public class ReactionPostResponse {
   private Long roleId;
 
-  private String role;
+  private String role = "post";
 
   private List<ReactionPostUserDto> users;
 

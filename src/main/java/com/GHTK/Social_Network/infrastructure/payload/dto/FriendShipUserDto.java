@@ -13,7 +13,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FriendShipUserDto {
-
     private Long profileId;
 
     private String lastName;

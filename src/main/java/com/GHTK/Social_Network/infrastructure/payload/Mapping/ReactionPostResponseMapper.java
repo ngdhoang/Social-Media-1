@@ -10,8 +10,8 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface ReactionPostResponseMapper {
-  @Mapping(source = "postId", target = "postId")
-  @Mapping(source = "reactionUsers", target = "reactionUsers")
-  @Mapping(source = "reactionCount", target = "reactionCount")
+  @Mapping(source = "postId", target = "roleId")
+  @Mapping(source = "reactionUsers", target = "users")
+  @Mapping(source = "reactionCount", target = "reactions")
   ReactionPostResponse toReactionPostResponse(Long postId, List<ReactionPostUserDto> reactionUsers, List<ReactionPostCountDto> reactionCount);
 }

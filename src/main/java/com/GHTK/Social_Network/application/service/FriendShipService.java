@@ -8,13 +8,14 @@ import com.GHTK.Social_Network.domain.model.EFriendshipStatus;
 import com.GHTK.Social_Network.domain.model.FriendShip;
 import com.GHTK.Social_Network.domain.model.User;
 import com.GHTK.Social_Network.common.customException.CustomException;
+import com.GHTK.Social_Network.infrastructure.payload.Mapping.FriendShipResponseMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.FriendShipUserMapper;
-import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.FriendShipUserDto;
-import com.GHTK.Social_Network.infrastructure.payload.requests.AcceptFriendRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetFriendShipRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.SetRequestFriendRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.UnFriendShipRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.AcceptFriendRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.GetFriendShipRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.SetRequestFriendRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.UnFriendShipRequest;
+import com.GHTK.Social_Network.infrastructure.payload.responses.FriendShipResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -36,50 +36,29 @@ public class FriendShipService implements FriendShipPortInput {
     return user == null ? User.builder().userId(0L).build() : user;
   }
 
-  private final Map<EFriendshipStatus, Integer> status = Map.of(
-          EFriendshipStatus.PENDING, 0,
-          EFriendshipStatus.CLOSE_FRIEND, 1,
-          EFriendshipStatus.SIBLING, 2,
-          EFriendshipStatus.PARENT, 3,
-          EFriendshipStatus.BLOCK, 4,
-          EFriendshipStatus.OTHER, 5
-  );
   private final AuthPort authPort;
   private final FriendShipPort friendShipPort;
   private final ProfilePort profilePort;
-
-  private final UserMapper userMapper;
   private final FriendShipUserMapper friendShipUserMapper;
+  private final FriendShipResponseMapper friendShipResponseMapper;
 
 
   @Override
-  public List<FriendShipUserDto> getFriendShip(GetFriendShipRequest getFriendShipRequest) {
+  public FriendShipResponse getListFriend(GetFriendShipRequest getFriendShipRequest) {
     User user = getUserAuth();
     if (getFriendShipRequest.getUserId() == null || getFriendShipRequest.getUserId().equals(user.getUserId())) {
       getFriendShipRequest.setUserId(user.getUserId());
       List<FriendShip> friendShips = friendShipPort.getListFriendShip(getFriendShipRequest);
-      if (getFriendShipRequest.getStatus() != null && getFriendShipRequest.getStatus().equals(EFriendshipStatus.BLOCK.toString())) {
-        List<User> profileUser = friendShips.stream()
-                .map(friendShip -> profilePort.takeProfileById(friendShip.getUserReceiveId() != user.getUserId() ? friendShip.getUserReceiveId() : friendShip.getUserInitiatorId())
-                        .orElseThrow(() -> new CustomException("Not found", HttpStatus.NOT_FOUND)))
-                .toList();
-        List<FriendShipUserDto> friendShipUserDtos = friendShips.stream()
-                .map(friendShip -> friendShipUserMapper.toFriendShipUserDto(profileUser.stream()
-                        .filter(profileUser1 -> profileUser1.getUserId().equals(friendShip.getUserInitiatorId()) || profileUser1.getUserId().equals(friendShip.getUserReceiveId()))
-                        .findFirst()
-                        .orElseThrow(() -> new CustomException("Not found", HttpStatus.NOT_FOUND)), friendShip.getFriendshipStatus()))
-                .toList();
-      }
-      return getProfileDtos(user, friendShips);
+      List<FriendShipUserDto> friendShipUserDtos = getProfileDtos(user, friendShips);
+      Long count = friendShipPort.countByUserReceiveIdAndFriendshipStatus(getFriendShipRequest);
+      return friendShipResponseMapper.toFriendShipResponse(user.getUserId(), friendShipUserDtos, count);
     }
 
-    User userTarget = profilePort.takeProfileById(getFriendShipRequest.getUserId())
+    User userTarget = profilePort.takeUserById(getFriendShipRequest.getUserId())
             .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
-    if (!userTarget.getIsProfilePublic()
-       || (getFriendShipRequest.getStatus() != null && getFriendShipRequest.getStatus().equals(EFriendshipStatus.BLOCK.toString()))
-       || (getFriendShipRequest.getStatus() != null && getFriendShipRequest.getStatus().equals(EFriendshipStatus.PENDING.toString()))) {
-        throw new CustomException("Not permission", HttpStatus.FORBIDDEN);
+    if (!userTarget.getIsProfilePublic() || (getFriendShipRequest.getStatus() != null && getFriendShipRequest.getStatus().equals(EFriendshipStatus.PENDING.toString()))) {
+      throw new CustomException("Not permission", HttpStatus.FORBIDDEN);
     }
 
     FriendShip friendShip = friendShipPort.getFriendShip(user.getUserId(), userTarget.getUserId());
@@ -91,33 +70,34 @@ public class FriendShipService implements FriendShipPortInput {
     }
 
     List<FriendShip> friendShips = friendShipPort.getListFriendShip(getFriendShipRequest);
-    return getProfileDtos(userTarget, friendShips);
+    List<FriendShipUserDto> friendShipUserDtos = getProfileDtos(userTarget, friendShips);
+    Long count = friendShipPort.countByUserReceiveIdAndFriendshipStatus(getFriendShipRequest);
+    return friendShipResponseMapper.toFriendShipResponse(userTarget.getUserId(), friendShipUserDtos, count);
   }
 
   private List<FriendShipUserDto> getProfileDtos(User user, List<FriendShip> friendShips) {
+    Long mutualFriendsQuantity = 0L;
     List<User> profileUsers = friendShips.stream()
-            .map(friendShip -> (friendShip.getUserInitiatorId() == user.getUserId() ? friendShip.getUserReceiveId() : friendShip.getUserInitiatorId()))
-            .map(profilePort::takeProfileById)
+            .map(friendShip -> (Objects.equals(friendShip.getUserInitiatorId(), user.getUserId()) ? friendShip.getUserReceiveId() : friendShip.getUserInitiatorId()))
+            .map(profilePort::takeUserById)
             .filter(Optional::isPresent)
             .map(Optional::get)
             .toList();
-    List<FriendShipUserDto> friendShipUserDtos = friendShips.stream()
+
+    return friendShips.stream()
             .map(friendShip -> friendShipUserMapper.toFriendShipUserDto(profileUsers.stream()
                     .filter(profileUser -> profileUser.getUserId().equals(friendShip.getUserInitiatorId()) || profileUser.getUserId().equals(friendShip.getUserReceiveId()))
                     .findFirst()
-                    .orElseThrow(() -> new CustomException("Not found", HttpStatus.NOT_FOUND)), friendShip.getFriendshipStatus()))
+                    .orElse(null), friendShip.getFriendshipStatus(), mutualFriendsQuantity))
             .toList();
-
-    return friendShipUserDtos;
-
   }
 
   @Override
-  public MessageResponse setRequestFriendShip(SetRequestFriendRequest setRequestFriendRequest) {
+  public MessageResponse createRequestFriend(SetRequestFriendRequest setRequestFriendRequest) {
     User user = getUserAuth();
     Long userReceiveId = setRequestFriendRequest.getUserReceiveId();
 
-    if(user.getUserId().equals(userReceiveId)){
+    if (user.getUserId().equals(userReceiveId)) {
       throw new CustomException("Cannot send request to yourself", HttpStatus.BAD_REQUEST);
     }
 
@@ -125,7 +105,7 @@ public class FriendShipService implements FriendShipPortInput {
       throw new CustomException("User not found", HttpStatus.NOT_FOUND);
     }
 
-    EFriendshipStatus requestedStatus = getKey(status, setRequestFriendRequest.getStatus());
+    EFriendshipStatus requestedStatus = EFriendshipStatus.valueOf(setRequestFriendRequest.getStatus().toUpperCase());
 
     FriendShip friendShip = friendShipPort.getFriendShip(user.getUserId(), userReceiveId);
     FriendShip friendShipReverse = friendShipPort.getFriendShip(userReceiveId, user.getUserId());
@@ -133,85 +113,96 @@ public class FriendShipService implements FriendShipPortInput {
     if (friendShip == null && friendShipReverse == null) {
       return handleNoFriendShips(user, setRequestFriendRequest);
     } else if (friendShip == null) {
-      return handleReverseFriendShip(friendShipReverse, user, setRequestFriendRequest, requestedStatus);
+      return handleReverseFriendShip(friendShipReverse, requestedStatus);
     } else if (friendShipReverse == null) {
-      return handleUserFriendShip(friendShip, user, setRequestFriendRequest, requestedStatus);
+      return handleUserFriendShip(friendShip, requestedStatus);
     } else {
-      handleBothFriendShips(friendShip, friendShipReverse, user, setRequestFriendRequest, requestedStatus);
+      throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
     }
-    return null;
+  }
+
+  @Override
+  public MessageResponse updateStateFriend(SetRequestFriendRequest setRequestFriendRequest) {
+    User user = getUserAuth();
+    Long userReceiveId = setRequestFriendRequest.getUserReceiveId();
+
+    if (user.getUserId().equals(userReceiveId)) {
+      throw new CustomException("Cannot send request to yourself", HttpStatus.BAD_REQUEST);
+    }
+
+    if (profilePort.takeUserById(userReceiveId).isEmpty()) {
+      throw new CustomException("User not found", HttpStatus.NOT_FOUND);
+    }
+
+    EFriendshipStatus requestedStatus = EFriendshipStatus.valueOf(setRequestFriendRequest.getStatus().toUpperCase());
+
+    FriendShip friendShip = friendShipPort.getFriendShip(user.getUserId(), userReceiveId);
+    FriendShip friendShipReverse = friendShipPort.getFriendShip(userReceiveId, user.getUserId());
+
+    if ((friendShip == null && friendShipReverse == null)) {
+      throw new CustomException("Friendship not found", HttpStatus.NOT_FOUND);
+    } else if (friendShip == null) {
+      if (requestedStatus.equals(EFriendshipStatus.PENDING) || requestedStatus.equals(EFriendshipStatus.BLOCK)){
+        throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
+      }
+      friendShipPort.setRequestFriendShip(friendShipReverse.getFriendShipId(), requestedStatus);
+      return new MessageResponse("Request sent successfully");
+
+    } else if (friendShipReverse == null) {
+      if (requestedStatus.equals(EFriendshipStatus.PENDING) || requestedStatus.equals(EFriendshipStatus.BLOCK)){
+        throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
+      }
+      friendShipPort.setRequestFriendShip(friendShip.getFriendShipId(), requestedStatus);
+      return new MessageResponse("Request sent successfully");
+    } else {
+      throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
+    }
   }
 
   private MessageResponse handleNoFriendShips(User user, SetRequestFriendRequest setRequestFriendRequest) {
-    Integer status = setRequestFriendRequest.getStatus();
-    if (Objects.equals(status, this.status.get(EFriendshipStatus.BLOCK))) {
-      friendShipPort.addFriendShip(user.getUserId(), setRequestFriendRequest.getUserReceiveId(), EFriendshipStatus.BLOCK);
-      return new MessageResponse("Request successfully");
-    }
-    if (Objects.equals(status, this.status.get(EFriendshipStatus.CLOSE_FRIEND))) {
+    EFriendshipStatus status = EFriendshipStatus.valueOf(setRequestFriendRequest.getStatus().toUpperCase());
+    if (Objects.equals(status, EFriendshipStatus.CLOSE_FRIEND)) {
       friendShipPort.addFriendShip(user.getUserId(), setRequestFriendRequest.getUserReceiveId(), EFriendshipStatus.PENDING);
       return new MessageResponse("Request successfully");
     }
-    throw new CustomException("Request is invalid", HttpStatus.BAD_REQUEST);
+    throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
   }
 
-
-  private MessageResponse handleUserFriendShip(FriendShip friendShip, User user, SetRequestFriendRequest setRequestFriendRequest, EFriendshipStatus requestedStatus) {
+  private MessageResponse handleUserFriendShip(FriendShip friendShip, EFriendshipStatus requestedStatus) {
     boolean statusNotNull = requestedStatus != null;
     if (statusNotNull && friendShip.getFriendshipStatus().equals(requestedStatus) ||
             (friendShip.getFriendshipStatus().equals(EFriendshipStatus.PENDING) && Objects.equals(requestedStatus, EFriendshipStatus.CLOSE_FRIEND))) {
       throw new CustomException("Request is duplicated", HttpStatus.BAD_REQUEST);
     }
-    if (friendShip.getFriendshipStatus().equals(EFriendshipStatus.PENDING) &&
-            requestedStatus != EFriendshipStatus.CLOSE_FRIEND && requestedStatus != EFriendshipStatus.BLOCK) {
+    if (friendShip.getFriendshipStatus().equals(EFriendshipStatus.PENDING) && requestedStatus != EFriendshipStatus.CLOSE_FRIEND) {
       throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
     }
-    if (friendShip.getFriendshipStatus().equals(EFriendshipStatus.BLOCK) &&
-            requestedStatus != EFriendshipStatus.BLOCK) {
+    if (friendShip.getFriendshipStatus().equals(EFriendshipStatus.BLOCK)) {
       throw new CustomException("This user was blocked", HttpStatus.BAD_REQUEST);
     }
     friendShipPort.setRequestFriendShip(friendShip.getFriendShipId(), requestedStatus);
     return new MessageResponse("Request sent successfully");
   }
 
-  private MessageResponse handleReverseFriendShip(FriendShip friendShip, User user, SetRequestFriendRequest setRequestFriendRequest, EFriendshipStatus requestedStatus) {
+  private MessageResponse handleReverseFriendShip(FriendShip friendShip, EFriendshipStatus requestedStatus) {
     boolean statusNotNull = requestedStatus != null;
-    if (statusNotNull && friendShip.getFriendshipStatus().equals(requestedStatus) &&
-            requestedStatus != EFriendshipStatus.BLOCK) {
+    if (statusNotNull && friendShip.getFriendshipStatus().equals(requestedStatus)) {
       throw new CustomException("Request is duplicated", HttpStatus.BAD_REQUEST);
     }
 
-    if (friendShip.getFriendshipStatus().equals(EFriendshipStatus.PENDING) &&
-            requestedStatus != EFriendshipStatus.CLOSE_FRIEND && requestedStatus != EFriendshipStatus.BLOCK) {
+    if (friendShip.getFriendshipStatus().equals(EFriendshipStatus.PENDING) && requestedStatus != EFriendshipStatus.CLOSE_FRIEND) {
       throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
     }
-    if (friendShip.getFriendshipStatus().equals(EFriendshipStatus.BLOCK) &&
-            requestedStatus != EFriendshipStatus.BLOCK) {
+    if (friendShip.getFriendshipStatus().equals(EFriendshipStatus.BLOCK)) {
       throw new CustomException("User was blocked", HttpStatus.FORBIDDEN);
-    }
-    if (requestedStatus == EFriendshipStatus.BLOCK) {
-      friendShipPort.addFriendShip(user.getUserId(), setRequestFriendRequest.getUserReceiveId(), EFriendshipStatus.BLOCK);
-      if(friendShip.getFriendshipStatus() != EFriendshipStatus.BLOCK)
-        friendShipPort.deleteFriendShip(friendShip.getFriendShipId());
-      return new MessageResponse("Request successfully");
     }
 
     friendShipPort.setRequestFriendShip(friendShip.getFriendShipId(), requestedStatus);
     return new MessageResponse("Request sent successfully");
   }
 
-  private void handleBothFriendShips(FriendShip friendShip, FriendShip friendShipReverse, User user, SetRequestFriendRequest setRequestFriendRequest, EFriendshipStatus requestedStatus) {
-    if (friendShip.getFriendshipStatus().equals(requestedStatus)) {
-      throw new CustomException("Request is duplicated", HttpStatus.BAD_REQUEST);
-    }
-    if (!Objects.equals(setRequestFriendRequest.getStatus(), status.get(EFriendshipStatus.BLOCK))
-    ) {
-      throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
-    }
-  }
-
   @Override
-  public MessageResponse acceptRequestFriendShip(AcceptFriendRequest acceptFriendRequest) {
+  public MessageResponse acceptFriendRequest(AcceptFriendRequest acceptFriendRequest) {
     User user = getUserAuth();
 
     FriendShip friendShip = friendShipPort.getFriendShip(acceptFriendRequest.getFriendId(), user.getUserId());
@@ -234,37 +225,35 @@ public class FriendShipService implements FriendShipPortInput {
   }
 
   @Override
-  public MessageResponse unFriendShip(UnFriendShipRequest unFriendShipRequest) {
+  public MessageResponse unFriendRequest(UnFriendShipRequest unFriendShipRequest) {
     User user = getUserAuth();
 
-    if (user.getUserId().equals(unFriendShipRequest.getFriendId())) {
+    if (user.getUserId().equals(unFriendShipRequest.getUserId())) {
       throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
     }
 
-    FriendShip friendShip = friendShipPort.getFriendShip(user.getUserId(), unFriendShipRequest.getFriendId());
-    FriendShip friendShipReverse = friendShipPort.getFriendShip(unFriendShipRequest.getFriendId(), user.getUserId());
+    FriendShip friendShip = friendShipPort.getFriendShip(user.getUserId(), unFriendShipRequest.getUserId());
+    FriendShip friendShipReverse = friendShipPort.getFriendShip(unFriendShipRequest.getUserId(), user.getUserId());
+
     if (friendShip == null && friendShipReverse == null) {
       throw new CustomException("Friendship not found", HttpStatus.NOT_FOUND);
     }
 
     if (friendShip != null) {
+      if (friendShip.getFriendshipStatus().equals(EFriendshipStatus.PENDING) || friendShip.getFriendshipStatus().equals(EFriendshipStatus.BLOCK)) {
+        throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
+      }
       friendShipPort.deleteFriendShip(friendShip.getFriendShipId());
     }
 
-    if (friendShipReverse != null && !friendShipReverse.getFriendshipStatus().equals(EFriendshipStatus.BLOCK)) {
+    if (friendShipReverse != null) {
+      if (friendShipReverse.getFriendshipStatus().equals(EFriendshipStatus.PENDING) || friendShipReverse.getFriendshipStatus().equals(EFriendshipStatus.BLOCK)) {
+        throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
+      }
       friendShipPort.deleteFriendShip(friendShipReverse.getFriendShipId());
     }
 
     return new MessageResponse("Request sent successfully");
-  }
-
-  private EFriendshipStatus getKey(Map<EFriendshipStatus, Integer> map, Integer value) {
-    for (Map.Entry<EFriendshipStatus, Integer> entry : map.entrySet()) {
-      if (entry.getValue().equals(value)) {
-        return entry.getKey();
-      }
-    }
-    return null;
   }
 
 }

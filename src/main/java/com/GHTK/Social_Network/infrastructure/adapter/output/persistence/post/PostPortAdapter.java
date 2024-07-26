@@ -79,6 +79,7 @@ public class PostPortAdapter implements PostPort {
     return postList.stream().map(postMapperETD::toDomain).toList();
   }
 
+
   @Override
   public List<Post> findPostsTagMe(Long currentUser) {
     List<TagUserEntity> tagUserList = tagUserRepository.findAllByUserId(currentUser);
@@ -126,5 +127,25 @@ public class PostPortAdapter implements PostPort {
     return tagUserRepository.findAllByPostId(postId).stream().map(
             tagUserMapperETD::ToDomain
     ).toList();
+  }
+
+  @Override
+  public void decrementReactionQuantity(Long postId) {
+    postRepository.decreaseReactionsQuantity(postId);
+  }
+
+  @Override
+  public void incrementReactionQuantity(Long postId) {
+    postRepository.increaseReactionsQuantity(postId);
+  }
+
+  @Override
+  public void decrementCommentQuantity(Long postId) {
+    postRepository.decreaseCommentQuantity(postId);
+  }
+
+  @Override
+  public void incrementCommentQuantity(Long postId) {
+    postRepository.increaseCommentQuantity(postId);
   }
 }

@@ -53,4 +53,24 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
             """, nativeQuery = true)
     List<PostEntity> findPostsWithUserInteractions(@Param("userId") Long userId);
 
+    @Query("""
+            update PostEntity p set p.reactionsQuantity = p.reactionsQuantity + 1 where p.postId = :postId
+        """)
+    void increaseReactionsQuantity(Long postId);
+
+    @Query("""
+            update PostEntity p set p.commentQuantity = p.commentQuantity + 1 where p.postId = :postId
+        """)
+    void increaseCommentQuantity(Long postId);
+
+    @Query("""
+            update PostEntity p set p.commentQuantity = p.commentQuantity - 1 where p.postId = :postId
+        """)
+    void decreaseCommentQuantity(Long postId);
+
+    @Query("""
+            update PostEntity p set p.reactionsQuantity = p.reactionsQuantity - 1 where p.postId = :postId
+        """)
+    void decreaseReactionsQuantity(Long postId);
+
 }

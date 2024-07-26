@@ -25,6 +25,48 @@ public interface FriendShipRepository extends JpaRepository<FriendShipEntity, Lo
           @Param("status") EFriendshipStatusEntity status,
           Pageable pageable);
 
+    @Query("""
+            select f from FriendShipEntity f
+            where f.userInitiatorId = :userId
+                and ((:status is null and f.friendshipStatus = 'PENDING' and f.friendshipStatus <> 'BLOCK') or f.friendshipStatus = :status)
+            """)
+    List<FriendShipEntity> getListFriendRequest(
+            @Param("userId") Long userId,
+            @Param("status") EFriendshipStatusEntity status,
+            Pageable pageable);
+
+
+  @Query("""
+            select f from FriendShipEntity f
+            where f.userReceiveId = :userId
+                and ((:status is null and f.friendshipStatus = 'PENDING' and f.friendshipStatus <> 'BLOCK') or f.friendshipStatus = :status)
+            """)
+  List<FriendShipEntity> getListFriendReceiveRequest(
+          @Param("userId") Long userId,
+          @Param("status") EFriendshipStatusEntity status,
+          Pageable pageable);
+
+
+    @Query("""
+            select count(f) from FriendShipEntity f
+            where (f.userReceiveId = :userId or f.userInitiatorId = :userId)
+                and ((:status is null and f.friendshipStatus <> 'BLOCK' and f.friendshipStatus <> 'PENDING') or f.friendshipStatus = :status)
+            """)
+  Long countByUserIdAndFriendshipStatus(Long userId, EFriendshipStatusEntity status);
+
+    @Query("""
+            select count(f) from FriendShipEntity f
+            where (f.userReceiveId = :userId)
+                and ((:status is null and f.friendshipStatus = 'PENDING' and f.friendshipStatus <> 'BLOCK') or f.friendshipStatus = :status)
+            """)
+    Long countByUserReceiveIdAndFriendshipStatus(Long userId, EFriendshipStatusEntity status);
+
+    @Query("""
+            select count(f) from FriendShipEntity f
+            where (f.userReceiveId = :userId)
+                and ((:status is null and f.friendshipStatus <> 'BLOCK' and f.friendshipStatus <> 'PENDING') or f.friendshipStatus = :status)
+            """)
+    Long countByUserRequestAndFriendshipStatus(Long userId, EFriendshipStatusEntity status);
 
   @Query("""
           select f from FriendShipEntity f\s
@@ -101,4 +143,28 @@ public interface FriendShipRepository extends JpaRepository<FriendShipEntity, Lo
             and f.friendshipStatus = 'BLOCK'
             """)
   Boolean isBlock(@Param("firstUser") Long firstUser, @Param("secondUser") Long secondUser);
+
+  @Query(value = """
+          select f from FriendShipEntity f\s
+          where f.userReceiveId = :userReceiveId\s
+          and f.userInitiatorId = :userInitiateId\s
+          and f.friendshipStatus = 'BLOCK'
+          """)
+  FriendShipEntity findBlock(@Param("userInitiateId") Long userInitiateId, @Param("userReceiveId") Long userReceiveId);
+
+
+  @Modifying
+  @Transactional
+  @Query(value = """
+          insert into FriendShip (user_receive_id, user_initiator_id, friendship_status)\s
+          values (:userReceiveId, :userInitiateId, 'BLOCK')
+          """, nativeQuery = true)
+  void addBlock(@Param("userReceiveId") Long userReceiveId, @Param("userInitiateId") Long userInitiateId);
+
+  @Query(   value = """
+            select f from FriendShipEntity f\s
+            where f.friendShipId = :id\s
+            and f.friendshipStatus = 'BLOCK'
+            """)
+  FriendShipEntity findBlockById(Long id);
 }

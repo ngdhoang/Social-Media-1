@@ -67,6 +67,7 @@ public class CommentPostAdapter implements CommentPostPort {
   }
 
   @Override
+
   public void deleteCommentById(Long id) {
     commentRepository.deleteById(id);
   }

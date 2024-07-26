@@ -39,4 +39,12 @@ public interface PostPort {
   List<ImagePost> findAllImageByPostId(Long postId);
 
   List<TagUser> findAllTagUserByPostId(Long postId);
+
+  void decrementReactionQuantity(Long postId);
+
+  void incrementReactionQuantity(Long postId);
+
+  void decrementCommentQuantity(Long postId);
+
+  void incrementCommentQuantity(Long postId);
 }

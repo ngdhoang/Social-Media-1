@@ -16,7 +16,7 @@ import java.util.Objects;
 
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
-@RequestMapping("/api/reaction_post")
+@RequestMapping("/api/reaction/post")
 @RequiredArgsConstructor
 public class ReactionPostController {
   private final ReactionPostInput reactionPostInput;
@@ -25,11 +25,6 @@ public class ReactionPostController {
   public ResponseEntity<Object> reactionPostHandler(@PathVariable Long p, @RequestBody @Valid ReactionPostRequest reactionPostRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionPostInput.handleReactionPost(p, reactionPostRequest));
   }
-
-//  @GetMapping("/{p}/reaction")
-//  public ResponseEntity<Object> getReactionPostHandler(@PathVariable Long p) {
-//    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionPostInput.getAllReactionInPost(p));
-//  }
 
   @GetMapping("/{p}")
   public ResponseEntity<Object> getReactionPostHandler(@PathVariable Long p, @Valid @ModelAttribute GetReactionPostRequest getReactionPostRequest) {

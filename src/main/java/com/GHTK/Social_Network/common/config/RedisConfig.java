@@ -1,7 +1,6 @@
 package com.GHTK.Social_Network.common.config;
 
 import com.GHTK.Social_Network.infrastructure.payload.dto.redis.AuthRedisDto;
-import com.GHTK.Social_Network.infrastructure.payload.dto.UserDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.post.ReactionPostRedisDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.redis.ProfileRedisDto;
 import org.springframework.beans.factory.annotation.Value;

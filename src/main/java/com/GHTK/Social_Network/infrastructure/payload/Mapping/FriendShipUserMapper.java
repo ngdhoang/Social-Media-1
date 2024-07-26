@@ -8,9 +8,7 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface FriendShipUserMapper {
-    @Mapping(source = "user.userId", target = "profileId")
-    @Mapping(source = "friendshipStatus", target = "friendshipStatus")
-    FriendShipUserDto toFriendShipUserDto(User user, EFriendshipStatus friendshipStatus);
-
-
+    @Mapping(source = "user", target = "user")
+    @Mapping(source = "friendshipStatus", target = "status")
+    FriendShipUserDto toFriendShipUserDto(User user, EFriendshipStatus friendshipStatus, Long mutualFriendsQuantity);
 }

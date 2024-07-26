@@ -2,6 +2,8 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
 import com.GHTK.Social_Network.application.port.output.RedisProfilePort;
 import com.GHTK.Social_Network.infrastructure.payload.dto.redis.ProfileRedisDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.UserDto;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;

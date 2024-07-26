@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReactionPostUserDto {
-  private Long profileId;
+  private Long userId;
 
   private String lastName;
 
@@ -23,17 +23,5 @@ public class ReactionPostUserDto {
 
   private String avatar = "";
 
-  private LocalDate dob;
-
-  private String phoneNumber;
-
-  private String homeTown;
-
-  private String schoolName;
-
-  private String workPlace;
-
-  private Boolean isProfilePublic;
-
-  private EReactionType reactionType;
+  private EReactionType type;
 }

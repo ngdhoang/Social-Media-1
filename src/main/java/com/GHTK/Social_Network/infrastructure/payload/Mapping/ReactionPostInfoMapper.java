@@ -9,25 +9,19 @@ import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring")
 public interface ReactionPostInfoMapper {
-  @Mapping(source = "user.userId", target = "profileId")
+  @Mapping(source = "user.userId", target = "userId")
   @Mapping(source = "user", target = ".")
-  @Mapping(source = "reactionType", target = "reactionType")
+  @Mapping(source = "reactionType", target = "type")
   ReactionPostUserDto toReactionPostInfoResponse(User user, EReactionType reactionType);
 
   @Named("toUserResponse")
   default ReactionPostUserDto toUserResponse(User user) {
     return ReactionPostUserDto.builder()
-            .profileId(user.getUserId())
+            .userId(user.getUserId())
             .firstName(user.getFirstName())
             .lastName(user.getLastName())
             .avatar(user.getAvatar())
             .userEmail(user.getUserEmail())
-            .dob(user.getDob())
-            .phoneNumber(user.getPhoneNumber())
-            .homeTown(user.getHomeTown())
-            .schoolName(user.getSchoolName())
-            .workPlace(user.getWorkPlace())
-            .isProfilePublic(user.getIsProfilePublic())
             .build();
   }
 }

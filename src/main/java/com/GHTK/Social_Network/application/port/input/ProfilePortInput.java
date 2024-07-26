@@ -4,6 +4,7 @@ import com.GHTK.Social_Network.infrastructure.payload.dto.UserDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.profile.UpdateProfilePrivacyRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.profile.UpdateProfileRequest;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileStateDto;
+
 import org.springframework.web.multipart.MultipartFile;
 
 public interface ProfilePortInput {
