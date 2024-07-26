@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -14,7 +15,7 @@ import java.util.Date;
 public class Comment {
   private Long commentId;
 
-  private Date createUp;
+  private LocalDate createAt;
 
   private String imageUrl;
 
@@ -26,13 +27,11 @@ public class Comment {
 
   private Long postId;
 
-  public Comment(Date createUp, String content, Long userId, Long postId, String imageUrl) {
-    this.createUp = createUp;
+  public Comment(LocalDate createAt, String content, Long userId, Long postId, String imageUrl) {
+    this.createAt = createAt;
     this.content = content;
     this.userId = userId;
     this.postId = postId;
     this.imageUrl = imageUrl;
   }
-
-
 }

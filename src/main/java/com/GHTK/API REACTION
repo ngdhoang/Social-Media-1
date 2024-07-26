@@ -1,4 +1,4 @@
-s// Reaction api/v1/posts/reaction
+// Reaction api/v1/posts/reaction
 // POST /{postId}
 {
     "roleId":
@@ -30,7 +30,6 @@ s// Reaction api/v1/posts/reaction
 // Reaction api/v1/posts/comment
 // POST /{commentId}
 {
-
 	"reactionType":
 }
 

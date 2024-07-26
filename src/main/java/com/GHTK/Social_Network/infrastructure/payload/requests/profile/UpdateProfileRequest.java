@@ -1,19 +1,18 @@
-package com.GHTK.Social_Network.infrastructure.payload.requests;
+package com.GHTK.Social_Network.infrastructure.payload.requests.profile;
 
 import com.GHTK.Social_Network.common.customAnnotation.config.ValidPhoneNumber;
-import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.time.LocalDate;
 
 @Data
 public class UpdateProfileRequest {
+    @NotBlank(message = "firstName cannot blank")
     private String firstName;
 
+    @NotBlank(message = "lastName cannot blank")
     private String lastName;
-
-    @Email(message = "Email invalidate")
-    private String email;
 
     @ValidPhoneNumber
     private String phoneNumber;

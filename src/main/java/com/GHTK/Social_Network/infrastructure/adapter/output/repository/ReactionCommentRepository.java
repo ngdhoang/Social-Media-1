@@ -13,4 +13,11 @@ public interface ReactionCommentRepository extends JpaRepository<ReactionComment
                   and r.userEntity.userId = ?1
           """)
   ReactionCommentEntity findByCommentIdAndUserId(Long userId, Long commentId);
+
+  @Query("""
+              select r from ReactionCommentEntity r 
+              where r.commentEntity.commentId = ?2 
+              and r.userEntity.userId = ?1
+          """)
+  ReactionCommentEntity findByUserIdAndCommentId(Long userId, Long commentId);
 }

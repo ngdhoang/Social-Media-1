@@ -17,7 +17,9 @@ import com.GHTK.Social_Network.domain.model.User;
 import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.CommentMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ReactionCommentMapper;
+import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.CommentRequest;
+import com.GHTK.Social_Network.infrastructure.payload.responses.InteractionResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.CommentResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionResponse;
@@ -25,7 +27,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -42,6 +45,7 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
 
   private final CommentMapper commentMapper;
   private final ReactionCommentMapper reactionCommentMapper;
+  private final UserMapper userMapper;
 
   private User getUserAuth() {
     User user = authPort.getUserAuth();
@@ -66,7 +70,7 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
 
     String imageCommentUrl = getImageUrlCommentInRedis(comment.getPublicId(), getUserAuth());
     Comment newComment = new Comment(
-            new Date(),
+            LocalDate.now(),
             comment.getContent(),
             user.getUserId(),
             post.getUserId(),
@@ -90,7 +94,7 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
 
     String imageComment = getImageUrlCommentInRedis(comment.getPublicId(), this.getUserAuth());
     Comment newComment = new Comment(
-            new Date(),
+            LocalDate.now(),
             comment.getContent(),
             user.getUserId(),
             post.getPostId(),
@@ -113,13 +117,6 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
             .filter(comment -> comment.getParentCommentId() == null)
             .map(rootComment -> processCommentWithChildren(rootComment, allComments))
             .collect(Collectors.toList());
-  }
-
-  @Override
-  public List<CommentResponse> getCommentsParentByPostId(Long postId) {
-    return commentPostPort.findCommentByParentId(postId).stream().map(
-            commentMapper::commentToCommentResponse
-    ).toList();
   }
 
   private CommentResponse processCommentWithChildren(Comment comment, List<Comment> allComments) {
@@ -181,13 +178,42 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
     if (imageComment != null) {
       updatedComment.setImageUrl(imageComment);
     }
-    if (comment.getImageUrl() == null && comment.getPublicId() == null) {
-      updatedComment.setImageUrl(null);
-    }
+
     updatedComment.setContent(comment.getContent());
 
     commentPostPort.saveComment(updatedComment);
     return commentMapper.commentToCommentResponse(updatedComment);
+  }
+
+  @Override
+  public List<InteractionResponse> getCommentsByInteractions() {
+    String role = "COMMENT";
+    User currentUser = authPort.getUserAuth();
+    List<InteractionResponse> interactionResponseList = new ArrayList<>();
+    commentPostPort.findCommentsByInteractions(authPort.getUserAuth().getUserId()).stream().forEach(
+            c -> {
+              String content = "You do not have sufficient permissions to view this content.";
+              String imageUrl = "";
+              if (!friendShipPort.isBlock(c.getUserId(), currentUser.getUserId())) {
+                content = c.getContent();
+                imageUrl = c.getImageUrl();
+              }
+              InteractionResponse interactionResponse = InteractionResponse.builder()
+                      .roleId(c.getCommentId())
+                      .role(role)
+                      .owner(userMapper.userToUserBasicDto(authPort.getUserById(c.getUserId())))
+                      .reactionType(commentPostPort.findReactionCommentByCommentIdAndUserId(
+                              c.getCommentId(), currentUser.getUserId()
+                      ).getReactionType())
+                      .content(content)
+                      .image(imageUrl)
+                      .createdAt(c.getCreateAt())
+                      .updateAt(null)
+                      .build();
+              interactionResponseList.add(interactionResponse);
+            }
+    );
+    return interactionResponseList;
   }
 
   @Override

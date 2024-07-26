@@ -6,6 +6,7 @@ import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
+import com.GHTK.Social_Network.application.port.output.post.ReactionPostPort;
 import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.model.User;
@@ -15,6 +16,7 @@ import com.GHTK.Social_Network.domain.model.post.ImagePost;
 import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.domain.model.post.TagUser;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.PostMapper;
+import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.PostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.InteractionResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
@@ -23,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -37,8 +40,10 @@ public class PostService implements PostPortInput {
   private final ImagePostPort imagePostPort;
   private final FriendShipPort friendShipPort;
   private final RedisImageTemplatePort redisImageTemplatePort;
+  private final ReactionPostPort reactionPostPort;
 
   private final PostMapper postMapper;
+  private final UserMapper userMapper;
 
   @Override
   public List<PostResponse> getPostsByUserId(Long userId) {
@@ -64,20 +69,22 @@ public class PostService implements PostPortInput {
 
   //Lấy những bài viết mình đã bình luận
   //Lấy những bài viết mình thả reaction
+  // Xem được thông báo những bài bị block nhưng không xem rõ được
   @Override
   public List<InteractionResponse> getPostsByInteractions() {
-    String role = "POST";
-
-    return null;
+    User currentUser = authPort.getUserAuth();
+    List<Post> postList = portPost.findPostsWithUserInteractions(currentUser.getUserId());
+    return generateInteractionPost(postList, currentUser);
   }
 
+  //Lấy những bài viết mình đã được tag tên
+  // Xem được thông báo những bài bị block nhưng không xem rõ được
   @Override
-  public List<PostResponse> getPostsTagMe() {
+  public List<InteractionResponse> getPostsTagMe() {
     User currentUser = authPort.getUserAuth();
-    List<Post> postList = portPost.findAllPostTagMeNotBlockAndPrivate(currentUser.getUserId());
-    return postList.stream()
-            .map(this::mapPostToResponse)
-            .collect(Collectors.toList());
+    List<Post> postList = portPost.findPostsTagMe(currentUser.getUserId());
+
+    return generateInteractionPost(postList, currentUser);
   }
 
   @Override
@@ -94,7 +101,7 @@ public class PostService implements PostPortInput {
     User currentUser = authPort.getUserAuth();
 
     Post post = createNewPost(postRequest, currentUser);
-    post.setCreatedAt(new Date());
+    post.setCreatedAt(LocalDate.now());
     Post newPost = portPost.savePost(post);
 
     List<TagUser> tagUserList = handleTagUsers(postRequest.getTagUserIds(), newPost); // Take tag user list
@@ -136,6 +143,36 @@ public class PostService implements PostPortInput {
   }
 
 
+  private List<InteractionResponse> generateInteractionPost(List<Post> postList, User currentUser) {
+    String role = "POST";
+    List<InteractionResponse> interactionResponseList = new ArrayList<>();
+    for (Post post : postList) {
+      ImagePost imagePost = imagePostPort.findAllImagePost(post.getPostId()).get(0);
+      String content = "You do not have sufficient permissions to view this content.";
+      String imageUrl = "";
+      if (!friendShipPort.isBlock(post.getUserId(), authPort.getUserAuth().getUserId())) {
+        content = post.getContent();
+        imageUrl = imagePost.getImageUrl();
+      }
+      InteractionResponse interactionResponse = InteractionResponse.builder()
+              .roleId(post.getPostId())
+              .role(role)
+              .owner(
+                      userMapper.userToUserBasicDto(
+                              authPort.getUserById(post.getUserId())
+                      )
+              )
+              .reactionType(reactionPostPort.findByPostIdAndUserID(post.getPostId(), currentUser.getUserId()).getReactionType())
+              .content(content)
+              .image(imageUrl)
+              .createdAt(post.getCreatedAt())
+              .updateAt(post.getUpdateAt())
+              .build();
+      interactionResponseList.add(interactionResponse);
+    }
+    return interactionResponseList;
+  }
+
   private Post createNewPost(PostRequest postRequest, User currentUser) {
     EPostStatus ePostStatusEntity = filterStatusPost(postRequest.getStatus());
     return Post.builder()
@@ -149,7 +186,7 @@ public class PostService implements PostPortInput {
     EPostStatus ePostStatusEntity = filterStatusPost(postRequest.getStatus());
     post.setPostStatus(ePostStatusEntity);
     post.setContent(postRequest.getContent());
-    post.setUpdateAt(new Date());
+    post.setUpdateAt(LocalDate.now());
   }
 
   private Post getAndValidatePostCurrentUser(Long postId, User currentUser) {

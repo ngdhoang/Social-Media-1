@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
 import com.GHTK.Social_Network.application.port.output.auth.RedisAuthPort;
-import com.GHTK.Social_Network.infrastructure.payload.dto.AuthRedisDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.redis.AuthRedisDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;

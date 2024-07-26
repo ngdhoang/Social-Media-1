@@ -16,6 +16,8 @@ public interface CommentPostPort {
 
   List<Comment> findCommentParentByPostId(Long postId);
 
+  List<Comment> findCommentsByInteractions(Long userId);
+
   void deleteCommentById(Long id);
 
   ReactionComment findByCommentIdAndUserID(Long commentId, Long userID);
@@ -23,4 +25,6 @@ public interface CommentPostPort {
   ReactionComment saveReactionComment(ReactionComment reactionComment);
 
   Comment setParentComment(Long commentParentId, Comment commentChild);
+
+  ReactionComment findReactionCommentByCommentIdAndUserId(Long commentId, Long userId);
 }

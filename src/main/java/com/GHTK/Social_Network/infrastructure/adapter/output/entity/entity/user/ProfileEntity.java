@@ -33,6 +33,8 @@ public class ProfileEntity {
 
   private String workPlace;
 
+  private EGenderEntity gender;
+
   private Boolean isDobPublic = true;
 
   private Boolean isPhoneNumberPublic = true;
@@ -42,4 +44,6 @@ public class ProfileEntity {
   private Boolean isSchoolNamePublic = true;
 
   private Boolean isWorkPlacePublic = true;
+
+  private Boolean isGenderPublic = true;
 }

@@ -62,6 +62,11 @@ public class CommentPostAdapter implements CommentPostPort {
   }
 
   @Override
+  public List<Comment> findCommentsByInteractions(Long postId) {
+    return List.of();
+  }
+
+  @Override
   public void deleteCommentById(Long id) {
     commentRepository.deleteById(id);
   }
@@ -89,5 +94,10 @@ public class CommentPostAdapter implements CommentPostPort {
 
     commentChild.setParentCommentId(commentEntity.getCommentId());
     return saveComment(commentChild);
+  }
+
+  @Override
+  public ReactionComment findReactionCommentByCommentIdAndUserId(Long commentId, Long userId) {
+    return reactionCommentMapperETD.toDomain(reactionCommentRepository.findByCommentIdAndUserId(commentId, userId));
   }
 }

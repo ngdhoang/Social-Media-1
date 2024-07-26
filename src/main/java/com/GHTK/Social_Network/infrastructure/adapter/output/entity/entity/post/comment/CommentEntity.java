@@ -7,8 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -21,7 +21,7 @@ public class CommentEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long commentId;
 
-  private Date createUp;
+  private LocalDate createAt;
 
   private String imageUrl;
 
@@ -47,8 +47,8 @@ public class CommentEntity {
           cascade = CascadeType.ALL)
   private List<ReactionCommentEntity> reactionCommentEntities;
 
-  public CommentEntity(Date createUp, String content, UserEntity userEntity, PostEntity postEntity) {
-    this.createUp = createUp;
+  public CommentEntity(LocalDate createUp, String content, UserEntity userEntity, PostEntity postEntity) {
+    this.createAt = createUp;
     this.content = content;
     this.userEntity = userEntity;
     this.postEntity = postEntity;
@@ -57,5 +57,19 @@ public class CommentEntity {
   public void addChildComment(CommentEntity childCommentEntity) {
     childCommentEntities.add(childCommentEntity);
     childCommentEntity.setParentCommentEntity(this);
+  }
+
+  @PrePersist
+  public void prePersist() {
+    if (postEntity != null) {
+      postEntity.addComment(this);
+    }
+  }
+
+  @PreRemove
+  public void preRemove() {
+    if (postEntity != null) {
+      postEntity.removeComment(this);
+    }
   }
 }

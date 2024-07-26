@@ -37,6 +37,8 @@ public class UserEntity {
 
   private String avatar;
 
+  private String background;
+
   private Boolean isProfilePublic = true;
 
   @Enumerated(EnumType.STRING)

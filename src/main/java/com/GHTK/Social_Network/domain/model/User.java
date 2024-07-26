@@ -26,15 +26,7 @@ public class User {
 
   private String avatar;
 
-  private LocalDate dob;
-
-  private String phoneNumber;
-
-  private String homeTown;
-
-  private String schoolName;
-
-  private String workPlace;
+  private String background;
 
   private Boolean isProfilePublic = true;
 

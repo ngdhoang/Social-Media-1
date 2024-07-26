@@ -79,14 +79,23 @@ public class PostPortAdapter implements PostPort {
     return postList.stream().map(postMapperETD::toDomain).toList();
   }
 
-//  public List<Post> findAllPostTagMe(Long userId) {
-//    List<TagUserEntity> tagUserList = tagUserRepository.findAllByUserId(userId);
-//    List<PostEntity> postList = new ArrayList<>();
-//    tagUserList.forEach(tagUser -> {
-//      postList.add(postRepository.findByTagUsers(tagUser));
-//    });
-//    return postList.stream().map(postMapperETD::toDomain).toList();
-//  }
+  @Override
+  public List<Post> findPostsTagMe(Long currentUser) {
+    List<TagUserEntity> tagUserList = tagUserRepository.findAllByUserId(currentUser);
+    List<PostEntity> postList = new ArrayList<>();
+    tagUserList.forEach(tagUser -> {
+      PostEntity p = postRepository.findByTagUsers(tagUser);
+      postList.add(p);
+    });
+    return postList.stream().map(postMapperETD::toDomain).toList();
+  }
+
+  @Override
+  public List<Post> findPostsWithUserInteractions(Long userId) {
+    return postRepository.findPostsWithUserInteractions(userId).stream().map(
+            postMapperETD::toDomain
+    ).toList();
+  }
 
   @Override
   public Post findPostByImagePostId(Long imagePostId) {

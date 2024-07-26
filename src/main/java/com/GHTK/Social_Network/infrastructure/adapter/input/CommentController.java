@@ -38,6 +38,11 @@ public class CommentController {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentById(commentId));
   }
 
+  @GetMapping("/comments")
+  public ResponseEntity<Object> getCommentsByInteractions() {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByInteractions());
+  }
+
   @GetMapping("/comments/{commentId}/replies")
   public ResponseEntity<Object> getAllCommentChildByCommentParentId(@PathVariable Long commentId) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getAllCommentChildById(commentId));

@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.payload.responses.post;
 
+import com.GHTK.Social_Network.infrastructure.payload.dto.UserBasicDto;
 import lombok.Data;
 
 import java.util.Date;
@@ -7,6 +8,8 @@ import java.util.List;
 
 @Data
 public class CommentResponse {
+  private UserBasicDto user;
+
   private Long commentId;
 
   private Date createUp;
@@ -18,8 +21,6 @@ public class CommentResponse {
   private List<CommentResponse> childComments;
 
   private Long postId;
-
-  private Long userId;
 
   private String imageUrl;
 }

@@ -3,9 +3,12 @@ package com.GHTK.Social_Network.infrastructure.adapter.input;
 import com.GHTK.Social_Network.application.port.input.AuthPortInput;
 import com.GHTK.Social_Network.application.port.input.ProfilePortInput;
 import com.GHTK.Social_Network.application.service.Authentication.AuthService;
+import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.dto.UserDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.*;
+import com.GHTK.Social_Network.infrastructure.payload.responses.AuthResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.RefreshTokenResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -77,6 +80,17 @@ public class AuthController {
       return ResponseHandler.generateErrorResponse("Profile not found or private", HttpStatus.NOT_FOUND);
     }
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, userDto);
+  }
+
+  @PostMapping("/refresh-token")
+  public void refreshToken(HttpServletRequest request, HttpServletResponse response) {
+    String token = request.getHeader("Authorization");
+    if (token != null && token.startsWith("Bearer ")) {
+      token = token.substring(7);
+    } else {
+      throw  new CustomException("Invalid Authorization header", HttpStatus.BAD_REQUEST);
+    }
+    response.getHeader(authService.refreshToken(token));
   }
 
   @GetMapping("/logout")

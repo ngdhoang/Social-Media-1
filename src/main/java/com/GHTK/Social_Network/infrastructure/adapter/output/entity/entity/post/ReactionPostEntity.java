@@ -35,18 +35,22 @@ public class ReactionPostEntity {
 
   @PreUpdate
   public void preUpdate() {
-        updateAt = LocalDate.now();
-    }
+    updateAt = LocalDate.now();
+  }
 
   @PrePersist
   public void prePersist() {
-        createAt = LocalDate.now();
+    createAt = LocalDate.now();
+    if (postEntity != null) {
+      postEntity.addReaction(this);
     }
-
-
-  public ReactionPostEntity(PostEntity postEntity, UserEntity userEntity, EReactionTypeEntity reactionType) {
-    this.postEntity = postEntity;
-    this.userEntity = userEntity;
-    this.reactionType = reactionType;
   }
+
+  @PreRemove
+  public void preRemove() {
+    if (postEntity != null) {
+      postEntity.removeReaction(this);
+    }
+  }
+
 }

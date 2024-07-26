@@ -1,27 +1,34 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
+import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.model.Token;
 import com.GHTK.Social_Network.domain.model.User;
+import com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt.JwtUtils;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsImpl;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.TokenEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.TokenRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.TokenMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.UserMapperETD;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
 public class AuthAdapter implements AuthPort {
+  private final JwtUtils jwtUtils;
+
   private final TokenRepository tokenRepository;
   private final UserRepository userRepository;
 
@@ -110,6 +117,22 @@ public class AuthAdapter implements AuthPort {
   public UserDetailsImpl getUserDetails(User user) {
     return new UserDetailsImpl(userMapperETD.toEntity(user));
   }
+
+  @Override
+  public Pair<UserDetailsImpl, String> refreshToken(String refreshToken) {
+    String userEmail = jwtUtils.extractUserEmail(refreshToken);
+    if (userEmail != null) {
+      UserEntity user = userRepository.findByUserEmail(userEmail)
+              .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+      UserDetailsImpl userDetails = new UserDetailsImpl(user);
+      if (jwtUtils.isTokenValid(refreshToken, userDetails)) {
+        var accessToken = jwtUtils.generateToken(userDetails);
+        return Pair.of(userDetails, accessToken);
+      }
+    }
+    return null;
+  }
+
 
   private boolean isInvalidAuthentication(Authentication authentication) {
     return authentication == null

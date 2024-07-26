@@ -22,6 +22,9 @@ public class Profile {
 
   private String workPlace;
 
+
+  private EGender gender;
+
   private Boolean isDobPublic;
 
   private Boolean isPhoneNumberPublic;
@@ -31,4 +34,6 @@ public class Profile {
   private Boolean isSchoolNamePublic;
 
   private Boolean isWorkPlacePublic;
+
+  private Boolean isGenderPublic;
 }
