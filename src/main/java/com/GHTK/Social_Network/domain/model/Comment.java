@@ -28,6 +28,8 @@ public class Comment {
 
   private Long postId;
 
+  private Long repliesQuantity;
+
   public Comment(LocalDate createAt, String content, Long userId, Long postId, String imageUrl) {
     this.createAt = createAt;
     this.content = content;

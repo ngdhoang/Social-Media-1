@@ -1,7 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
 import com.GHTK.Social_Network.application.port.output.RedisReactionPostPort;
-import com.GHTK.Social_Network.infrastructure.payload.dto.post.ReactionPostRedisDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionPostRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

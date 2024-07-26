@@ -22,22 +22,19 @@ public class UserDto {
 
   private String avatar = "";
 
-  private LocalDate dob;
-
-  private String phoneNumber;
-
-  private String homeTown;
-
-  private String schoolName;
-
-  private String workPlace;
+  private String background = "";
 
   private Boolean isProfilePublic;
 
-  public UserDto(Long userId, String firstName, String lastName, String avatar) {
-    this.userId = userId;
-    this.lastName = lastName;
-    this.firstName = firstName;
-    this.avatar = avatar;
-  }
+  private FieldVisibilityDto<LocalDate> dob;
+
+  private FieldVisibilityDto<String> phoneNumber;
+
+  private FieldVisibilityDto<String> homeTown;
+
+  private FieldVisibilityDto<String> schoolName;
+
+  private FieldVisibilityDto<String> workPlace;
+
+  private FieldVisibilityDto<String> gender;
 }

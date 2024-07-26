@@ -5,7 +5,6 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionPostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.TagUserEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.CommentEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ReactionCommentEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

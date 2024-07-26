@@ -8,7 +8,7 @@ import com.GHTK.Social_Network.infrastructure.payload.responses.post.CommentResp
 import java.util.List;
 
 public interface CommentPostInput {
-  CommentResponse createCommentSrc(CommentRequest comment);
+  CommentResponse createCommentRoot(CommentRequest comment);
 
   CommentResponse createCommentChild(Long commentIdSrc, CommentRequest comment);
 

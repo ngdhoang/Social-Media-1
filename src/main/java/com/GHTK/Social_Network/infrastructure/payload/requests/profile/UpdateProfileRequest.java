@@ -1,6 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.payload.requests.profile;
 
-import com.GHTK.Social_Network.common.customAnnotation.config.ValidPhoneNumber;
+import com.GHTK.Social_Network.common.customAnnotation.config.ValidPattern;
+import com.GHTK.Social_Network.common.customAnnotation.logic.CustomPatternValidator;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -14,7 +15,7 @@ public class UpdateProfileRequest {
     @NotBlank(message = "lastName cannot blank")
     private String lastName;
 
-    @ValidPhoneNumber
+    @ValidPattern(value = CustomPatternValidator.STRONG_PASSWORD)
     private String phoneNumber;
 
     private LocalDate dob;

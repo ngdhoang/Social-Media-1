@@ -5,14 +5,11 @@ import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
 import com.GHTK.Social_Network.application.port.input.post.ReactionCommentPostInput;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
-import com.GHTK.Social_Network.application.port.output.post.CommentPostPort;
-import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
-import com.GHTK.Social_Network.application.port.output.post.PostPort;
-import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
+import com.GHTK.Social_Network.application.port.output.post.*;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.model.Comment;
 import com.GHTK.Social_Network.domain.model.EReactionType;
-import com.GHTK.Social_Network.domain.model.ReactionComment;
+import com.GHTK.Social_Network.domain.model.ReactionPost;
 import com.GHTK.Social_Network.domain.model.User;
 import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.CommentMapper;
@@ -42,6 +39,7 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
   private final FriendShipPort friendShipPort;
   private final RedisImageTemplatePort redisImageTemplatePort;
   private final ImagePostPort imagePostPort;
+  private final ReactionPostPort reactionPostPort;
 
   private final CommentMapper commentMapper;
   private final ReactionCommentMapper reactionCommentMapper;
@@ -63,7 +61,7 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
   }
 
   @Override
-  public CommentResponse createCommentSrc(CommentRequest comment) {
+  public CommentResponse createCommentRoot(CommentRequest comment) {
     Post post = postPort.findPostByPostId(comment.getPostId());
     User user = getUserAuth();
     checkCommentValid(post, user);
@@ -202,7 +200,7 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
                       .roleId(c.getCommentId())
                       .role(role)
                       .owner(userMapper.userToUserBasicDto(authPort.getUserById(c.getUserId())))
-                      .reactionType(commentPostPort.findReactionCommentByCommentIdAndUserId(
+                      .reactionType(reactionPostPort.findReactionCommentByCommentIdAndUserId(
                               c.getCommentId(), currentUser.getUserId()
                       ).getReactionType())
                       .content(content)
@@ -230,18 +228,18 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
       throw new CustomException("Invalid reaction type", HttpStatus.BAD_REQUEST);
     }
 
-    ReactionComment reactionComment = commentPostPort.findByCommentIdAndUserID(commentId, this.getUserAuth().getUserId());
+    ReactionPost reactionComment = commentPostPort.findByCommentIdAndUserID(commentId, this.getUserAuth().getUserId());
     if (reactionComment == null) {
-      ReactionComment newReactionComment = new ReactionComment(
+      ReactionPost newReactionComment = new ReactionPost(
               newReactionType,
               updatedComment.getCommentId(),
               this.getUserAuth().getUserId()
       );
-      return reactionCommentMapper.commentToResponse(commentPostPort.saveReactionComment(newReactionComment));
+      return reactionCommentMapper.commentToResponse(reactionPostPort.saveReaction(newReactionComment));
     }
 
     reactionComment.setReactionType(newReactionType);
-    return reactionCommentMapper.commentToResponse(commentPostPort.saveReactionComment(reactionComment));
+    return reactionCommentMapper.commentToResponse(reactionPostPort.saveReaction(reactionComment));
   }
 
   @Override

@@ -2,11 +2,13 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
 
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.TagUserEntity;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.awt.print.Pageable;
 import java.util.List;
 
 @Repository
@@ -40,18 +42,20 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
           """)
   List<PostEntity> findAllByUserIdAndFriendStatus(@Param("userId") Long userId, @Param("status") String status);
 
-
-    @Query(value = """
-                select distinct * from PostEntity p
-                where p.postStatus = 'PUBLIC'
-                and (
-                    exists (select c from CommentEntity c where c.postEntity = p and c.userEntity.userId = :userId)
-                    or
-                    exists (select r from ReactionPostEntity r where r.postEntity = p and r.userEntity.userId = :userId)
-                )
-                order by p.createdAt desc
-            """, nativeQuery = true)
-    List<PostEntity> findPostsWithUserInteractions(@Param("userId") Long userId);
+  @Query(value = """
+    select distinct p from PostEntity p
+    left join fetch p.userEntity
+    left join fetch p.imagePostEntities
+    left join fetch p.tagUserEntities
+    where p.postStatus = 'PUBLIC'
+    and (
+        exists (select 1 from CommentEntity c where c.postEntity = p and c.userEntity.userId = :userId)
+        or
+        exists (select 1 from ReactionPostEntity r where r.postEntity = p and r.userEntity.userId = :userId and r.commentEntity is null)
+    )
+    order by p.createdAt desc
+    """, nativeQuery = true)
+  List<PostEntity> findPostsWithUserInteractions(@Param("userId") Long userId);
 
     @Query("""
             update PostEntity p set p.reactionsQuantity = p.reactionsQuantity + 1 where p.postId = :postId

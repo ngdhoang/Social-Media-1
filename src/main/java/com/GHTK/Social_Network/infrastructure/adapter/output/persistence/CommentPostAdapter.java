@@ -3,26 +3,23 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 import com.GHTK.Social_Network.application.port.output.post.CommentPostPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.model.Comment;
-import com.GHTK.Social_Network.domain.model.ReactionComment;
+import com.GHTK.Social_Network.domain.model.ReactionPost;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.CommentEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.CommentRepository;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ReactionCommentRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ReactionPostRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.CommentMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.ReactionCommentMapperETD;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.awt.print.Pageable;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class CommentPostAdapter implements CommentPostPort {
   private final CommentRepository commentRepository;
-  private final ReactionCommentRepository reactionCommentRepository;
+  private final ReactionPostRepository reactionPostRepository;
 
   private final CommentMapperETD commentMapperETD;
   private final ReactionCommentMapperETD reactionCommentMapperETD;
@@ -73,17 +70,8 @@ public class CommentPostAdapter implements CommentPostPort {
   }
 
   @Override
-  public ReactionComment findByCommentIdAndUserID(Long commentId, Long userID) {
-    return reactionCommentMapperETD.toDomain(reactionCommentRepository.findByCommentIdAndUserId(userID, commentId));
-  }
-
-  @Override
-  public ReactionComment saveReactionComment(ReactionComment reactionComment) {
-    return reactionCommentMapperETD.toDomain(
-            reactionCommentRepository.save(
-                    reactionCommentMapperETD.toEntity(reactionComment)
-            )
-    );
+  public ReactionPost findByCommentIdAndUserID(Long commentId, Long userID) {
+    return reactionCommentMapperETD.toDomain(reactionPostRepository.findByCommentIdAndUserId(userID, commentId));
   }
 
   @Override
@@ -97,8 +85,4 @@ public class CommentPostAdapter implements CommentPostPort {
     return saveComment(commentChild);
   }
 
-  @Override
-  public ReactionComment findReactionCommentByCommentIdAndUserId(Long commentId, Long userId) {
-    return reactionCommentMapperETD.toDomain(reactionCommentRepository.findByCommentIdAndUserId(commentId, userId));
-  }
 }

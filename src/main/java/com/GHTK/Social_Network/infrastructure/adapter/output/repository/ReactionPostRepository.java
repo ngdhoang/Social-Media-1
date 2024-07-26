@@ -1,5 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
 
+import com.GHTK.Social_Network.domain.model.Comment;
+import com.GHTK.Social_Network.domain.model.ReactionPost;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EReactionTypeEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionPostEntity;
 import io.lettuce.core.dynamic.annotation.Param;
@@ -58,5 +60,27 @@ public interface ReactionPostRepository extends JpaRepository<ReactionPostEntity
                  select r from ReactionPostEntity r where r.postEntity.postId = ?1 and r.reactionType = ?2
           """)
   List<ReactionPostEntity> getByPostIdAndType(Long postId, EReactionTypeEntity reactionType, Pageable pageable);
+
+  @Query(
+          """
+        SELECT r from ReactionPostEntity r
+        WHERE r.postEntity.postId = ?1
+        AND r.commentEntity.userEntity.userId = ?2
+"""
+  )
+  ReactionPostEntity findByCommentIdAndUserId(Long userId, Long commentId);
+
+
+  ReactionPostEntity saveReactionComment(ReactionPost reactionComment);
+
+
+  @Query(
+          """
+            select r from ReactionPostEntity r
+            where r.userEntity.userId = ?2\s
+            and r.commentEntity.commentId = ?1
+"""
+  )
+  ReactionPostEntity findReactionCommentByCommentIdAndUserId(Long commentId, Long userId);
 
 }

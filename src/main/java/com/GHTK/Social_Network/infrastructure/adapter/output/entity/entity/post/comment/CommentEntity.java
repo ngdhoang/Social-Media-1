@@ -1,6 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment;
 
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionPostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -26,6 +27,8 @@ public class CommentEntity {
 
   private String imageUrl;
 
+  private Long repliesQuantity;
+
   @Column(columnDefinition = "TEXT")
   private String content;
 
@@ -46,7 +49,7 @@ public class CommentEntity {
 
   @OneToMany(mappedBy = "commentEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<ReactionCommentEntity> reactionCommentEntities;
+  private List<ReactionPostEntity> reactionCommentEntities;
 
   public CommentEntity(LocalDate createUp, String content, UserEntity userEntity, PostEntity postEntity) {
     this.createAt = createUp;

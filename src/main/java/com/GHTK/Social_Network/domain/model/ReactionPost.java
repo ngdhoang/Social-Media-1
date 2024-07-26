@@ -23,6 +23,9 @@ public class ReactionPost {
 
   private LocalDate updateAt;
 
+  public ReactionPost(EReactionType newReactionType, Long commentId, Long userId) {
+  }
+
   @PrePersist
   public void prePersist() {
     this.createdAt = LocalDate.now();

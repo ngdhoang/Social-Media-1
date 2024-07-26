@@ -150,4 +150,10 @@ public class ReactionPostAdapter implements ReactionPostPort {
         return reactionPostRepository.getByPostIdAndType(postId, reactionPostTypeMapperETD.toEntity(reactionType), pageable).stream().map(reactionPostMapperETD::toDomain).toList();
     }
 
+
+    @Override
+    public ReactionPost findReactionCommentByCommentIdAndUserId(Long commentId, Long userId) {
+        return reactionPostMapperETD.toDomain(reactionPostRepository.findByCommentIdAndUserId(commentId, userId));
+    }
+
 }

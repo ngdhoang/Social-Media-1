@@ -18,13 +18,11 @@ public class CommentController {
   private final CommentPostInput commentPostInput;
   private final ImagePostInput imagePostInput;
 
-  @PostMapping("/comments")
-  public ResponseEntity<Object> createComment(@RequestBody @Valid CommentRequest commentRequest) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentSrc(commentRequest));
-  }
-
-  @PostMapping("/comments/{parentCommentId}/replies")
+  @PostMapping("/comments/{parentCommentId}")
   public ResponseEntity<Object> createReply(@PathVariable Long parentCommentId, @RequestBody @Valid CommentRequest commentRequest) {
+    if (parentCommentId == null) {
+      return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentRoot(commentRequest));
+    }
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentChild(parentCommentId, commentRequest));
   }
 
