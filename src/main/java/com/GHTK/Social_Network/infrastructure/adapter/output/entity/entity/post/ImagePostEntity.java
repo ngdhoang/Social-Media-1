@@ -24,10 +24,4 @@ public class ImagePostEntity {
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "post_id", nullable = false)
   private PostEntity postEntity;
-
-  public ImagePostEntity(String imageUrl, Date createAt, PostEntity postEntity) {
-    this.imageUrl = imageUrl;
-    this.createAt = createAt;
-    this.postEntity = postEntity;
-  }
 }

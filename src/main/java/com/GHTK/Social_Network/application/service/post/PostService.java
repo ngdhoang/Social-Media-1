@@ -9,12 +9,12 @@ import com.GHTK.Social_Network.application.port.output.post.PostPort;
 import com.GHTK.Social_Network.application.port.output.post.ReactionPostPort;
 import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
 import com.GHTK.Social_Network.common.customException.CustomException;
-import com.GHTK.Social_Network.domain.model.User;
-import com.GHTK.Social_Network.domain.model.collection.ImageSequenceDomain;
+import com.GHTK.Social_Network.domain.collection.ImageSequence;
 import com.GHTK.Social_Network.domain.model.post.EPostStatus;
 import com.GHTK.Social_Network.domain.model.post.ImagePost;
 import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.domain.model.post.TagUser;
+import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.PostMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.PostRequest;
@@ -214,7 +214,7 @@ public class PostService implements PostPortInput {
 
   private void validateUserStatus(Long currentUserId, Long userId) {
     User user = authPort.getUserById(userId);
-    if (user != null) {
+    if (user == null) {
       throw new CustomException("User not found", HttpStatus.NOT_FOUND);
     }
     if (friendShipPort.isBlock(userId, currentUserId) || !user.getIsProfilePublic()) {
@@ -244,7 +244,7 @@ public class PostService implements PostPortInput {
     List<ImagePost> imagePostEntities = new ArrayList<>();
     List<Long> imagePostSort = new ArrayList<>();
     List<String> keyLoadings = new ArrayList<>();
-    String tail = "_" + ImagePostInput.POST_TAIL + "_" + authPort.getUserAuthOrDefaultVirtual().getUserEmail();
+    String tail = ImagePostInput.POST_TAIL + authPort.getUserAuthOrDefaultVirtual().getUserEmail();
 
     for (String key : publicIds) {
       String fullKey = key + tail;
@@ -287,29 +287,42 @@ public class PostService implements PostPortInput {
       }
     }
 
-    imagePostPort.saveImageSequence(new ImageSequenceDomain(post.getPostId().toString(), imagePostSort));
-    imagePostPort.saveAllImagePost(imagePostEntities);
-    return imagePostEntities;
+    imagePostPort.saveImageSequence(new ImageSequence(post.getPostId().toString(), imagePostSort));
+    return imagePostPort.saveAllImagePost(imagePostEntities);
   }
 
   private List<ImagePost> updateImagePosts(PostRequest postRequest, Post post) {
     List<Long> imageIds = postRequest.getImageIds();
     List<String> publicIds = postRequest.getPublicIds();
+    String tail = ImagePostInput.POST_TAIL + "_" + authPort.getUserAuth().getUserEmail();
+
+    long cntZero = imageIds.stream().filter(id -> id == 0).count();
+    if (cntZero != publicIds.size()) {
+      throw new CustomException("Not enough images", HttpStatus.BAD_REQUEST);
+    }
 
     int cnt = 0;
     for (int i = 0; i < imageIds.size(); i++) {
       if (imageIds.get(i) == 0) {
-        ImagePost imagePost = new ImagePost(redisImageTemplatePort.findByKey(publicIds.get(cnt) + "_" + authPort.getUserAuthOrDefaultVirtual().getUserEmail()), new Date(), post.getPostId());
+        String fullKey = publicIds.get(cnt) + tail;
+        if (!redisImageTemplatePort.existsByKey(fullKey)) {
+          cnt++;
+          continue;
+        }
+        ImagePost imagePost = new ImagePost(
+                redisImageTemplatePort.findByKey(fullKey),
+                new Date(),
+                post.getPostId());
         ImagePost newImagePost = imagePostPort.saveImagePost(imagePost);
         imageIds.set(i, newImagePost.getImagePostId());
-        redisImageTemplatePort.deleteByKey(publicIds.get(cnt) + "_" + authPort.getUserAuthOrDefaultVirtual().getUserEmail());
+        redisImageTemplatePort.deleteByKey(publicIds.get(cnt) + ImagePostInput.POST_TAIL + authPort.getUserAuthOrDefaultVirtual().getUserEmail());
         cnt++;
       }
       if (cnt > postRequest.getImageIds().size()) {
         break;
       }
     }
-    imagePostPort.saveImageSequence(new ImageSequenceDomain(post.getPostId().toString(), imageIds));
+    imagePostPort.saveImageSequence(new ImageSequence(post.getPostId().toString(), imageIds));
 
     // delete image in database
     List<ImagePost> currentImageIdsInDb = imagePostPort.findAllImagePost(post.getPostId());
@@ -322,7 +335,7 @@ public class PostService implements PostPortInput {
   }
 
   private List<ImagePost> sortImagePosts(Long postId, List<ImagePost> imagePosts) {
-    Optional<ImageSequenceDomain> imageSequenceOpt = imagePostPort.findImageSequenceByPostId(postId);
+    Optional<ImageSequence> imageSequenceOpt = imagePostPort.findImageSequenceByPostId(postId);
 
     if (imageSequenceOpt.isEmpty()) {
       return imagePosts;

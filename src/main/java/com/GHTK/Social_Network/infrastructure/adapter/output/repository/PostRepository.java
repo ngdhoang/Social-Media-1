@@ -2,13 +2,13 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
 
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.TagUserEntity;
-import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.awt.print.Pageable;
 import java.util.List;
 
 @Repository
@@ -29,52 +29,62 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
   PostEntity findByImagePostId(Long imagePostEntityId);
 
 
-  @Query("""
-              select p from PostEntity p
-              where p.userEntity.userId = :userId
-              and (
-                  p.postStatus = :status
-                  or (:status = 'PRIVATE' and p.postStatus in (com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.PRIVATE))
-                  or (:status = 'PUBLIC' and p.postStatus in (com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.PUBLIC))
-                  or (:status = 'FRIEND' and p.postStatus in (com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.FRIEND, com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.PUBLIC))
-                  or (:status = 'ALL' and p.postStatus in (com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.FRIEND, com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.PUBLIC, com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EPostStatusEntity.PRIVATE))
-              )
-          """)
+  @Query(value = """
+          select p.*
+          from post p
+          join user u on p.user_id = u.user_id
+          where u.user_id = :userId
+          and (
+            p.post_status = :status
+            or (:status = 'PRIVATE' and p.post_status = 'PRIVATE')
+            or (:status = 'PUBLIC' and p.post_status = 'PUBLIC')
+            or (:status = 'FRIEND' and p.post_status in ('FRIEND', 'PUBLIC'))
+            or (:status = 'ALL' and p.post_status in ('FRIEND', 'PUBLIC', 'PRIVATE'))
+          )
+          """, nativeQuery = true)
   List<PostEntity> findAllByUserIdAndFriendStatus(@Param("userId") Long userId, @Param("status") String status);
 
   @Query(value = """
-    select distinct p from PostEntity p
-    left join fetch p.userEntity
-    left join fetch p.imagePostEntities
-    left join fetch p.tagUserEntities
-    where p.postStatus = 'PUBLIC'
-    and (
-        exists (select 1 from CommentEntity c where c.postEntity = p and c.userEntity.userId = :userId)
-        or
-        exists (select 1 from ReactionPostEntity r where r.postEntity = p and r.userEntity.userId = :userId and r.commentEntity is null)
-    )
-    order by p.createdAt desc
-    """, nativeQuery = true)
+          select distinct p from PostEntity p
+          left join p.userEntity
+          left join p.imagePostEntities
+          left join p.tagUserEntities
+          where p.postStatus = 'PUBLIC'
+          and (
+            exists (select 1 from CommentEntity c where c.postEntity = p and c.userEntity.userId = :userId)
+            or
+            exists (select 1 from ReactionPostEntity r where r.postEntity = p and r.userEntity.userId = :userId and r.commentEntity is null)
+          )
+          order by p.createdAt desc
+          """, nativeQuery = true)
   List<PostEntity> findPostsWithUserInteractions(@Param("userId") Long userId);
 
-    @Query("""
-            update PostEntity p set p.reactionsQuantity = p.reactionsQuantity + 1 where p.postId = :postId
-        """)
-    void increaseReactionsQuantity(Long postId);
+  @Modifying
+  @Transactional
+  @Query("""
+              update PostEntity p set p.reactionsQuantity = p.reactionsQuantity + 1 where p.postId = :postId
+          """)
+  void increaseReactionsQuantity(Long postId);
 
-    @Query("""
-            update PostEntity p set p.commentQuantity = p.commentQuantity + 1 where p.postId = :postId
-        """)
-    void increaseCommentQuantity(Long postId);
+  @Modifying
+  @Transactional
+  @Query("""
+        update PostEntity p set p.commentQuantity = p.commentQuantity + 1 where p.postId = :postId
+    """)
+  int increaseCommentQuantity(Long postId);
 
-    @Query("""
-            update PostEntity p set p.commentQuantity = p.commentQuantity - 1 where p.postId = :postId
-        """)
-    void decreaseCommentQuantity(Long postId);
+  @Modifying
+  @Transactional
+  @Query("""
+              update PostEntity p set p.commentQuantity = p.commentQuantity - :numberOfComments where p.postId = :postId
+          """)
+  void decreaseCommentQuantity(Long postId, Long numberOfComments);
 
-    @Query("""
-            update PostEntity p set p.reactionsQuantity = p.reactionsQuantity - 1 where p.postId = :postId
-        """)
-    void decreaseReactionsQuantity(Long postId);
+  @Modifying
+  @Transactional
+  @Query("""
+              update PostEntity p set p.reactionsQuantity = p.reactionsQuantity - 1 where p.postId = :postId
+          """)
+  void decreaseReactionsQuantity(Long postId);
 
 }

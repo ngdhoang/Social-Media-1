@@ -1,8 +1,7 @@
 package com.GHTK.Social_Network.application.port.output;
 
-import com.GHTK.Social_Network.domain.model.FriendShip;
+import com.GHTK.Social_Network.domain.model.friendShip.FriendShip;
 import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.GetBlockRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.GetFriendShipRequest;
 
 import java.util.List;
 

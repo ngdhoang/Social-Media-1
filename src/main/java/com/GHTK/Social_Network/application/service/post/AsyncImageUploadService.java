@@ -4,7 +4,7 @@ import com.GHTK.Social_Network.application.port.input.AsyncImageUploadPortInput;
 import com.GHTK.Social_Network.application.port.input.ImageHandlerPortInput;
 import com.GHTK.Social_Network.application.port.output.CloudPort;
 import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
-import com.GHTK.Social_Network.domain.model.CustomMultipartFile;
+import com.GHTK.Social_Network.domain.CustomMultipartFile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;

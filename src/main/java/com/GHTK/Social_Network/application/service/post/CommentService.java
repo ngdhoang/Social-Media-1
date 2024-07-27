@@ -7,14 +7,15 @@ import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.post.*;
 import com.GHTK.Social_Network.common.customException.CustomException;
-import com.GHTK.Social_Network.domain.model.Comment;
-import com.GHTK.Social_Network.domain.model.EReactionType;
-import com.GHTK.Social_Network.domain.model.ReactionPost;
-import com.GHTK.Social_Network.domain.model.User;
+import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import com.GHTK.Social_Network.domain.model.post.Post;
+import com.GHTK.Social_Network.domain.model.post.ReactionPost;
+import com.GHTK.Social_Network.domain.model.post.comment.Comment;
+import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.CommentMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ReactionCommentMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.CommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.InteractionResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
@@ -55,7 +56,7 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
       throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
     }
 
-    if (friendShipPort.isBlock(u.getUserId(), post.getUserId()) || !authPort.getUserById(post.getUserId()).getIsProfilePublic() && !u.getUserId().equals(this.getUserAuth().getUserId())) {
+    if (friendShipPort.isBlock(u.getUserId(), post.getUserId()) || (!authPort.getUserById(post.getUserId()).getIsProfilePublic() && !u.getUserId().equals(this.getUserAuth().getUserId()))) {
       throw new CustomException("You are not allowed to create a comment", HttpStatus.FORBIDDEN);
     }
   }
@@ -71,12 +72,14 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
             LocalDate.now(),
             comment.getContent(),
             user.getUserId(),
-            post.getUserId(),
+            post.getPostId(),
             imageCommentUrl
     );
     Comment saveComment = commentPostPort.saveComment(newComment);
+    postPort.incrementCommentQuantity(post.getPostId());
+    UserBasicDto userBasicDto = userMapper.userToUserBasicDto(user);
 
-    return commentMapper.commentToCommentResponse(saveComment);
+    return commentMapper.commentToCommentResponse(saveComment, userBasicDto);
   }
 
 
@@ -100,8 +103,10 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
     );
     commentPostPort.setParentComment(commentIdSrc, newComment);
     newComment = commentPostPort.saveComment(newComment);
+    postPort.incrementCommentQuantity(post.getPostId());
+    UserBasicDto userBasicDto = userMapper.userToUserBasicDto(user);
 
-    return commentMapper.commentToCommentResponse(newComment);
+    return commentMapper.commentToCommentResponse(newComment, userBasicDto);
   }
 
   @Override
@@ -118,8 +123,7 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
   }
 
   private CommentResponse processCommentWithChildren(Comment comment, List<Comment> allComments) {
-    CommentResponse response = commentMapper.commentToCommentResponse(comment);
-    System.out.println(comment.getParentCommentId());
+    CommentResponse response = commentMapper.commentToCommentResponse(comment, userMapper.userToUserBasicDto(getUserAuth()));
     if (comment.getCommentId() == null) {
       throw new CustomException("Comment is not fouled", HttpStatus.NOT_FOUND);
     }
@@ -127,9 +131,8 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
     List<CommentResponse> childResponses = allComments.stream()
             .filter(c -> c.getParentCommentId() != null && c.getParentCommentId().equals(comment.getCommentId()))
             .map(childComment -> processCommentWithChildren(childComment, allComments))
-            .collect(Collectors.toList());
+            .toList();
 
-    response.setChildComments(childResponses);
     return response;
   }
 
@@ -141,13 +144,15 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
     }
     Post post = postPort.findPostByPostId(comment.getPostId());
     checkCommentValid(post, getUserAuth());
-    return commentMapper.commentToCommentResponse(comment);
+    UserBasicDto userBasicDto = userMapper.userToUserBasicDto(getUserAuth());
+
+    return commentMapper.commentToCommentResponse(comment, userBasicDto);
   }
 
   @Override
   public List<CommentResponse> getAllCommentChildById(Long id) {
     return commentPostPort.findCommentByParentId(id).stream().map(
-            commentMapper::commentToCommentResponse
+            comment -> commentMapper.commentToCommentResponse(comment, userMapper.userToUserBasicDto(getUserAuth()))
     ).toList();
   }
 
@@ -159,6 +164,7 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
     }
     try {
       commentPostPort.deleteCommentById(commentId);
+      postPort.decrementCommentQuantity(commentEntity.getPostId(), commentEntity.getRepliesQuantity() + 1);
       return new MessageResponse("Comment deleted successfully");
     } catch (CustomException e) {
       throw new CustomException("Failed to delete comment", HttpStatus.NOT_FOUND);
@@ -178,9 +184,10 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
     }
 
     updatedComment.setContent(comment.getContent());
+    UserBasicDto userBasicDto = userMapper.userToUserBasicDto(user);
 
     commentPostPort.saveComment(updatedComment);
-    return commentMapper.commentToCommentResponse(updatedComment);
+    return commentMapper.commentToCommentResponse(updatedComment, userBasicDto);
   }
 
   @Override
@@ -235,7 +242,8 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
               updatedComment.getCommentId(),
               this.getUserAuth().getUserId()
       );
-      return reactionCommentMapper.commentToResponse(reactionPostPort.saveReaction(newReactionComment));
+      ReactionPost reactionPost = reactionPostPort.saveReaction(newReactionComment);
+      return reactionCommentMapper.commentToResponse(reactionPost);
     }
 
     reactionComment.setReactionType(newReactionType);

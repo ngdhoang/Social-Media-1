@@ -26,5 +26,5 @@ public interface AuthPortInput {
 
   MessageResponse deleteAccount() throws MessagingException, UnsupportedEncodingException;
 
-  String refreshToken(String refreshTokenRequest);
+  AuthResponse refreshToken(String refreshTokenRequest);
 }

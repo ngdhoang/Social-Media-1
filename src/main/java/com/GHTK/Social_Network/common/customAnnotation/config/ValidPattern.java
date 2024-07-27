@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidPattern {
-  String message() default "Invalid format.";
+  String message() default "Invalid format";
 
   Class<?>[] groups() default {};
 

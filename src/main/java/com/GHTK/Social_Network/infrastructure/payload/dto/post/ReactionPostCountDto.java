@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.payload.dto.post;
 
-import com.GHTK.Social_Network.domain.model.EReactionType;
+import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

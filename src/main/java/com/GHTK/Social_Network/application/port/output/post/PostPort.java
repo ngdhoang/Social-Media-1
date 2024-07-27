@@ -44,7 +44,7 @@ public interface PostPort {
 
   void incrementReactionQuantity(Long postId);
 
-  void decrementCommentQuantity(Long postId);
+  void decrementCommentQuantity(Long postId, Long numberOfComments);
 
   void incrementCommentQuantity(Long postId);
 }

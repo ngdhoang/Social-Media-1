@@ -1,9 +1,9 @@
 package com.GHTK.Social_Network.application.port.input;
 
-import com.GHTK.Social_Network.infrastructure.payload.dto.UserDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.profile.UpdateProfilePrivacyRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.profile.UpdateProfileRequest;
-import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileStateDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.ProfileStateDto;
 
 import org.springframework.web.multipart.MultipartFile;
 

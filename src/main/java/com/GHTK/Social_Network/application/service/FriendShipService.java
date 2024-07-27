@@ -1,15 +1,14 @@
 package com.GHTK.Social_Network.application.service;
 
 import com.GHTK.Social_Network.application.port.input.FriendShipPortInput;
-import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.ProfilePort;
-import com.GHTK.Social_Network.domain.model.EFriendshipStatus;
-import com.GHTK.Social_Network.domain.model.FriendShip;
-import com.GHTK.Social_Network.domain.model.User;
+import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
-import com.GHTK.Social_Network.infrastructure.payload.Mapping.FriendShipResponseMapper;
-import com.GHTK.Social_Network.infrastructure.payload.Mapping.FriendShipUserMapper;
+import com.GHTK.Social_Network.domain.model.friendShip.EFriendshipStatus;
+import com.GHTK.Social_Network.domain.model.friendShip.FriendShip;
+import com.GHTK.Social_Network.domain.model.user.User;
+import com.GHTK.Social_Network.infrastructure.payload.Mapping.FriendShipMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.FriendShipUserDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.AcceptFriendRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.GetFriendShipRequest;
@@ -32,15 +31,13 @@ import java.util.Optional;
 public class FriendShipService implements FriendShipPortInput {
 
   private User getUserAuth() {
-    User user = authPort.getUserAuth();
-    return user == null ? User.builder().userId(0L).build() : user;
+    return authPort.getUserAuth();
   }
 
   private final AuthPort authPort;
   private final FriendShipPort friendShipPort;
   private final ProfilePort profilePort;
-  private final FriendShipUserMapper friendShipUserMapper;
-  private final FriendShipResponseMapper friendShipResponseMapper;
+  private final FriendShipMapper friendShipMapper;
 
 
   @Override
@@ -49,9 +46,9 @@ public class FriendShipService implements FriendShipPortInput {
     if (getFriendShipRequest.getUserId() == null || getFriendShipRequest.getUserId().equals(user.getUserId())) {
       getFriendShipRequest.setUserId(user.getUserId());
       List<FriendShip> friendShips = friendShipPort.getListFriendShip(getFriendShipRequest);
-      List<FriendShipUserDto> friendShipUserDtos = getProfileDtos(user, friendShips);
+      List<FriendShipUserDto> friendShipUsersDto = getProfileDtos(user, friendShips);
       Long count = friendShipPort.countByUserReceiveIdAndFriendshipStatus(getFriendShipRequest);
-      return friendShipResponseMapper.toFriendShipResponse(user.getUserId(), friendShipUserDtos, count);
+      return new FriendShipResponse(friendShipUsersDto, count);
     }
 
     User userTarget = profilePort.takeUserById(getFriendShipRequest.getUserId())
@@ -70,9 +67,9 @@ public class FriendShipService implements FriendShipPortInput {
     }
 
     List<FriendShip> friendShips = friendShipPort.getListFriendShip(getFriendShipRequest);
-    List<FriendShipUserDto> friendShipUserDtos = getProfileDtos(userTarget, friendShips);
+    List<FriendShipUserDto> friendShipUsersDto = getProfileDtos(userTarget, friendShips);
     Long count = friendShipPort.countByUserReceiveIdAndFriendshipStatus(getFriendShipRequest);
-    return friendShipResponseMapper.toFriendShipResponse(userTarget.getUserId(), friendShipUserDtos, count);
+    return new FriendShipResponse(friendShipUsersDto, count);
   }
 
   private List<FriendShipUserDto> getProfileDtos(User user, List<FriendShip> friendShips) {
@@ -85,7 +82,7 @@ public class FriendShipService implements FriendShipPortInput {
             .toList();
 
     return friendShips.stream()
-            .map(friendShip -> friendShipUserMapper.toFriendShipUserDto(profileUsers.stream()
+            .map(friendShip -> friendShipMapper.toFriendShipUserDto(profileUsers.stream()
                     .filter(profileUser -> profileUser.getUserId().equals(friendShip.getUserInitiatorId()) || profileUser.getUserId().equals(friendShip.getUserReceiveId()))
                     .findFirst()
                     .orElse(null), friendShip.getFriendshipStatus(), mutualFriendsQuantity))
@@ -141,21 +138,24 @@ public class FriendShipService implements FriendShipPortInput {
 
     if ((friendShip == null && friendShipReverse == null)) {
       throw new CustomException("Friendship not found", HttpStatus.NOT_FOUND);
-    } else if (friendShip == null) {
-      if (requestedStatus.equals(EFriendshipStatus.PENDING) || requestedStatus.equals(EFriendshipStatus.BLOCK)){
-        throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
-      }
-      friendShipPort.setRequestFriendShip(friendShipReverse.getFriendShipId(), requestedStatus);
-      return new MessageResponse("Request sent successfully");
-
-    } else if (friendShipReverse == null) {
-      if (requestedStatus.equals(EFriendshipStatus.PENDING) || requestedStatus.equals(EFriendshipStatus.BLOCK)){
-        throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
-      }
-      friendShipPort.setRequestFriendShip(friendShip.getFriendShipId(), requestedStatus);
-      return new MessageResponse("Request sent successfully");
     } else {
-      throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
+      boolean check = requestedStatus.equals(EFriendshipStatus.PENDING) || requestedStatus.equals(EFriendshipStatus.BLOCK);
+      if (friendShip == null) {
+        if (check) {
+          throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
+        }
+        friendShipPort.setRequestFriendShip(friendShipReverse.getFriendShipId(), requestedStatus);
+        return new MessageResponse("Request sent successfully");
+
+      } else if (friendShipReverse == null) {
+        if (check) {
+          throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
+        }
+        friendShipPort.setRequestFriendShip(friendShip.getFriendShipId(), requestedStatus);
+        return new MessageResponse("Request sent successfully");
+      } else {
+        throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
+      }
     }
   }
 

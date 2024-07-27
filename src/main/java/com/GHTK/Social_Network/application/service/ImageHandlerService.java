@@ -2,7 +2,7 @@ package com.GHTK.Social_Network.application.service;
 
 import com.GHTK.Social_Network.application.port.input.ImageHandlerPortInput;
 import com.GHTK.Social_Network.common.customException.CustomException;
-import com.GHTK.Social_Network.domain.model.CustomMultipartFile;
+import com.GHTK.Social_Network.domain.CustomMultipartFile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

@@ -26,7 +26,6 @@ public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
 
   @Query("""
             select c from CommentEntity  c where c.userEntity.userId = ?1
-            and exists (select r from ReactionCommentEntity r where r.userEntity.userId = ?1)
           """)
   List<CommentEntity> findAllByInteractions(Long userId);
 }

@@ -1,9 +1,9 @@
 package com.GHTK.Social_Network.application.port.output;
 
-import com.GHTK.Social_Network.domain.model.Profile;
-import com.GHTK.Social_Network.domain.model.User;
+import com.GHTK.Social_Network.domain.model.user.Profile;
+import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.requests.profile.UpdateProfileRequest;
-import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileStateDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.ProfileStateDto;
 
 import java.util.Optional;
 
@@ -14,7 +14,7 @@ public interface ProfilePort {
 
   Boolean updateProfile(UpdateProfileRequest updateProfileRequest, Long userId);
 
-  Boolean setProfilePrivacyById(Boolean state, Long userId);
+  User setProfilePrivacyById(Boolean state, Long userId);
 
   Boolean setProfileStateById(ProfileStateDto profileStateDto, Long userId);
 

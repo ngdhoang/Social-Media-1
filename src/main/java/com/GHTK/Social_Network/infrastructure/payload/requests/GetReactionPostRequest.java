@@ -5,7 +5,6 @@ import lombok.Data;
 
 @Data
 public class GetReactionPostRequest extends PaginationRequest {
-
   private String reactionType;
 
   @Min(value = 1, message = "postId must be greater than or equal to 1")

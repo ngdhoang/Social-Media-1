@@ -2,6 +2,8 @@ package com.GHTK.Social_Network.infrastructure.adapter.input;
 
 import com.GHTK.Social_Network.application.port.input.post.CommentPostInput;
 import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
+import com.GHTK.Social_Network.application.port.input.post.ReactionCommentPostInput;
+import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionPostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.CommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.validation.Valid;
@@ -12,17 +14,20 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/posts")
+@RequestMapping("/api/v1/posts")
 @RequiredArgsConstructor
 public class CommentController {
   private final CommentPostInput commentPostInput;
   private final ImagePostInput imagePostInput;
+  private final ReactionCommentPostInput reactionCommentPostInput;
+
+  @PostMapping("/comments")
+  public ResponseEntity<Object> createRootComment(@RequestBody @Valid CommentRequest commentRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentRoot(commentRequest));
+  }
 
   @PostMapping("/comments/{parentCommentId}")
-  public ResponseEntity<Object> createReply(@PathVariable Long parentCommentId, @RequestBody @Valid CommentRequest commentRequest) {
-    if (parentCommentId == null) {
-      return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentRoot(commentRequest));
-    }
+  public ResponseEntity<Object> createChildComment(@PathVariable Long parentCommentId, @RequestBody @Valid CommentRequest commentRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentChild(parentCommentId, commentRequest));
   }
 
@@ -60,6 +65,16 @@ public class CommentController {
   @PostMapping("/comments/images")
   public ResponseEntity<Object> addImageToComment(@RequestParam MultipartFile image) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, imagePostInput.createImage(image, ImagePostInput.COMMENT_TAIL));
+  }
+
+  @PostMapping("/reactions/comments/{c}")
+  public ResponseEntity<Object> addReactionToComment(@PathVariable Long c, @RequestBody @Valid ReactionPostRequest reactionRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionCommentPostInput.handleReactionComment(c, reactionRequest.getReactionType()));
+  }
+
+  @GetMapping("/reactions/comments/{c}")
+  public ResponseEntity<Object> getReactionInComment(@PathVariable Long c) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionCommentPostInput.getAllReactionInComment(c));
   }
 }
 

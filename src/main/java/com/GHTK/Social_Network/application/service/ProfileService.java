@@ -7,11 +7,11 @@ import com.GHTK.Social_Network.application.port.output.ProfilePort;
 import com.GHTK.Social_Network.application.port.output.RedisProfilePort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
-import com.GHTK.Social_Network.domain.model.Profile;
-import com.GHTK.Social_Network.domain.model.User;
+import com.GHTK.Social_Network.domain.model.user.Profile;
+import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
-import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileStateDto;
-import com.GHTK.Social_Network.infrastructure.payload.dto.UserDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.ProfileStateDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.profile.UpdateProfilePrivacyRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.profile.UpdateProfileRequest;
 import lombok.RequiredArgsConstructor;
@@ -92,16 +92,20 @@ public class ProfileService implements ProfilePortInput {
     User currentUser = authPort.getUserAuth();
     Long userId = currentUser.getUserId();
 
-    Boolean state = updateProfilePrivacyRequest.isProfilePrivacy();
-    if (profilePort.setProfilePrivacyById(state, currentUser.getUserId())) {
-      UserDto userDto = redisProfilePort.findByKey(String.valueOf(currentUser.getUserId()));
-      if (userDto != null) {
-        userDto.setIsProfilePublic(state);
-      }
-      redisProfilePort.createOrUpdate(String.valueOf(userDto.getUserId()), userDto);
-      return toResponse(userId, userId, userDto);
+    Boolean state = updateProfilePrivacyRequest.getIsProfilePrivacy();
+    User user = profilePort.setProfilePrivacyById(state, currentUser.getUserId());
+    if (user == null) {
+      throw new CustomException("Error updating state", HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    throw new CustomException("Error updating avatar", HttpStatus.INTERNAL_SERVER_ERROR);
+    UserDto userDto = redisProfilePort.findByKey(String.valueOf(currentUser.getUserId()));
+    if (userDto != null) {
+      userDto.setIsProfilePublic(state);
+      return userDto;
+    }
+    Profile profile = profilePort.takeProfileById(userId);
+    userDto = userMapper.userAndProfileToUserDto(user, profile);
+    redisProfilePort.createOrUpdate(String.valueOf(userId), userDto);
+    return toResponse(userId, userId, userDto);
   }
 
   @Override
@@ -112,7 +116,8 @@ public class ProfileService implements ProfilePortInput {
     String url = (String) cloudPort.uploadPictureByFile(file, ImageHandlerPortInput.MAX_SIZE_AVATAR).get("url");
     String avatarOld = profilePort.saveAvatar(url, currentUser.getUserId());
     if (avatarOld != null) {
-      UserDto userDto = redisProfilePort.findByKey(String.valueOf(currentUser.getUserId()));
+      Profile profile = profilePort.takeProfileById(userId);
+      UserDto userDto = userMapper.userAndProfileToUserDto(currentUser, profile);
       userDto.setAvatar(url);
       redisProfilePort.createOrUpdate(String.valueOf(userDto.getUserId()), userDto);
       cloudPort.deletePictureByUrl(avatarOld);
@@ -128,8 +133,10 @@ public class ProfileService implements ProfilePortInput {
 
     String url = (String) cloudPort.uploadPictureByFile(background, ImageHandlerPortInput.MAX_SIZE_AVATAR).get("url");
     String backgroundOld = profilePort.saveBackground(url, currentUser.getUserId());
+    System.out.println(backgroundOld);
     if (backgroundOld != null) {
-      UserDto userDto = redisProfilePort.findByKey(String.valueOf(currentUser.getUserId()));
+      Profile profile = profilePort.takeProfileById(userId);
+      UserDto userDto = userMapper.userAndProfileToUserDto(currentUser, profile);
       userDto.setBackground(url);
       redisProfilePort.createOrUpdate(String.valueOf(userDto.getUserId()), userDto);
       cloudPort.deletePictureByUrl(backgroundOld);

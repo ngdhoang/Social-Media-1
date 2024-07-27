@@ -67,6 +67,7 @@ public class WebSecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/post/{id}/comment").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/post/{id}/comment").permitAll()
                     .requestMatchers(HttpMethod.GET, "api/reaction_post/{p}").permitAll()
+                    .requestMatchers("/api/v1/posts//images").permitAll()
                     .anyRequest().authenticated()
             )
             .authenticationProvider(daoAuthenticationProvider())

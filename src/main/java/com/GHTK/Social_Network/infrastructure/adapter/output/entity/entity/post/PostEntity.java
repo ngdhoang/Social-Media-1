@@ -51,33 +51,19 @@ public class PostEntity {
 
   @OneToMany(mappedBy = "postEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<ReactionPostEntity> reactionPostEntities;
+  private List<ReactionEntity> reactionPostEntities;
 
   @OneToMany(mappedBy = "postEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<CommentEntity> commentEntities;
 
-  public void addReaction(ReactionPostEntity reaction) {
-    reactionPostEntities.add(reaction);
-    reaction.setPostEntity(this);
-    this.reactionsQuantity++;
-  }
-
-  public void removeReaction(ReactionPostEntity reaction) {
-    reactionPostEntities.remove(reaction);
-    reaction.setPostEntity(null);
-    this.reactionsQuantity--;
-  }
-
-  public void addComment(CommentEntity comment) {
-    commentEntities.add(comment);
-    comment.setPostEntity(this);
-    this.commentQuantity++;
-  }
-
-  public void removeComment(CommentEntity comment) {
-    commentEntities.remove(comment);
-    comment.setPostEntity(null);
-    this.commentQuantity--;
+  @PrePersist
+  public void prePersist() {
+    if (this.reactionsQuantity == null) {
+      this.reactionsQuantity = 0L;
+    }
+    if (this.commentQuantity == null) {
+      this.commentQuantity = 0L;
+    }
   }
 }

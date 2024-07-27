@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
 
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.EFriendshipStatusEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.FriendShipEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.EFriendshipStatusEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.FriendShipEntity;
 import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;

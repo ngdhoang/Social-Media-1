@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.common.customAnnotation.config;
 
+import com.GHTK.Social_Network.common.customAnnotation.logic.PasswordMatchingValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 

@@ -44,9 +44,11 @@ public class PostPortAdapter implements PostPort {
     return postMapperETD.toDomain(postRepository.findById(id).orElse(null));
   }
 
+
   @Override
   public List<Post> findPostsByUserIdAndFriendStatus(Long userId, TAKE_POST_STATUS status) {
-    return postRepository.findAllByUserIdAndFriendStatus(userId, status.toString()).stream().map(
+    String statusString = status.toString();
+    return postRepository.findAllByUserIdAndFriendStatus(userId, statusString).stream().map(
             postMapperETD::toDomain
     ).toList();
   }
@@ -140,8 +142,8 @@ public class PostPortAdapter implements PostPort {
   }
 
   @Override
-  public void decrementCommentQuantity(Long postId) {
-    postRepository.decreaseCommentQuantity(postId);
+  public void decrementCommentQuantity(Long postId, Long numberOfComments) {
+    postRepository.decreaseCommentQuantity(postId, numberOfComments);
   }
 
   @Override

@@ -1,7 +1,6 @@
 package com.GHTK.Social_Network.application.port.output;
 
-import com.GHTK.Social_Network.domain.model.User;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
+import com.GHTK.Social_Network.domain.model.user.User;
 
 import java.util.List;
 

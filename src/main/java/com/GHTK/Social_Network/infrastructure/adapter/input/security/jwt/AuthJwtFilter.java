@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt;
 
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsServiceImpl;
-import com.GHTK.Social_Network.infrastructure.adapter.output.persistence.AuthAdapter;
+import com.GHTK.Social_Network.infrastructure.adapter.output.persistence.user.AuthAdapter;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;

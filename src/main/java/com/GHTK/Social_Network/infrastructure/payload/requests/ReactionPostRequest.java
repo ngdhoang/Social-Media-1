@@ -7,6 +7,6 @@ import lombok.Data;
 
 @Data
 public class ReactionPostRequest {
-    @ValidPattern(value = CustomPatternValidator.REACTION_TYPE)
+//    @ValidPattern(value = CustomPatternValidator.REACTION_TYPE)
     private String reactionType;
 }

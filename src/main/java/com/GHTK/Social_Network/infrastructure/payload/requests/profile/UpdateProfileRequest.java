@@ -15,7 +15,7 @@ public class UpdateProfileRequest {
     @NotBlank(message = "lastName cannot blank")
     private String lastName;
 
-    @ValidPattern(value = CustomPatternValidator.STRONG_PASSWORD)
+    @ValidPattern(value = CustomPatternValidator.PHONE_NUMBER)
     private String phoneNumber;
 
     private LocalDate dob;

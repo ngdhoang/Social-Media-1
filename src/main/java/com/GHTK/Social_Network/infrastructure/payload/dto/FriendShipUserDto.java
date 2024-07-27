@@ -1,40 +1,18 @@
 package com.GHTK.Social_Network.infrastructure.payload.dto;
 
-import com.GHTK.Social_Network.domain.model.EFriendshipStatus;
+import com.GHTK.Social_Network.domain.model.friendShip.EFriendshipStatus;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
 @Data
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class FriendShipUserDto {
-    private Long profileId;
+  private UserDto user;
 
-    private String lastName;
+  private EFriendshipStatus status;
 
-    private String firstName;
-
-    private String userEmail;
-
-    private String avatar = "";
-
-    private LocalDate dob;
-
-    private String phoneNumber;
-
-    private String homeTown;
-
-    private String schoolName;
-
-    private String workPlace;
-
-    private Boolean isProfilePublic;
-
-    private EFriendshipStatus friendshipStatus;
-
+  private Long mutualFriendsQuantity;
 }
