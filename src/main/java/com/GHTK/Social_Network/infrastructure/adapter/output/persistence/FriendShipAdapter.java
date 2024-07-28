@@ -2,10 +2,10 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
 import com.GHTK.Social_Network.common.customAnnotation.Enum.ESortBy;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
-import com.GHTK.Social_Network.domain.model.EFriendshipStatus;
-import com.GHTK.Social_Network.domain.model.FriendShip;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.EFriendshipStatusEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.FriendShipEntity;
+import com.GHTK.Social_Network.domain.model.friendShip.EFriendshipStatus;
+import com.GHTK.Social_Network.domain.model.friendShip.FriendShip;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.EFriendshipStatusEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.FriendShipEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendShipRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.EFriendShipStatusMapperETD;
@@ -40,15 +40,15 @@ public class FriendShipAdapter implements FriendShipPort {
     Long userId = getFriendShipRequest.getUserId();
     sortBy = Objects.equals(sortBy, ESortBy.CREATED_AT.toString()) ? "createAt" : "friendShipId";
     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderBy), sortBy));
-
-    if (getFriendShipRequest.getStatus().toUpperCase() == "REQUESTED") {
+    String statusString = getFriendShipRequest.getStatus();
+    if (statusString != null && statusString.toUpperCase().equals("REQUESTED")) {
       return friendShipRepository.getListFriendRequest(userId, EFriendshipStatusEntity.PENDING, pageable).stream().map(friendShipMapperETD::toDomain).toList();
     }
 
-    EFriendshipStatus status = getFriendShipRequest.getStatus() != null ? EFriendshipStatus.valueOf(getFriendShipRequest.getStatus().toUpperCase()) : null;
+    EFriendshipStatus status = statusString != null ? EFriendshipStatus.valueOf(statusString.toUpperCase()) : null;
     EFriendshipStatusEntity statusEntity = status != null ? eFriendShipStatusMapperETD.toEntity(status) : null;
 
-    if (status.equals(EFriendshipStatus.PENDING)) {
+    if (status != null && status.equals(EFriendshipStatus.PENDING)) {
         List<FriendShipEntity> listFriendShipEntity = friendShipRepository.getListFriendReceiveRequest(userId, statusEntity, pageable);
         return listFriendShipEntity.stream().map(friendShipMapperETD::toDomain).toList();
     }
@@ -60,15 +60,22 @@ public class FriendShipAdapter implements FriendShipPort {
   }
 
   @Override
+
   public Long countByUserReceiveIdAndFriendshipStatus(GetFriendShipRequest getFriendShipRequest) {
     Long userId = getFriendShipRequest.getUserId();
-    if (getFriendShipRequest.getStatus().toUpperCase() == "REQUESTED") {
+    String statusString = getFriendShipRequest.getStatus();
+    if (statusString != null && statusString.toUpperCase().equals("REQUESTED")) {
       return friendShipRepository.countByUserRequestAndFriendshipStatus(userId, EFriendshipStatusEntity.PENDING);
     }
-    EFriendshipStatus status = getFriendShipRequest.getStatus() != null ? EFriendshipStatus.valueOf(getFriendShipRequest.getStatus().toUpperCase()) : null;
+    EFriendshipStatus status = statusString != null ? EFriendshipStatus.valueOf(statusString.toUpperCase()) : null;
     EFriendshipStatusEntity statusEntity = status != null ? eFriendShipStatusMapperETD.toEntity(status) : null;
-    if (status.equals(EFriendshipStatus.PENDING) || status.equals(EFriendshipStatus.BLOCK)) {
-      return friendShipRepository.countByUserReceiveIdAndFriendshipStatus(userId, statusEntity);
+    if (status != null ) {
+      if (status.equals(EFriendshipStatus.PENDING)) {
+        return friendShipRepository.countByUserReceiveIdAndFriendshipStatus(userId, statusEntity);
+      }
+      if (status.equals(EFriendshipStatus.BLOCK)) {
+        return friendShipRepository.countByUserRequestAndFriendshipStatus(userId, statusEntity);
+      }
     }
 
     return friendShipRepository.countByUserIdAndFriendshipStatus(userId, statusEntity);
@@ -78,6 +85,22 @@ public class FriendShipAdapter implements FriendShipPort {
   public Long countByUserReceiveIdAndFriendshipStatus(Long userId, EFriendshipStatus status) {
     EFriendshipStatusEntity statusEntity = eFriendShipStatusMapperETD.toEntity(status);
     return friendShipRepository.countByUserReceiveIdAndFriendshipStatus(userId, statusEntity);
+  }
+
+  @Override
+  public Long countByUserInitiatorIdAndFriendshipStatus(GetFriendShipRequest getFriendShipRequest){
+    Long userId = getFriendShipRequest.getUserId();
+    String statusString = getFriendShipRequest.getStatus();
+    EFriendshipStatus status = statusString != null ? EFriendshipStatus.valueOf(statusString.toUpperCase()) : null;
+    EFriendshipStatusEntity statusEntity = status != null ? eFriendShipStatusMapperETD.toEntity(status) : null;
+    return friendShipRepository.countByUserRequestAndFriendshipStatus(userId, statusEntity);
+  }
+
+
+  @Override
+  public Long countByUserInitiatorIdAndFriendshipStatus(Long userInitiatorId, EFriendshipStatus status) {
+    EFriendshipStatusEntity statusEntity = eFriendShipStatusMapperETD.toEntity(status);
+    return friendShipRepository.countByUserRequestAndFriendshipStatus(userInitiatorId, statusEntity);
   }
 
   @Override

@@ -1,6 +1,14 @@
+<<<<<<< HEAD
+// Reaction api/v1/posts/reaction
+// POST /{postId}
+{
+    "roleId":
+    "userId":
+=======
 s// Reaction api/v1/reaction/post
 // POST /{postId}
 {
+>>>>>>> origin/hotfix/request_merge
 	"reactionType":
 }
 
@@ -28,7 +36,6 @@ s// Reaction api/v1/reaction/post
 // Reaction api/v1/posts/comment
 // POST /{commentId}
 {
-
 	"reactionType":
 }
 

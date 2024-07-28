@@ -26,6 +26,10 @@ public interface PostPort {
 
   List<Post> findAllPostTagMeNotBlockAndPrivate(Long currentUser);
 
+  List<Post> findPostsTagMe(Long currentUser);
+
+  List<Post> findPostsWithUserInteractions(Long userId);
+
   Post findPostByImagePostId(Long imagePostId);
 
   TagUser saveTagUser(TagUser tagUser);
@@ -40,7 +44,7 @@ public interface PostPort {
 
   void incrementReactionQuantity(Long postId);
 
-  void decrementCommentQuantity(Long postId);
+  void decrementCommentQuantity(Long postId, Long numberOfComments);
 
   void incrementCommentQuantity(Long postId);
 }

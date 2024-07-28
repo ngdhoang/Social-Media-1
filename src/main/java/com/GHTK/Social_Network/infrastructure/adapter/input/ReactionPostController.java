@@ -16,7 +16,7 @@ import java.util.Objects;
 
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
-@RequestMapping("/api/reaction/post")
+@RequestMapping("/api/v1/reactions/posts")
 @RequiredArgsConstructor
 public class ReactionPostController {
   private final ReactionPostInput reactionPostInput;

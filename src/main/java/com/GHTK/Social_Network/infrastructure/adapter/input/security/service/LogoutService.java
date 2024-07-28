@@ -1,7 +1,5 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.security.service;
 
-import com.GHTK.Social_Network.infrastructure.adapter.output.persistence.AuthAdapter;
-
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.TokenRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

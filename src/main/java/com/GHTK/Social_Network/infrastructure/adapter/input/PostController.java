@@ -52,10 +52,7 @@ public class PostController {
 
   @PutMapping("/{postId}")
   public ResponseEntity<Object> updatePost(
-          @PathVariable
-          @NotNull(message = "Post id cannot be null")
-          @NotBlank(message = "Post id cannot be blank")
-          Long postId,
+          @PathVariable Long postId,
           @RequestBody @Valid PostRequest postRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.updatePost(postId, postRequest));
   }
@@ -66,7 +63,7 @@ public class PostController {
   }
 
   @PostMapping("/images")
-  public ResponseEntity<Object> uploadImage(@RequestParam MultipartFile image) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.CREATED, imagePostInput.createImage(image, ImagePostInput.POST_TAIL));
+  public ResponseEntity<Object> uploadImage(@RequestParam("image") @Valid @NotNull(message = "Background file cannot be null") MultipartFile image) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, imagePostInput.createImage(image, ImagePostInput.POST_TAIL));
   }
 }

@@ -56,5 +56,12 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
           """)
   List<UserEntity> searchUsersByNameOrEmail(String name);
 
-//  Optional<UserEntity> findByPosts(PostEntity postEntity);
+  @Modifying
+  @Transactional
+  @Query("""
+              update UserEntity u
+              set u.background = ?1
+              where u.userId = ?2
+          """)
+  int changeBackground(String avatar, Long id);
 }

@@ -1,7 +1,8 @@
 package com.GHTK.Social_Network.infrastructure.payload.requests;
 
 import com.GHTK.Social_Network.common.customAnnotation.config.PasswordMatching;
-import com.GHTK.Social_Network.common.customAnnotation.config.StrongPassword;
+import com.GHTK.Social_Network.common.customAnnotation.config.ValidPattern;
+import com.GHTK.Social_Network.common.customAnnotation.logic.CustomPatternValidator;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -25,8 +26,9 @@ public class RegisterRequest {
   @Email(message = "Email invalidate")
   private String userEmail;
 
+
+  @ValidPattern(CustomPatternValidator.STRONG_PASSWORD)
   @NotBlank(message = "password cannot blank")
-  @StrongPassword
   private String password;
 
   @NotBlank(message = "confirm password cannot blank")

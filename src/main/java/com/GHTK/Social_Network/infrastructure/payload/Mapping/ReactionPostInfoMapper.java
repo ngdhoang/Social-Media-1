@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
-import com.GHTK.Social_Network.domain.model.EReactionType;
-import com.GHTK.Social_Network.domain.model.User;
+import com.GHTK.Social_Network.domain.model.post.EReactionType;
+import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.dto.post.ReactionPostUserDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

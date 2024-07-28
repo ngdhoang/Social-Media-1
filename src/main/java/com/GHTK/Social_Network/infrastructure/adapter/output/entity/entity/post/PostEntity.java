@@ -7,10 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -53,9 +51,19 @@ public class PostEntity {
 
   @OneToMany(mappedBy = "postEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<ReactionPostEntity> reactionPostEntities;
+  private List<ReactionEntity> reactionPostEntities;
 
   @OneToMany(mappedBy = "postEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
   private List<CommentEntity> commentEntities;
+
+  @PrePersist
+  public void prePersist() {
+    if (this.reactionsQuantity == null) {
+      this.reactionsQuantity = 0L;
+    }
+    if (this.commentQuantity == null) {
+      this.commentQuantity = 0L;
+    }
+  }
 }

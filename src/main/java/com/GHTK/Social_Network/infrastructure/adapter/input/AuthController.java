@@ -3,7 +3,8 @@ package com.GHTK.Social_Network.infrastructure.adapter.input;
 import com.GHTK.Social_Network.application.port.input.AuthPortInput;
 import com.GHTK.Social_Network.application.port.input.ProfilePortInput;
 import com.GHTK.Social_Network.application.service.Authentication.AuthService;
-import com.GHTK.Social_Network.infrastructure.payload.dto.UserDto;
+import com.GHTK.Social_Network.common.customException.CustomException;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.*;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
@@ -24,7 +25,7 @@ import java.io.UnsupportedEncodingException;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-  private final AuthService authService;
+  private final AuthPortInput authService;
 
   private final LogoutHandler logoutService;
 
@@ -77,6 +78,17 @@ public class AuthController {
       return ResponseHandler.generateErrorResponse("Profile not found or private", HttpStatus.NOT_FOUND);
     }
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, userDto);
+  }
+
+  @PostMapping("/refresh-token")
+  public ResponseEntity<Object> refreshToken(HttpServletRequest request) {
+    String token = request.getHeader("Authorization");
+    if (token != null && token.startsWith("Bearer ")) {
+      token = token.substring(7);
+    } else {
+      throw new CustomException("Invalid Authorization header", HttpStatus.BAD_REQUEST);
+    }
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.refreshToken(token));
   }
 
   @GetMapping("/logout")

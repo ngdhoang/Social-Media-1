@@ -39,7 +39,7 @@ public class ImagePostService implements ImagePostInput {
   public ImagePostDto createImage(MultipartFile imageFile, String tail) {
     imageHandlerPortInput.checkImageValid(imageFile);
     String publicId = generateRandomPublicId();
-    String key = publicId + "_" + tail + "_" + authPort.getUserAuth().getUserEmail();
+    String key = publicId + tail + authPort.getUserAuth().getUserEmail();
     redisImageTemplatePort.createOrUpdate(key, ImagePostInput.VALUE_LOADING); // Set image loading
 
     asyncImageUploadPortInputs.uploadImageAsync(imageFile, key);

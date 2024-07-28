@@ -1,14 +1,15 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment;
 
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -21,12 +22,16 @@ public class CommentEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long commentId;
 
-  private Date createUp;
+  private LocalDate createAt;
 
   private String imageUrl;
 
   @Column(columnDefinition = "TEXT")
   private String content;
+
+  private Long repliesQuantity = 0L;
+
+  private Long reactionsQuantity = 0L;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "parent_comment_id")
@@ -45,17 +50,16 @@ public class CommentEntity {
 
   @OneToMany(mappedBy = "commentEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<ReactionCommentEntity> reactionCommentEntities;
+  private List<ReactionEntity> reactionCommentEntities;
 
-  public CommentEntity(Date createUp, String content, UserEntity userEntity, PostEntity postEntity) {
-    this.createUp = createUp;
-    this.content = content;
-    this.userEntity = userEntity;
-    this.postEntity = postEntity;
-  }
-
-  public void addChildComment(CommentEntity childCommentEntity) {
-    childCommentEntities.add(childCommentEntity);
-    childCommentEntity.setParentCommentEntity(this);
+  @PrePersist
+  public void prePersist() {
+    if (this.reactionsQuantity == null) {
+      this.reactionsQuantity = 0L;
+    }
+    if (this.repliesQuantity == null) {
+      this.repliesQuantity = 0L;
+    }
   }
 }
+

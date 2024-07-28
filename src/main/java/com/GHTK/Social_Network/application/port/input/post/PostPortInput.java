@@ -12,7 +12,7 @@ public interface PostPortInput {
 
   List<InteractionResponse> getPostsByInteractions(); // Auth
 
-  List<PostResponse> getPostsTagMe(); // Auth
+  List<InteractionResponse> getPostsTagMe(); // Auth
 
   PostResponse getPostByPostId(Long postId); // No auth or auth
 

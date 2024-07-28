@@ -6,17 +6,18 @@ import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.auth.JwtPort;
 import com.GHTK.Social_Network.application.port.output.auth.RedisAuthPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
-import com.GHTK.Social_Network.domain.model.ERole;
-import com.GHTK.Social_Network.domain.model.Token;
-import com.GHTK.Social_Network.domain.model.User;
+import com.GHTK.Social_Network.domain.model.user.ERole;
+import com.GHTK.Social_Network.domain.model.user.Token;
+import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsImpl;
-import com.GHTK.Social_Network.infrastructure.payload.dto.AuthRedisDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.redis.AuthRedisDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.*;
 import com.GHTK.Social_Network.infrastructure.payload.responses.AuthResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -122,6 +123,20 @@ public class AuthService implements AuthPortInput {
     otpPort.sendOtpEmail(authPort.getUserAuth().getUserEmail(), otp);
 
     return new MessageResponse("OTP sent to email");
+  }
+
+  @Override
+  public AuthResponse refreshToken(String refreshToken) {
+    Pair<UserDetailsImpl, String> infoAuth = authPort.refreshToken(refreshToken);
+    if (infoAuth == null) {
+      throw new CustomException("Invalid refresh token", HttpStatus.UNAUTHORIZED);
+    }
+    revokeAllUserTokens(infoAuth.getLeft());
+    saveUserToken(infoAuth.getLeft(), infoAuth.getRight());
+    var user = authPort.findByEmail(infoAuth.getLeft().getUsername())
+            .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+
+    return new AuthResponse(infoAuth.getRight(), "", user.getRole().toString());
   }
 
   @Override

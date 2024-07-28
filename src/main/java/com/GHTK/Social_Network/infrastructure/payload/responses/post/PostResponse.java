@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.payload.responses.post;
 
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
-import com.GHTK.Social_Network.infrastructure.payload.dto.UserBasicDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import lombok.Data;
 
 import java.util.Date;

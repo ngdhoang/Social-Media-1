@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
 
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.EFriendshipStatusEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.FriendShipEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.EFriendshipStatusEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.FriendShipEntity;
 import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
@@ -61,12 +61,15 @@ public interface FriendShipRepository extends JpaRepository<FriendShipEntity, Lo
             """)
     Long countByUserReceiveIdAndFriendshipStatus(Long userId, EFriendshipStatusEntity status);
 
-    @Query("""
+
+  @Query("""
             select count(f) from FriendShipEntity f
-            where (f.userReceiveId = :userId)
+            where (f.userInitiatorId = :userId)
                 and ((:status is null and f.friendshipStatus <> 'BLOCK' and f.friendshipStatus <> 'PENDING') or f.friendshipStatus = :status)
             """)
     Long countByUserRequestAndFriendshipStatus(Long userId, EFriendshipStatusEntity status);
+
+
   @Query("""
           select f from FriendShipEntity f\s
           where f.userInitiatorId = :userId\s
@@ -143,7 +146,6 @@ public interface FriendShipRepository extends JpaRepository<FriendShipEntity, Lo
             """)
   Boolean isBlock(@Param("firstUser") Long firstUser, @Param("secondUser") Long secondUser);
 
-
   @Query(value = """
           select f from FriendShipEntity f\s
           where f.userReceiveId = :userReceiveId\s
@@ -167,5 +169,4 @@ public interface FriendShipRepository extends JpaRepository<FriendShipEntity, Lo
             and f.friendshipStatus = 'BLOCK'
             """)
   FriendShipEntity findBlockById(Long id);
-
 }

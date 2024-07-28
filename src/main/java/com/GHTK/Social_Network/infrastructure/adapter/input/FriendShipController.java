@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/friend")
+@RequestMapping("/api/v1/friends")
 @RequiredArgsConstructor
 public class FriendShipController {
 
@@ -46,5 +46,4 @@ public class FriendShipController {
   public ResponseEntity<Object> unFriendShip(@RequestBody @Valid UnFriendShipRequest unFriendShipRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, friendShipService.unFriendRequest(unFriendShipRequest));
   }
-
 }

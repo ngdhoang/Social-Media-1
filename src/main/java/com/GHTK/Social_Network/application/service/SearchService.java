@@ -2,12 +2,10 @@ package com.GHTK.Social_Network.application.service;
 
 import com.GHTK.Social_Network.application.port.input.SearchPortInput;
 import com.GHTK.Social_Network.application.port.output.SearchPort;
-import com.GHTK.Social_Network.domain.model.User;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
+import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
-import com.GHTK.Social_Network.infrastructure.payload.dto.UserBasicDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

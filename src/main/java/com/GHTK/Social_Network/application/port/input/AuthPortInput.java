@@ -25,4 +25,6 @@ public interface AuthPortInput {
   MessageResponse forgotPassword(ForgotPasswordRequest forgotPasswordRequest) throws MessagingException, UnsupportedEncodingException;
 
   MessageResponse deleteAccount() throws MessagingException, UnsupportedEncodingException;
+
+  AuthResponse refreshToken(String refreshTokenRequest);
 }

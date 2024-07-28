@@ -3,10 +3,9 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.post;
 import com.GHTK.Social_Network.application.port.output.CloudPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
 import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
-import com.GHTK.Social_Network.domain.model.collection.ImageSequenceDomain;
+import com.GHTK.Social_Network.domain.collection.ImageSequence;
 import com.GHTK.Social_Network.domain.model.post.ImagePost;
-import com.GHTK.Social_Network.domain.model.post.Post;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.ImageSequence;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.ImageSequenceCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ImagePostRepository;
@@ -45,7 +44,6 @@ public class ImagePostAdapter implements ImagePostPort {
   @Async
   @Override
   public void deleteAllImageRedisByTail(String tail) {
-    System.out.println(tail);
     Set<String> keys = redisImageTemplatePort.findAllByKeys("*" + tail);
 
     if (keys != null) {
@@ -71,27 +69,37 @@ public class ImagePostAdapter implements ImagePostPort {
   @Override
   public List<ImagePost> findAllImagePost(Long postId) {
     PostEntity p = postRepository.findById(postId).orElse(null);
-    return Objects.requireNonNull(p).getImagePostEntities().stream().map(
-            imagePostMapperETD::toDomain
-    ).toList();
+    if (p == null) {
+      return List.of();
+    }
+
+    List<ImagePostEntity> imagePostEntities = p.getImagePostEntities();
+    if (imagePostEntities == null) {
+      return List.of();
+    }
+
+    return imagePostEntities.stream()
+            .map(imagePostMapperETD::toDomain)
+            .filter(Objects::nonNull)
+            .toList();
   }
 
   @Override
-  public ImageSequenceDomain saveImageSequence(ImageSequenceDomain imageSequence) {
-    ImageSequence newImageSequence = ImageSequence.builder()
+  public ImageSequence saveImageSequence(ImageSequence imageSequence) {
+    ImageSequenceCollection newImageSequenceCollection = ImageSequenceCollection.builder()
             .postId(imageSequence.getPostId())
             .listImageSort(imageSequence.getListImageSort())
             .build();
-    return imagePostMapperETD.toDomain(imageSequenceRepository.save(newImageSequence));
+    return imagePostMapperETD.toDomain(imageSequenceRepository.save(newImageSequenceCollection));
   }
 
   @Override
-  public Optional<ImageSequenceDomain> findImageSequenceByPostId(Long postId) {
+  public Optional<ImageSequence> findImageSequenceByPostId(Long postId) {
     try {
       return imageSequenceRepository.findByPostId(postId.toString())
-              .map(imageSequence -> new ImageSequenceDomain(
-                      imageSequence.getPostId(),
-                      imageSequence.getListImageSort()
+              .map(imageSequenceCollection -> new ImageSequence(
+                      imageSequenceCollection.getPostId(),
+                      imageSequenceCollection.getListImageSort()
               ));
     } catch (Exception e) {
       return Optional.empty();

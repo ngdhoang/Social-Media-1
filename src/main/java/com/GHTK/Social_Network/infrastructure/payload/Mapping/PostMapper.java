@@ -1,11 +1,11 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
-import com.GHTK.Social_Network.domain.model.User;
+import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.domain.model.post.EPostStatus;
 import com.GHTK.Social_Network.domain.model.post.ImagePost;
 import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
-import com.GHTK.Social_Network.infrastructure.payload.dto.UserBasicDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.PostResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -23,8 +23,8 @@ public interface PostMapper {
   @Mapping(source = "post.postStatus", target = "status", qualifiedByName = "postStatusToString")
   @Mapping(source = "imagePosts", target = "imagePosts", qualifiedByName = "mapImagePosts")
   @Mapping(source = "tagUsers", target = "tagUsers", qualifiedByName = "mapTagUsers")
-  @Mapping(target = "reactionsQuantity", ignore = true)
-  @Mapping(target = "commentQuantity", ignore = true)
+  @Mapping(source = "post.reactionsQuantity", target = "reactionsQuantity")
+  @Mapping(source = "post.commentQuantity", target = "commentQuantity")
   PostResponse postToPostResponse(Post post, List<ImagePost> imagePosts, List<?> tagUsers);
 
   @Mapping(target = "postStatus", source = "status", qualifiedByName = "stringToPostStatus")
@@ -42,6 +42,7 @@ public interface PostMapper {
   }
 
   @Named("mapImagePosts")
+  @Mapping(source = "imagePostId", target = "imageId")
   List<ImageDto> mapImagePosts(List<ImagePost> imagePosts);
 
   @Named("mapTagUsers")

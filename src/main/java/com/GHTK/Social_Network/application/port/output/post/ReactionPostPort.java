@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.application.port.output.post;
 
-import com.GHTK.Social_Network.domain.model.EReactionType;
-import com.GHTK.Social_Network.domain.model.ReactionPost;
+import com.GHTK.Social_Network.domain.model.post.EReactionType;
+import com.GHTK.Social_Network.domain.model.post.ReactionPost;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionPostRequest;
 
 import java.util.List;
@@ -26,4 +26,6 @@ public interface ReactionPostPort {
   List<ReactionPost> getByPostIdAndType(Long postId, GetReactionPostRequest getReactionPostRequest);
 
   List<ReactionPost> getListReactionByPostId(Long postId, GetReactionPostRequest getReactionPostRequest);
+
+  ReactionPost findReactionCommentByCommentIdAndUserId(Long commentId, Long userId);
 }

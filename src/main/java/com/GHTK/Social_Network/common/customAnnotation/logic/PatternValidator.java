@@ -13,7 +13,7 @@ public class PatternValidator implements ConstraintValidator<ValidPattern, Strin
     @Override
     public void initialize(ValidPattern constraintAnnotation) {
         this.regexPattern = constraintAnnotation.value().getPattern();
-        this.errorMessage = constraintAnnotation.message();
+        this.errorMessage = constraintAnnotation.value().getMessage();
     }
 
     @Override

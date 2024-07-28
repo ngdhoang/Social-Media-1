@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.mapper;
 
-import com.GHTK.Social_Network.domain.model.Comment;
+import com.GHTK.Social_Network.domain.model.post.comment.Comment;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.CommentEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

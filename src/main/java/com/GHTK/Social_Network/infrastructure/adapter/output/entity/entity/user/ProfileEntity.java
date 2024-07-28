@@ -1,10 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -21,7 +18,7 @@ public class ProfileEntity {
   @OneToOne(fetch = FetchType.LAZY)
   @MapsId
   @JoinColumn(name = "user_id")
-  private UserEntity user;
+  private UserEntity userEntity;
 
   private LocalDate dob;
 
@@ -33,6 +30,9 @@ public class ProfileEntity {
 
   private String workPlace;
 
+  @Enumerated(EnumType.STRING)
+  private EGenderEntity gender;
+
   private Boolean isDobPublic = true;
 
   private Boolean isPhoneNumberPublic = true;
@@ -42,4 +42,6 @@ public class ProfileEntity {
   private Boolean isSchoolNamePublic = true;
 
   private Boolean isWorkPlacePublic = true;
+
+  private Boolean isGenderPublic = true;
 }

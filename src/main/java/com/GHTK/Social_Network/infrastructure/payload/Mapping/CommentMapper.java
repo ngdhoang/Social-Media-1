@@ -1,6 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
-import com.GHTK.Social_Network.domain.model.Comment;
+import com.GHTK.Social_Network.domain.model.post.comment.Comment;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.CommentResponse;
 import org.mapstruct.*;
 
@@ -8,14 +9,13 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface CommentMapper {
-  @Mapping(target = "imageUrl", source = "imageUrl")
-  @Mapping(target = "childComments", ignore = true)
-  CommentResponse commentToCommentResponse(Comment comment);
+  @Mapping(target = "user", source = "userBasicDto")
+  CommentResponse commentToCommentResponse(Comment comment, UserBasicDto userBasicDto);
 
   Comment commentResponseToComment(CommentResponse commentResponse);
 
-  @Mapping(target = "childComments", source = "childComments")
-  @Mapping(target = "imageUrl", source = "commentParent.imageUrl")
+  @Mapping(target = "user", ignore = true)
+  @Mapping(target = "repliesQuantity", expression = "java(Long.valueOf(childComments.size()))")
   CommentResponse commentToCommentResponse(Comment commentParent, List<Comment> childComments);
 
   List<CommentResponse> commentListToCommentResponseList(List<Comment> comments);

@@ -6,6 +6,8 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.beans.BeanWrapperImpl;
 
+import java.util.Objects;
+
 public class PasswordMatchingValidator implements ConstraintValidator<PasswordMatching, Object> {
   private String password;
 
@@ -21,6 +23,6 @@ public class PasswordMatchingValidator implements ConstraintValidator<PasswordMa
   public boolean isValid(Object value, ConstraintValidatorContext constraintValidatorContext) {
     var passwordValue = new BeanWrapperImpl(value).getPropertyValue(password);
     var confirmPasswordValue = new BeanWrapperImpl(value).getPropertyValue(confirmPassword);
-    return (passwordValue != null) ? passwordValue.equals(confirmPasswordValue) : confirmPasswordValue == null;
+    return Objects.equals(passwordValue, confirmPasswordValue);
   }
 }

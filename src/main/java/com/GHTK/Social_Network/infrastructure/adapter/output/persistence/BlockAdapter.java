@@ -2,15 +2,14 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
 import com.GHTK.Social_Network.application.port.output.BlockPort;
 import com.GHTK.Social_Network.common.customAnnotation.Enum.ESortBy;
-import com.GHTK.Social_Network.domain.model.FriendShip;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.EFriendshipStatusEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.FriendShipEntity;
+import com.GHTK.Social_Network.domain.model.friendShip.FriendShip;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.EFriendshipStatusEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.FriendShipEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendShipRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.EFriendShipStatusMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.FriendShipMapperETD;
 import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.GetBlockRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.GetFriendShipRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
