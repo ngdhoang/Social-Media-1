@@ -11,11 +11,19 @@ import java.util.List;
 @Data
 @Builder
 public class ReactionPostResponse {
-  private String role = "post";
+  private String role;
 
   private Long roleId;
 
   private List<ReactionUserDto> users;
 
   private List<ReactionCountDto> reactions;
+
+  @Builder
+    public ReactionPostResponse(String role, Long roleId, List<ReactionUserDto> users, List<ReactionCountDto> reactions) {
+        this.role = role != null ? role : "post";
+        this.roleId = roleId;
+        this.users = users;
+        this.reactions = reactions;
+    }
 }

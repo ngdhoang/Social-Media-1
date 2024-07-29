@@ -55,19 +55,26 @@ public class WebSecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unAuthorizationHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(request -> request
-                    .requestMatchers("/api/v1/auth/**", "/api/v1/search", "/api/v1/post/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/profile").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/posts/{postId}/comments",
-                            "/api/v1/posts/comments/{commentId}",
-                            "/api/v1/posts/comments/{commentId}/replies",
-                            "/api/v1/post")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/post/{p}/reaction").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/post", "/api/post/{id}").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/post/{id}/comment").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/post/{id}/comment").permitAll()
-                    .requestMatchers(HttpMethod.GET, "api/v1/reaction_post/{p}").permitAll()
-                    .requestMatchers("/api/v1/posts//images").permitAll()
+                    .requestMatchers("/api/v1/auth/**", "/api/v1/search").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/profiles/{id}").permitAll()
+//                    .requestMatchers(HttpMethod.GET, "/api/v1/posts/{postId}/comments",
+//                            "/api/v1/posts/comments/{commentId}",
+//                            "/api/v1/posts/comments/{commentId}/replies",
+//                            "/api/v1/post")
+//                    .permitAll()
+//                    .requestMatchers(HttpMethod.GET, "/api/v1/post/{p}/reaction").permitAll()
+                    .requestMatchers(HttpMethod.GET,  "/api/v1/posts/{postId}").permitAll()
+//                    .requestMatchers(HttpMethod.GET, "/api/v1/post/{id}/comment").permitAll()
+//                    .requestMatchers(HttpMethod.GET, "/api/v1/post/{id}/comment").permitAll()
+//                    .requestMatchers(HttpMethod.GET, "api/v1/reaction_post/{p}").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/posts/user/{userId}").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/posts/{postId}/comments").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/posts/comments/{commentId}").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/posts/comments/{commentId}/replies").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/reaction/post/{p}").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/reaction/comment/{p}").permitAll()
+
+//                    .requestMatchers("/api/v1/posts//images").permitAll()
                     .anyRequest().authenticated()
             )
             .authenticationProvider(daoAuthenticationProvider())

@@ -10,10 +10,7 @@ import com.GHTK.Social_Network.application.port.output.post.ReactionPostPort;
 import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.collection.ImageSequence;
-import com.GHTK.Social_Network.domain.model.post.EPostStatus;
-import com.GHTK.Social_Network.domain.model.post.ImagePost;
-import com.GHTK.Social_Network.domain.model.post.Post;
-import com.GHTK.Social_Network.domain.model.post.TagUser;
+import com.GHTK.Social_Network.domain.model.post.*;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.PostMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
@@ -147,13 +144,17 @@ public class PostService implements PostPortInput {
     String role = "POST";
     List<InteractionResponse> interactionResponseList = new ArrayList<>();
     for (Post post : postList) {
-      ImagePost imagePost = imagePostPort.findAllImagePost(post.getPostId()).get(0);
+      List<ImagePost> imagePosts = imagePostPort.findAllImagePost(post.getPostId());
+      ImagePost imagePost = imagePosts.isEmpty() ? null : imagePosts.get(0);
+
       String content = "You do not have sufficient permissions to view this content.";
       String imageUrl = "";
       if (!friendShipPort.isBlock(post.getUserId(), authPort.getUserAuth().getUserId())) {
         content = post.getContent();
-        imageUrl = imagePost.getImageUrl();
+        imageUrl = imagePost == null ? null : imagePost.getImageUrl();
       }
+      ReactionPost reactionPost = reactionPostPort.findByPostIdAndUserID(post.getPostId(), currentUser.getUserId());
+      EReactionType reactionType = (reactionPost != null) ? reactionPost.getReactionType() : null;
       InteractionResponse interactionResponse = InteractionResponse.builder()
               .roleId(post.getPostId())
               .role(role)
@@ -162,7 +163,7 @@ public class PostService implements PostPortInput {
                               authPort.getUserById(post.getUserId())
                       )
               )
-              .reactionType(reactionPostPort.findByPostIdAndUserID(post.getPostId(), currentUser.getUserId()).getReactionType())
+              .reactionType(reactionType)
               .content(content)
               .image(imageUrl)
               .createdAt(post.getCreatedAt())

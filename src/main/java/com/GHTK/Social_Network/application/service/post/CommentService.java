@@ -271,7 +271,7 @@ public class CommentService implements CommentPostInput {
 //
 
     private String getImageUrlCommentInRedis(String publicId, User userSave) {
-        String tail = "_" + ImagePostInput.COMMENT_TAIL + "_" + userSave.getUserEmail();
+        String tail = ImagePostInput.COMMENT_TAIL + userSave.getUserEmail();
         publicId += tail;
         if (redisImageTemplatePort.existsByKey(publicId)) {
             String value = redisImageTemplatePort.findByKey(publicId);
