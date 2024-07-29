@@ -5,7 +5,7 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
-public interface ReactionPostTypeMapperETD {
+public interface ReactionTypeMapperETD {
   EReactionType toDomain(EReactionTypeEntity eReactionTypeEntity);
 
   EReactionTypeEntity toEntity(EReactionType eReactionType);

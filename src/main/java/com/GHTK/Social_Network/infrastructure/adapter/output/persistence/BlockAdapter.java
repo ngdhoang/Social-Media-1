@@ -5,6 +5,7 @@ import com.GHTK.Social_Network.common.customAnnotation.Enum.ESortBy;
 import com.GHTK.Social_Network.domain.model.friendShip.FriendShip;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.EFriendshipStatusEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.FriendShipEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendSequenceRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendShipRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.EFriendShipStatusMapperETD;
@@ -24,6 +25,7 @@ import java.util.Objects;
 public class BlockAdapter implements BlockPort {
 
   private final FriendShipRepository friendShipRepository;
+  private final FriendSequenceRepository friendSequenceRepository;
 
   private final UserRepository userRepository;
 

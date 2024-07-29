@@ -22,7 +22,7 @@ import java.io.UnsupportedEncodingException;
 
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
   private final AuthPortInput authService;
@@ -61,7 +61,7 @@ public class AuthController {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.checkOtpForgotPassword(forgotPasswordRequest, AuthPortInput.MAX_COUNT_OTP, 100000L));
   }
 
-  @GetMapping("/delete-account")
+  @PostMapping("/delete-account")
   public ResponseEntity<Object> deleteAccount() throws MessagingException, UnsupportedEncodingException {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.deleteAccount());
   }

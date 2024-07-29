@@ -4,12 +4,9 @@ import com.GHTK.Social_Network.application.port.output.post.ReactionPostPort;
 import com.GHTK.Social_Network.common.customAnnotation.Enum.ESortBy;
 import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import com.GHTK.Social_Network.domain.model.post.ReactionPost;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ReactionPostRepository;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.ReactionPostMapperETD;
-import com.GHTK.Social_Network.infrastructure.mapper.ReactionPostTypeMapperETD;
-import com.GHTK.Social_Network.infrastructure.payload.Mapping.ReactionPostMapper;
+import com.GHTK.Social_Network.infrastructure.mapper.ReactionTypeMapperETD;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionPostRequest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,9 +28,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ReactionPostAdapter implements ReactionPostPort {
   private final ReactionPostRepository reactionPostRepository;
-
   private final ReactionPostMapperETD reactionPostMapperETD;
-  private final ReactionPostTypeMapperETD reactionPostTypeMapperETD;
+  private final ReactionTypeMapperETD reactionTypeMapperETD;
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
   @Override
@@ -46,9 +42,7 @@ public class ReactionPostAdapter implements ReactionPostPort {
     if (reactionPost.getReactionType() == null) {
       reactionPost.setReactionType(EReactionType.LIKE);
     }
-    ReactionEntity reactionEntity = reactionPostMapperETD.toEntity(reactionPost);
-    ReactionEntity savedEntity = reactionPostRepository.save(reactionEntity);
-    return reactionPostMapperETD.toDomain(savedEntity);
+    return reactionPostMapperETD.toDomain(reactionPostRepository.save(reactionPostMapperETD.toEntity(reactionPost)));
   }
 
   @Override
@@ -68,7 +62,7 @@ public class ReactionPostAdapter implements ReactionPostPort {
 
   @Override
   public int countReactionByPostIdAndType(Long postId, EReactionType reactionType) {
-    return reactionPostRepository.countReactionByPostIdAndType(postId, reactionPostTypeMapperETD.toEntity(reactionType));
+    return reactionPostRepository.countReactionByPostIdAndType(postId, reactionTypeMapperETD.toEntity(reactionType));
   }
 
   @Override
@@ -96,7 +90,7 @@ public class ReactionPostAdapter implements ReactionPostPort {
                 String createdAtStr = (String) reactionPost.get("create_at");
                 LocalDate createdAt = LocalDate.parse(createdAtStr, DATE_FORMATTER);
                 reactionPost1.setCreatedAt(createdAt);
-                reactionPost1.setReactionId(convertToLong(reactionPost.get("reaction_post_id")));
+                reactionPost1.setReactionPostId(convertToLong(reactionPost.get("reaction_post_id")));
                 reactionPost1.setReactionType(reactionType);
                 return reactionPost1;
               }
@@ -137,7 +131,7 @@ public class ReactionPostAdapter implements ReactionPostPort {
     EReactionType reactionType = getReactionPostRequest.getReactionType() == null ? null : EReactionType.valueOf(getReactionPostRequest.getReactionType());
     sortBy = sortBy.equals(ESortBy.CREATED_AT.toString()) ? "createAt" : "reactionPostId";
     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderBy), sortBy));
-    return reactionPostRepository.getByPostIdAndType(postId, reactionPostTypeMapperETD.toEntity(reactionType), pageable).stream().map(reactionPostMapperETD::toDomain).toList();
+    return reactionPostRepository.getByPostIdAndType(postId, reactionTypeMapperETD.toEntity(reactionType), pageable).stream().map(reactionPostMapperETD::toDomain).toList();
   }
 
 
@@ -151,22 +145,9 @@ public class ReactionPostAdapter implements ReactionPostPort {
     sortBy = sortBy.equals(ESortBy.CREATED_AT.toString()) ? "createAt" : "reactionPostId";
     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderBy), sortBy));
     if (reactionType == null) {
-      System.out.println("reactionType is null");
-      System.out.println(postId);
-      System.out.println(pageable);
-      System.out.println(reactionPostRepository.getByPostId(postId, pageable).size());
       return reactionPostRepository.getByPostId(postId, pageable).stream().map(reactionPostMapperETD::toDomain).toList();
     }
-    System.out.println("reactionType is not null");
-    System.out.println(postId);
-    System.out.println(reactionType);
-    return reactionPostRepository.getByPostIdAndType(postId, reactionPostTypeMapperETD.toEntity(reactionType), pageable).stream().map(reactionPostMapperETD::toDomain).toList();
-  }
-
-
-  @Override
-  public ReactionPost findReactionCommentByCommentIdAndUserId(Long commentId, Long userId) {
-    return reactionPostMapperETD.toDomain(reactionPostRepository.findByCommentIdAndUserId(commentId, userId));
+    return reactionPostRepository.getByPostIdAndType(postId, reactionTypeMapperETD.toEntity(reactionType), pageable).stream().map(reactionPostMapperETD::toDomain).toList();
   }
 
 }

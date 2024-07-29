@@ -1,19 +1,19 @@
 package com.GHTK.Social_Network.infrastructure.mapper;
 
-import com.GHTK.Social_Network.domain.model.post.ReactionPost;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionEntity;
+import com.GHTK.Social_Network.domain.model.post.ReactionComment;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ReactionCommentEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface ReactionCommentMapperETD {
-  @Mapping(source = "reactionId", target = "reactionId")
+  @Mapping(source = "commentEntity.commentId", target = "commentId")
+  @Mapping(source = "userEntity.userId", target = "userId")
   @Mapping(source = "reactionType", target = "reactionType")
-  ReactionPost toDomain(ReactionEntity entity);
+  ReactionComment toDomain(ReactionCommentEntity entity);
 
   @Mapping(source = "commentId", target = "commentEntity.commentId")
   @Mapping(source = "userId", target = "userEntity.userId")
   @Mapping(source = "reactionType", target = "reactionType")
-  ReactionEntity toEntity(ReactionPost model);
-
+  ReactionCommentEntity toEntity(ReactionComment model);
 }

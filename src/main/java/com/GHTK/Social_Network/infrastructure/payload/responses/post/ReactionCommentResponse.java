@@ -10,12 +10,12 @@ import java.util.List;
 
 @Data
 @Builder
-public class ReactionPostResponse {
-  private String role = "post";
+public class ReactionCommentResponse {
+    private String role = "comment";
 
-  private Long roleId;
+    private Long roleId;
 
-  private List<ReactionUserDto> users;
+    private List<ReactionUserDto> users;
 
-  private List<ReactionCountDto> reactions;
+    private List<ReactionCountDto> reactions;
 }

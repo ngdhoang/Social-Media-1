@@ -26,6 +26,4 @@ public interface ReactionPostPort {
   List<ReactionPost> getByPostIdAndType(Long postId, GetReactionPostRequest getReactionPostRequest);
 
   List<ReactionPost> getListReactionByPostId(Long postId, GetReactionPostRequest getReactionPostRequest);
-
-  ReactionPost findReactionCommentByCommentIdAndUserId(Long commentId, Long userId);
 }

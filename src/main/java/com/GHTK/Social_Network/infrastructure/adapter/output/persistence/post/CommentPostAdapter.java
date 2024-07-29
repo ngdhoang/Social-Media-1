@@ -3,7 +3,6 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.post;
 import com.GHTK.Social_Network.application.port.output.post.CommentPostPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.model.post.comment.Comment;
-import com.GHTK.Social_Network.domain.model.post.ReactionPost;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.CommentEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.CommentRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ReactionPostRepository;
@@ -69,10 +68,10 @@ public class CommentPostAdapter implements CommentPostPort {
     commentRepository.deleteById(id);
   }
 
-  @Override
-  public ReactionPost findByCommentIdAndUserID(Long commentId, Long userID) {
-    return reactionCommentMapperETD.toDomain(reactionPostRepository.findByCommentIdAndUserId(userID, commentId));
-  }
+//  @Override
+//  public ReactionPost findByCommentIdAndUserID(Long commentId, Long userID) {
+//    return reactionCommentMapperETD.toDomain(reactionPostRepository.findByCommentIdAndUserId(userID, commentId));
+//  }
 
   @Override
   public Comment setParentComment(Long commentParentId, Comment commentChild) {
@@ -83,6 +82,28 @@ public class CommentPostAdapter implements CommentPostPort {
 
     commentChild.setParentCommentId(commentEntity.getCommentId());
     return saveComment(commentChild);
+  }
+
+  @Override
+  public void increaseCommentCount(Long commentId) {
+    commentRepository.increaseCommentCount(commentId);
+  }
+
+
+  @Override
+  public void decreaseCommentCount(Long commentId, Long quantity) {
+        commentRepository.decreaseCommentCount(commentId, quantity);
+  }
+
+
+  @Override
+  public void increaseReactionCount(Long commentId) {
+    commentRepository.increaseReactionCount(commentId);
+  }
+
+  @Override
+  public void decreaseReactionCount(Long commentId, Long quantity) {
+    commentRepository.decreaseReactionCount(commentId, quantity);
   }
 
 }

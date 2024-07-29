@@ -20,7 +20,15 @@ public interface CommentPostPort {
 
   void deleteCommentById(Long id);
 
-  ReactionPost findByCommentIdAndUserID(Long commentId, Long userID);
+//  ReactionPost findByCommentIdAndUserID(Long commentId, Long userID);
 
   Comment setParentComment(Long commentParentId, Comment commentChild);
+
+  void increaseCommentCount(Long commentId);
+
+  void decreaseCommentCount(Long commentId, Long quantity);
+
+  void increaseReactionCount(Long commentId);
+
+  void decreaseReactionCount(Long commentId, Long quantity);
 }

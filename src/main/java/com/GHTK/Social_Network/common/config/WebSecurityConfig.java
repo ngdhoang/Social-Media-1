@@ -55,18 +55,18 @@ public class WebSecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unAuthorizationHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(request -> request
-                    .requestMatchers("/api/auth/**", "/api/search", "/api/post/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/profile").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/posts/{postId}/comments",
-                            "/api/posts/comments/{commentId}",
-                            "/api/posts/comments/{commentId}/replies",
-                            "/api/post")
+                    .requestMatchers("/api/v1/auth/**", "/api/v1/search", "/api/v1/post/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/profile").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/posts/{postId}/comments",
+                            "/api/v1/posts/comments/{commentId}",
+                            "/api/v1/posts/comments/{commentId}/replies",
+                            "/api/v1/post")
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/post/{p}/reaction").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/post", "/api/post/{id}").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/post/{id}/comment").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/post/{id}/comment").permitAll()
-                    .requestMatchers(HttpMethod.GET, "api/reaction_post/{p}").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/post/{p}/reaction").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/post", "/api/post/{id}").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/post/{id}/comment").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/post/{id}/comment").permitAll()
+                    .requestMatchers(HttpMethod.GET, "api/v1/reaction_post/{p}").permitAll()
                     .requestMatchers("/api/v1/posts//images").permitAll()
                     .anyRequest().authenticated()
             )

@@ -4,8 +4,10 @@ import com.GHTK.Social_Network.common.customAnnotation.Enum.ESortBy;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.domain.model.friendShip.EFriendshipStatus;
 import com.GHTK.Social_Network.domain.model.friendShip.FriendShip;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.FriendshipCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.EFriendshipStatusEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.FriendShipEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendSequenceRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendShipRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.EFriendShipStatusMapperETD;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -25,6 +28,7 @@ import java.util.Objects;
 public class FriendShipAdapter implements FriendShipPort {
 
   private final FriendShipRepository friendShipRepository;
+  private final FriendSequenceRepository friendSequenceRepository;
 
   private final UserRepository userRepository;
 
@@ -53,6 +57,7 @@ public class FriendShipAdapter implements FriendShipPort {
         return listFriendShipEntity.stream().map(friendShipMapperETD::toDomain).toList();
     }
     if (status == null || !status.equals(EFriendshipStatus.BLOCK)) {
+      System.out.println("statusEntity: " + statusEntity);
       List<FriendShipEntity> listFriendShipEntity = friendShipRepository.getListFriend(userId, statusEntity, pageable);
       return listFriendShipEntity.stream().map(friendShipMapperETD::toDomain).toList();
     }
@@ -115,6 +120,16 @@ public class FriendShipAdapter implements FriendShipPort {
     friendShipEntity.setUserReceiveId(userReceiveId);
     friendShipEntity.setFriendshipStatus(eFriendShipStatusMapperETD.toEntity(status));
     FriendShip friendShip = friendShipMapperETD.toDomain(friendShipRepository.save(friendShipEntity));
+    FriendshipCollection friendshipCollection = friendSequenceRepository.findByUserId(userInitiatorId);
+    if (friendshipCollection == null) {
+      friendshipCollection = new FriendshipCollection();
+      friendshipCollection.setUserId(String.valueOf(userInitiatorId));
+      friendshipCollection.setListFriendId(new LinkedList<>());
+      friendshipCollection.getListFriendId().add(userReceiveId);
+    } else {
+      friendshipCollection.getListFriendId().add(userReceiveId);
+    }
+    friendSequenceRepository.save(friendshipCollection);
     return friendShip;
   }
 
@@ -146,12 +161,27 @@ public class FriendShipAdapter implements FriendShipPort {
     FriendShipEntity friendShipEntity = friendShipRepository.findFriendShip(userReceiveId, userInitiateId);
     if (friendShipEntity != null) {
       friendShipRepository.delete(friendShipEntity);
+      FriendshipCollection friendshipCollection = friendSequenceRepository.findByUserId(userInitiateId);
+        if (friendshipCollection != null) {
+            friendshipCollection.getListFriendId().remove(userReceiveId);
+            friendSequenceRepository.save(friendshipCollection);
+        }
     }
   }
 
   @Override
   public void deleteFriendShip(Long friendShipId) {
     friendShipRepository.deleteById(friendShipId);
+    FriendShipEntity friendShipEntity = friendShipRepository.findById(friendShipId).orElse(null);
+    if (friendShipEntity != null) {
+        Long userInitiateId = friendShipEntity.getUserInitiatorId();
+        Long userReceiveId = friendShipEntity.getUserReceiveId();
+        FriendshipCollection friendshipCollection = friendSequenceRepository.findByUserId(userInitiateId);
+        if (friendshipCollection != null) {
+            friendshipCollection.getListFriendId().remove(userReceiveId);
+            friendSequenceRepository.save(friendshipCollection);
+        }
+    }
   }
 
   @Override

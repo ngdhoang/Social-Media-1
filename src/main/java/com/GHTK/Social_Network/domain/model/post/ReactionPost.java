@@ -1,9 +1,8 @@
 package com.GHTK.Social_Network.domain.model.post;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -12,11 +11,9 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class ReactionPost {
-  private Long reactionId;
+  private Long reactionPostId;
 
   private Long postId;
-
-  private Long commentId;
 
   private EReactionType reactionType;
 
@@ -26,9 +23,14 @@ public class ReactionPost {
 
   private LocalDate updateAt;
 
-  public ReactionPost(EReactionType reactionType, Long commentId, Long userId) {
-    this.reactionType = reactionType;
-    this.commentId = commentId;
-    this.userId = userId;
+  @PrePersist
+  public void prePersist() {
+    this.createdAt = LocalDate.now();
   }
+
+  @PreUpdate
+  public void preUpdate() {
+    this.updateAt = LocalDate.now();
+  }
+
 }

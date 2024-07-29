@@ -2,8 +2,8 @@ package com.GHTK.Social_Network.infrastructure.adapter.input;
 
 import com.GHTK.Social_Network.application.port.input.post.CommentPostInput;
 import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
-import com.GHTK.Social_Network.application.port.input.post.ReactionCommentPostInput;
-import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionPostRequest;
+//import com.GHTK.Social_Network.application.port.input.post.ReactionCommentInput;
+//import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.CommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.validation.Valid;
@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class CommentController {
   private final CommentPostInput commentPostInput;
   private final ImagePostInput imagePostInput;
-  private final ReactionCommentPostInput reactionCommentPostInput;
+//  private final ReactionCommentInput reactionCommentInput;
 
   @PostMapping("/comments")
   public ResponseEntity<Object> createRootComment(@RequestBody @Valid CommentRequest commentRequest) {
@@ -41,10 +41,10 @@ public class CommentController {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentById(commentId));
   }
 
-  @GetMapping("/comments")
-  public ResponseEntity<Object> getCommentsByInteractions() {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByInteractions());
-  }
+//  @GetMapping("/comments")
+//  public ResponseEntity<Object> getCommentsByInteractions() {
+//    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByInteractions());
+//  }
 
 
   @GetMapping("/comments/{commentId}/replies")
@@ -67,14 +67,14 @@ public class CommentController {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, imagePostInput.createImage(image, ImagePostInput.COMMENT_TAIL));
   }
 
-  @PostMapping("/reactions/comments/{c}")
-  public ResponseEntity<Object> addReactionToComment(@PathVariable Long c, @RequestBody @Valid ReactionPostRequest reactionRequest) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionCommentPostInput.handleReactionComment(c, reactionRequest.getReactionType()));
-  }
-
-  @GetMapping("/reactions/comments/{c}")
-  public ResponseEntity<Object> getReactionInComment(@PathVariable Long c) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionCommentPostInput.getAllReactionInComment(c));
-  }
+//  @PostMapping("/reactions/comments/{c}")
+//  public ResponseEntity<Object> addReactionToComment(@PathVariable Long c, @RequestBody @Valid ReactionRequest reactionRequest) {
+//    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionCommentInput.handleReactionComment(c, reactionRequest.getReactionType()));
+//  }
+//
+//  @GetMapping("/reactions/comments/{c}")
+//  public ResponseEntity<Object> getReactionInComment(@PathVariable Long c) {
+//    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionCommentInput.getAllReactionInComment(c));
+//  }
 }
 

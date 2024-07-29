@@ -11,13 +11,13 @@ import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.domain.model.post.ReactionPost;
 import com.GHTK.Social_Network.domain.model.user.User;
-import com.GHTK.Social_Network.infrastructure.payload.Mapping.ReactionPostInfoMapper;
+import com.GHTK.Social_Network.infrastructure.payload.Mapping.ReactionInfoMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ReactionPostMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ReactionPostResponseMapper;
-import com.GHTK.Social_Network.infrastructure.payload.dto.post.ReactionPostCountDto;
-import com.GHTK.Social_Network.infrastructure.payload.dto.post.ReactionPostUserDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.post.ReactionCountDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.post.ReactionUserDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionPostRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionPostResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionResponse;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +37,7 @@ public class ReactionPostService implements ReactionPostInput {
   private final FriendShipPort friendShipPort;
 
   private final ReactionPostMapper reactionPostMapper;
-  private final ReactionPostInfoMapper reactionPostInfoMapper;
+  private final ReactionInfoMapper reactionInfoMapper;
   private final ReactionPostResponseMapper reactionPostResponseMapper;
 
   private User getUserAuth() {
@@ -81,7 +81,7 @@ public class ReactionPostService implements ReactionPostInput {
   }
 
   @Override
-  public ReactionResponse handleReactionPost(Long postId, ReactionPostRequest reactionPostRequest) {
+  public ReactionResponse handleReactionPost(Long postId, ReactionRequest reactionPostRequest) {
     User user = getUserAuth();
     Post post = postPort.findPostByPostId(postId);
     validatePostAccess(post);
@@ -142,20 +142,20 @@ public class ReactionPostService implements ReactionPostInput {
       List<ReactionPost> reactionPosts = reactionPostPort.getListReactionByPostId(postId, getReactionPostRequest);
 
 
-      List<ReactionPostUserDto> reactionPostUserDtos = reactionPosts.stream().map(
+      List<ReactionUserDto> reactionUserDtos = reactionPosts.stream().map(
               // get user info from db
               reactionPost -> {
                 User userReact = authPort.getUserById(reactionPost.getUserId());
                 EReactionType reactionType = reactionPost.getReactionType();
-                return reactionPostInfoMapper.toReactionPostInfoResponse(userReact, reactionType);
+                return reactionInfoMapper.toReactionInfoResponse(userReact, reactionType);
               }
       ).toList();
       // save to redis list reaction of each type
 
       //[{LIKE=[ReactionPost(reactionPostId=3, postId=1, reactionType=LIKE, userId=2, createdAt=2024-07-24, updateAt=null), ReactionPost(reactionPostId=2, postId=1, reactionType=LIKE, userId=1, createdAt=2024-07-24, updateAt=null)]}, {LOVE=[ReactionPost(reactionPostId=4, postId=1, reactionType=LOVE, userId=3, createdAt=2024-07-24, updateAt=null)]}]
-      return reactionPostResponseMapper.toReactionPostResponse(postId, reactionPostUserDtos,
+      return reactionPostResponseMapper.toReactionPostResponse(postId, reactionUserDtos,
               reactionGroup.stream().map(
-                      entry -> ReactionPostCountDto.builder()
+                      entry -> ReactionCountDto.builder()
                               .type(entry.keySet().stream().findFirst().orElse(null))
                               .quantity((long) entry.values().stream().findFirst().orElse(null).size())
                               .build()
@@ -165,18 +165,18 @@ public class ReactionPostService implements ReactionPostInput {
 
     // get from db
     List<ReactionPost> reactionPosts = reactionPostPort.getByPostIdAndType(postId, getReactionPostRequest);
-    List<ReactionPostUserDto> reactionPostUserDtos = reactionPosts.stream().map(
+    List<ReactionUserDto> reactionUserDtos = reactionPosts.stream().map(
             // get user info from db
             reactionPost -> {
               User userReact = authPort.getUserById(reactionPost.getUserId());
               EReactionType reactionType = reactionPost.getReactionType();
-              return reactionPostInfoMapper.toReactionPostInfoResponse(userReact, reactionType);
+              return reactionInfoMapper.toReactionInfoResponse(userReact, reactionType);
             }
     ).toList();
     // save to redis
-    return reactionPostResponseMapper.toReactionPostResponse(postId, reactionPostUserDtos,
+    return reactionPostResponseMapper.toReactionPostResponse(postId, reactionUserDtos,
             reactionGroup.stream().map(
-                    entry -> ReactionPostCountDto.builder()
+                    entry -> ReactionCountDto.builder()
                             .type(entry.keySet().stream().findFirst().orElse(null))
                             .quantity((long) entry.values().stream().findFirst().orElse(null).size())
                             .build()

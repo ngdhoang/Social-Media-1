@@ -22,5 +22,5 @@ public interface CommentPostInput {
 
   CommentResponse updateComment(Long commentId, CommentRequest comment);
 
-  List<InteractionResponse> getCommentsByInteractions();
+//  List<InteractionResponse> getCommentsByInteractions();
 }

@@ -3,6 +3,7 @@ package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 import com.GHTK.Social_Network.domain.model.friendShip.EFriendshipStatus;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.dto.FriendShipUserDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
 import com.GHTK.Social_Network.infrastructure.payload.responses.FriendShipResponse;
 import org.mapstruct.Mapper;
@@ -19,7 +20,7 @@ public interface FriendShipMapper {
     @Mapping(target = "lastName", source = "lastName")
     @Mapping(target = "userEmail", source = "userEmail")
     @Mapping(target = "avatar", source = "avatar")
-    UserDto userToUserDto(User user);
+    UserBasicDto userToUserDto(User user);
 
     @Mapping(source = "user", target = "user")
     @Mapping(source = "friendshipStatus", target = "status")

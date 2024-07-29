@@ -117,8 +117,8 @@ public class BlockService implements BlockPortInput {
 
     FriendShip friendShip = blockPort.getBlock(user.getUserId(), unFriendShipRequest.getUserId());
 
-    if (friendShip != null) {
-      throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
+    if (friendShip == null) {
+      throw new CustomException("Not found", HttpStatus.NOT_FOUND);
     }
 
     friendShipPort.deleteFriendShip(friendShip.getFriendShipId());
