@@ -3,9 +3,10 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 import com.GHTK.Social_Network.application.port.output.BlockPort;
 import com.GHTK.Social_Network.common.customAnnotation.Enum.ESortBy;
 import com.GHTK.Social_Network.domain.model.friendShip.FriendShip;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.FriendshipCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.EFriendshipStatusEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.FriendShipEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendSequenceRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendCollectionRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendShipRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.EFriendShipStatusMapperETD;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -25,7 +27,7 @@ import java.util.Objects;
 public class BlockAdapter implements BlockPort {
 
   private final FriendShipRepository friendShipRepository;
-  private final FriendSequenceRepository friendSequenceRepository;
+  private final FriendCollectionRepository friendCollectionRepository;
 
   private final UserRepository userRepository;
 
@@ -56,6 +58,18 @@ public class BlockAdapter implements BlockPort {
     friendShipEntity.setUserReceiveId(userReceiveId);
     friendShipEntity.setFriendshipStatus(EFriendshipStatusEntity.BLOCK);
     FriendShip friendShip = friendShipMapperETD.toDomain(friendShipRepository.save(friendShipEntity));
+    FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userInitiatorId.toString());
+    if (friendshipCollection == null) {
+      friendshipCollection = new FriendshipCollection();
+      friendshipCollection.setUserId(userInitiatorId.toString());
+        LinkedList<Long> listBlockId = new LinkedList<>();
+        listBlockId.add(userReceiveId);
+        friendshipCollection.setListBlockId(listBlockId);
+        friendCollectionRepository.save(friendshipCollection);
+    } else {
+        friendshipCollection.getListBlockId().add(userReceiveId);
+        friendCollectionRepository.save(friendshipCollection);
+    }
     return friendShip;
   }
 
@@ -88,11 +102,20 @@ public class BlockAdapter implements BlockPort {
     if (friendShipEntity != null) {
       friendShipRepository.delete(friendShipEntity);
     }
+
+    FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userReceiveId.toString());
+    friendshipCollection.getListBlockId().remove(userInitiateId);
+    friendCollectionRepository.save(friendshipCollection);
   }
 
   @Override
   public void unBlock(Long friendShipId) {
     friendShipRepository.deleteById(friendShipId);
+
+    FriendShipEntity friendShipEntity = friendShipRepository.findBlockById(friendShipId);
+    FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(friendShipEntity.getUserReceiveId().toString());
+    friendshipCollection.getListBlockId().remove(friendShipEntity.getUserInitiatorId());
+    friendCollectionRepository.save(friendshipCollection);
   }
 
   @Override

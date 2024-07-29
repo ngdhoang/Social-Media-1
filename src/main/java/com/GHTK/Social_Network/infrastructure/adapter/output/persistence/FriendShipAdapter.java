@@ -7,7 +7,7 @@ import com.GHTK.Social_Network.domain.model.friendShip.FriendShip;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.FriendshipCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.EFriendshipStatusEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.FriendShipEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendSequenceRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendCollectionRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendShipRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.EFriendShipStatusMapperETD;
@@ -22,13 +22,14 @@ import org.springframework.stereotype.Service;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class FriendShipAdapter implements FriendShipPort {
 
   private final FriendShipRepository friendShipRepository;
-  private final FriendSequenceRepository friendSequenceRepository;
+  private final FriendCollectionRepository friendCollectionRepository;
 
   private final UserRepository userRepository;
 
@@ -120,7 +121,8 @@ public class FriendShipAdapter implements FriendShipPort {
     friendShipEntity.setUserReceiveId(userReceiveId);
     friendShipEntity.setFriendshipStatus(eFriendShipStatusMapperETD.toEntity(status));
     FriendShip friendShip = friendShipMapperETD.toDomain(friendShipRepository.save(friendShipEntity));
-    FriendshipCollection friendshipCollection = friendSequenceRepository.findByUserId(userInitiatorId);
+    FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userInitiatorId.toString());
+    FriendshipCollection friendshipCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId.toString());
     if (friendshipCollection == null) {
       friendshipCollection = new FriendshipCollection();
       friendshipCollection.setUserId(String.valueOf(userInitiatorId));
@@ -129,7 +131,18 @@ public class FriendShipAdapter implements FriendShipPort {
     } else {
       friendshipCollection.getListFriendId().add(userReceiveId);
     }
-    friendSequenceRepository.save(friendshipCollection);
+    friendCollectionRepository.save(friendshipCollection);
+
+    if (friendshipCollectionReceive == null) {
+      friendshipCollectionReceive = new FriendshipCollection();
+      friendshipCollectionReceive.setUserId(String.valueOf(userReceiveId));
+      friendshipCollectionReceive.setListFriendId(new LinkedList<>());
+      friendshipCollectionReceive.getListFriendId().add(userInitiatorId);
+    } else {
+      friendshipCollectionReceive.getListFriendId().add(userInitiatorId);
+    }
+    friendCollectionRepository.save(friendshipCollectionReceive);
+
     return friendShip;
   }
 
@@ -161,10 +174,15 @@ public class FriendShipAdapter implements FriendShipPort {
     FriendShipEntity friendShipEntity = friendShipRepository.findFriendShip(userReceiveId, userInitiateId);
     if (friendShipEntity != null) {
       friendShipRepository.delete(friendShipEntity);
-      FriendshipCollection friendshipCollection = friendSequenceRepository.findByUserId(userInitiateId);
+      FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userInitiateId.toString());
+      FriendshipCollection friendshipCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId.toString());
         if (friendshipCollection != null) {
             friendshipCollection.getListFriendId().remove(userReceiveId);
-            friendSequenceRepository.save(friendshipCollection);
+            friendCollectionRepository.save(friendshipCollection);
+        }
+        if (friendshipCollectionReceive != null) {
+            friendshipCollectionReceive.getListFriendId().remove(userInitiateId);
+            friendCollectionRepository.save(friendshipCollectionReceive);
         }
     }
   }
@@ -176,10 +194,16 @@ public class FriendShipAdapter implements FriendShipPort {
     if (friendShipEntity != null) {
         Long userInitiateId = friendShipEntity.getUserInitiatorId();
         Long userReceiveId = friendShipEntity.getUserReceiveId();
-        FriendshipCollection friendshipCollection = friendSequenceRepository.findByUserId(userInitiateId);
+        FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userInitiateId.toString());
+        FriendshipCollection friendshipCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId.toString());
         if (friendshipCollection != null) {
             friendshipCollection.getListFriendId().remove(userReceiveId);
-            friendSequenceRepository.save(friendshipCollection);
+            friendCollectionRepository.save(friendshipCollection);
+        }
+
+        if (friendshipCollectionReceive != null) {
+            friendshipCollectionReceive.getListFriendId().remove(userInitiateId);
+            friendCollectionRepository.save(friendshipCollectionReceive);
         }
     }
   }
@@ -192,5 +216,19 @@ public class FriendShipAdapter implements FriendShipPort {
   @Override
   public Boolean isBlock(Long fistUserId, Long secondUserId) {
     return friendShipRepository.isBlock(fistUserId, secondUserId);
+  }
+
+  @Override
+  public int getMutualFriend(Long userInitiatorId, Long userReceiveId) {
+    FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userInitiatorId.toString());
+    FriendshipCollection friendshipCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId.toString());
+    if (friendshipCollection == null || friendshipCollectionReceive == null) {
+      return 0;
+    }
+    LinkedList<Long> listFriendInitiator = friendshipCollection.getListFriendId();
+    LinkedList<Long> listFriendReceive = friendshipCollectionReceive.getListFriendId();
+    Set<Long> multiFriend = Set.of(listFriendInitiator.toArray(new Long[0]));
+    multiFriend.retainAll(listFriendReceive);
+    return multiFriend.size();
   }
 }

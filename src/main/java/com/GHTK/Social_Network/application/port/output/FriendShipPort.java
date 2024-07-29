@@ -34,4 +34,6 @@ public interface FriendShipPort {
     Boolean isFriend(Long fistUserId, Long secondUserId);
 
     Boolean isBlock(Long fistUserId, Long secondUserId);
+
+    int getMutualFriend(Long userInitiatorId, Long userReceiveId);
 }

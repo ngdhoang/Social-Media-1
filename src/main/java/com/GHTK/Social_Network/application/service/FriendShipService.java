@@ -73,7 +73,6 @@ public class FriendShipService implements FriendShipPortInput {
   }
 
   private List<FriendShipUserDto> getProfileDtos(User user, List<FriendShip> friendShips) {
-    Long mutualFriendsQuantity = 0L;
     List<User> profileUsers = friendShips.stream()
             .map(friendShip -> (Objects.equals(friendShip.getUserInitiatorId(), user.getUserId()) ? friendShip.getUserReceiveId() : friendShip.getUserInitiatorId()))
             .map(profilePort::takeUserById)
@@ -85,7 +84,7 @@ public class FriendShipService implements FriendShipPortInput {
             .map(friendShip -> friendShipMapper.toFriendShipUserDto(profileUsers.stream()
                     .filter(profileUser -> profileUser.getUserId().equals(friendShip.getUserInitiatorId()) || profileUser.getUserId().equals(friendShip.getUserReceiveId()))
                     .findFirst()
-                    .orElse(null), friendShip.getFriendshipStatus(), mutualFriendsQuantity))
+                    .orElse(null), friendShip.getFriendshipStatus(), (long) friendShipPort.getMutualFriend(user.getUserId(), friendShip.getUserInitiatorId())))
             .toList();
   }
 
