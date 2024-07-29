@@ -159,6 +159,7 @@ public class CommentService implements CommentPostInput, ReactionCommentPostInpu
   @Override
   public MessageResponse deleteComment(Long commentId) {
     Comment commentEntity = commentPostPort.findCommentById(commentId);
+    System.out.println(commentEntity);
     if (commentEntity == null || !Objects.equals(commentEntity.getUserId(), this.getUserAuth().getUserId())) {
       throw new CustomException("Comment not found", HttpStatus.NOT_FOUND);
     }
