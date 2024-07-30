@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<Object> handleGeneralException(Exception ex) {
-    log.error(ex.getMessage(), ex);
+//    log.error(ex.getMessage(), ex);
     return ResponseHandler.generateErrorResponse("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

@@ -2,9 +2,10 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user
 
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.FriendShipEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionPostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.TagUserEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.CommentEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ReactionCommentEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -64,7 +65,12 @@ public class UserEntity {
 
   @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<ReactionEntity> reactionPostEntities;
+  private List<ReactionPostEntity> reactionPostEntities;
+
+  @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY,
+          cascade = CascadeType.ALL)
+  private List<ReactionCommentEntity> reactionCommentEntities;
+
 
   @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)

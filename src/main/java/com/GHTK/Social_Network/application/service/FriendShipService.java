@@ -239,7 +239,7 @@ public class FriendShipService implements FriendShipPortInput {
     }
 
     if (friendShip != null) {
-      if (friendShip.getFriendshipStatus().equals(EFriendshipStatus.PENDING) || friendShip.getFriendshipStatus().equals(EFriendshipStatus.BLOCK)) {
+      if ( friendShip.getFriendshipStatus().equals(EFriendshipStatus.BLOCK)) {
         throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
       }
       friendShipPort.deleteFriendShip(friendShip.getFriendShipId());

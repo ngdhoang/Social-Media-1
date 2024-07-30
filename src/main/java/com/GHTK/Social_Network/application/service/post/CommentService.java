@@ -152,7 +152,7 @@ public class CommentService implements CommentPostInput {
         }
         Post post = postPort.findPostByPostId(comment.getPostId());
         checkCommentValid(post, getUserAuth());
-        UserBasicDto userBasicDto = userMapper.userToUserBasicDto(getUserAuth());
+        UserBasicDto userBasicDto = userMapper.userToUserBasicDto(authPort.getUserById(comment.getUserId()));
 
         return commentMapper.commentToCommentResponse(comment, userBasicDto);
     }
@@ -160,7 +160,10 @@ public class CommentService implements CommentPostInput {
     @Override
     public List<CommentResponse> getAllCommentChildById(Long id) {
         return commentPostPort.findCommentByParentId(id).stream().map(
-                comment -> commentMapper.commentToCommentResponse(comment, userMapper.userToUserBasicDto(getUserAuth()))
+                comment -> {
+                    User userAuth = authPort.getUserById(comment.getUserId());
+                    return commentMapper.commentToCommentResponse(comment, userMapper.userToUserBasicDto(userAuth));
+                }
         ).toList();
     }
 
@@ -271,7 +274,7 @@ public class CommentService implements CommentPostInput {
 //
 
     private String getImageUrlCommentInRedis(String publicId, User userSave) {
-        String tail = ImagePostInput.COMMENT_TAIL + userSave.getUserEmail();
+        String tail =  ImagePostInput.COMMENT_TAIL + userSave.getUserEmail();
         publicId += tail;
         if (redisImageTemplatePort.existsByKey(publicId)) {
             String value = redisImageTemplatePort.findByKey(publicId);

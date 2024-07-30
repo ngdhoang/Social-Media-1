@@ -88,7 +88,15 @@ public class ReactionPostAdapter implements ReactionPostPort {
                 reactionPost1.setPostId(convertToLong(reactionPost.get("post_id")));
                 reactionPost1.setUserId(convertToLong(reactionPost.get("user_id")));
                 String createdAtStr = (String) reactionPost.get("create_at");
-                LocalDate createdAt = LocalDate.parse(createdAtStr, DATE_FORMATTER);
+                LocalDate createdAt = null;
+                try{
+                  createdAt = LocalDate.parse(createdAtStr);
+                  reactionPost1.setCreatedAt(createdAt);
+                  createdAt = LocalDate.parse(createdAtStr, DATE_FORMATTER);
+                } catch (Exception e) {
+                  System.out.print("");
+                }
+                
                 reactionPost1.setCreatedAt(createdAt);
                 reactionPost1.setReactionPostId(convertToLong(reactionPost.get("reaction_post_id")));
                 reactionPost1.setReactionType(reactionType);

@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.post;
 
+import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
 import com.GHTK.Social_Network.application.port.output.CloudPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
 import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
@@ -46,9 +47,11 @@ public class ImagePostAdapter implements ImagePostPort {
   public void deleteAllImageRedisByTail(String tail) {
     Set<String> keys = redisImageTemplatePort.findAllByKeys("*" + tail);
 
-    if (keys != null) {
+    if (!keys.isEmpty()) {
       keys.forEach(k -> {
-        cloudPort.deletePictureByUrl(redisImageTemplatePort.findByKey(k)); // Delete image in cloud
+        String value = redisImageTemplatePort.findByKey(k);
+        if (!value.equals(ImagePostInput.VALUE_LOADING))
+          cloudPort.deletePictureByUrl(redisImageTemplatePort.findByKey(k)); // Delete image in cloud
         redisImageTemplatePort.deleteByKey(k);
       });
     }

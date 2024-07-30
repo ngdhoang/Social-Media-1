@@ -35,8 +35,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
           join user u on p.user_id = u.user_id
           where u.user_id = :userId
           and (
-            p.post_status = :status
-            or (:status = 'PRIVATE' and p.post_status = 'PRIVATE')
+            (:status = 'PRIVATE' and p.post_status = 'PRIVATE')
             or (:status = 'PUBLIC' and p.post_status = 'PUBLIC')
             or (:status = 'FRIEND' and p.post_status in ('FRIEND', 'PUBLIC'))
             or (:status = 'ALL' and p.post_status in ('FRIEND', 'PUBLIC', 'PRIVATE'))

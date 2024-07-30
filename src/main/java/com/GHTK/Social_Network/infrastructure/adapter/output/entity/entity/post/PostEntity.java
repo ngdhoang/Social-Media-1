@@ -51,7 +51,7 @@ public class PostEntity {
 
   @OneToMany(mappedBy = "postEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<ReactionEntity> reactionPostEntities;
+  private List<ReactionPostEntity> reactionPostEntities;
 
   @OneToMany(mappedBy = "postEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)

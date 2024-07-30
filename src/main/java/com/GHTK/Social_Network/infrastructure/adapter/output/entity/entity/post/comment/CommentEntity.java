@@ -1,7 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment;
 
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -50,7 +49,7 @@ public class CommentEntity {
 
   @OneToMany(mappedBy = "commentEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<ReactionEntity> reactionCommentEntities;
+  private List<ReactionCommentEntity> reactionCommentEntities;
 
   @PrePersist
   public void prePersist() {

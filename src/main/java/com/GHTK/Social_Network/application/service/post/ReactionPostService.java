@@ -107,9 +107,9 @@ public class ReactionPostService implements ReactionPostInput {
       postPort.incrementReactionQuantity(postId);
       return reactionPostMapper.postToResponse(savedReactionPost);
     } else {
-      if (reactionPost.getReactionType() == newReactionType || newReactionType == null) {
+      if (reactionPost.getReactionType().equals(newReactionType)  || newReactionType == null) {
         reactionPostPort.deleteReaction(reactionPost);
-        postPort.decrementCommentQuantity(postId, 1L);
+        postPort.decrementReactionQuantity(postId);
 
         // delete from redis
         return null;
