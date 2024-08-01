@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,7 +49,7 @@ public class ReactionCommentService implements ReactionCommentInput {
         return user;
     }
 
-    private void validateCommentAccess(Comment comment) {
+    private void validateCommentAccess(Comment comment, User user) {
         if (comment == null) {
             throw new CustomException("Comment not found", HttpStatus.NOT_FOUND);
         }
@@ -57,38 +58,39 @@ public class ReactionCommentService implements ReactionCommentInput {
 
         Long postOwnerId = post.getUserId();
         User postOwner = authPort.getUserById(postOwnerId);
-        Long currentUserId = getUserAuth().getUserId();
+        Long currentUserId = user.getUserId();
 
         if (currentUserId.equals(postOwnerId)) {
             return;
         }
 
-        if (!postOwner.getIsProfilePublic()) {
-            throw new CustomException("Post not accessible", HttpStatus.FORBIDDEN);
+        if (!postOwner.getIsProfilePublic()
+                || post.getPostStatus() == EPostStatus.PRIVATE
+                || (post.getPostStatus() == EPostStatus.FRIEND && ( currentUserId.equals(0) || !friendShipPort.isFriend(postOwnerId, currentUserId)))
+                || friendShipPort.isBlock(postOwnerId, currentUserId)
+                || friendShipPort.isBlock(postOwnerId, comment.getUserId())
+        ) {
+            throw new CustomException("Access deny", HttpStatus.FORBIDDEN);
         }
 
-        if (friendShipPort.isBlock(postOwnerId, currentUserId)) {
-            throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
+        Long commentParentId = comment.getParentCommentId();
+        if (commentParentId != null) {
+            Comment parentComment = commentPostPort.findCommentById(commentParentId);
+            if (parentComment == null) {
+                throw new CustomException("Parent comment not found", HttpStatus.NOT_FOUND);
+            }
+            if (friendShipPort.isBlock(postOwnerId, parentComment.getUserId())) {
+                throw new CustomException("Access deny", HttpStatus.FORBIDDEN);
+            }
         }
-
-
-        if (post.getPostStatus() == EPostStatus.PRIVATE) {
-            throw new CustomException("Post not accessible", HttpStatus.FORBIDDEN);
-        }
-//    if (post.getPostStatus() == EPostStatus.FRIEND) {
-//      if (friendShipPort.isFriend(postOwnerId, currentUserId)) {
-//        return;
-//      }
-//    }
-//
-//    return;
     }
 
     @Override
     public ReactionResponse handleReactionComment(Long commentId, ReactionRequest reactionCommentRequest) {
-        User user = getUserAuth();
+        User user = authPort.getUserAuthOrDefaultVirtual();
+
         Comment comment = commentPostPort.findCommentById(commentId);
-        validateCommentAccess(comment);
+        validateCommentAccess(comment, user);
 
         EReactionType newReactionType;
         try {
@@ -118,11 +120,9 @@ public class ReactionCommentService implements ReactionCommentInput {
                 if (commentParentId != null)
                     commentPostPort.decreaseReactionCount(commentParentId, 1L);
 
-                // delete from redis
                 return null;
             } else {
                 reactionComment.setReactionType(newReactionType);
-                // save to redis
                 return reactionCommentMapper.commentToResponse(reactionCommentPort.saveReaction(reactionComment));
             }
         }
@@ -131,57 +131,30 @@ public class ReactionCommentService implements ReactionCommentInput {
 
     @Override
     public List<ReactionResponse> getAllReactionInComment(Long commentId) {
-        return reactionCommentPort.findByCommentId(commentId).stream().map(
+        LinkedList<Long> blockList = friendShipPort.getListBlockBoth(getUserAuth().getUserId());
+        return reactionCommentPort.findByCommentId(commentId, blockList).stream().map(
                 reactionCommentMapper::commentToResponse
         ).toList();
     }
 
     @Override
     public ReactionCommentResponse getListReactionInComment(Long commentId, GetReactionCommentRequest getReactionCommentRequest) {
+        User user = authPort.getUserAuthOrDefaultVirtual();
+
         Comment comment = commentPostPort.findCommentById(commentId);
 
-        validateCommentAccess(comment);
+        validateCommentAccess(comment, user);
         List<Map<EReactionType, Set<ReactionComment>>> reactionGroup = reactionCommentPort.getReactionGroupByCommentId(commentId);
+        List<Long> blockIds = friendShipPort.getListBlockBoth(user.getUserId());
 
-        if (getReactionCommentRequest.getReactionType() == null) {
-            // check in redis data example: reaction-post:1 - {commentId: 1, userId: 1, reactionCommentObjectRedisDtos: [{userId: 1, reactionType: LIKE}, {userId: 2, reactionType: LOVE}]}
-
-            // if not exist in redis, get from db
-            List<ReactionComment> reactionComments = reactionCommentPort.getListReactionByCommentId(commentId, getReactionCommentRequest);
-
-
-            List<ReactionUserDto> reactionCommentUserDtos = reactionComments.stream().map(
-                    // get user info from db
-                    reactionComment -> {
-                        User userReact = authPort.getUserById(reactionComment.getUserId());
-                        EReactionType reactionType = reactionComment.getReactionType();
-                        return reactionInfoMapper.toReactionInfoResponse(userReact, reactionType);
-                    }
-            ).toList();
-            // save to redis list reaction of each type
-
-            //[{LIKE=[ReactionComment(reactionCommentId=3, commentId=1, reactionType=LIKE, userId=2, createdAt=2024-07-24, updateAt=null), ReactionComment(reactionCommentId=2, commentId=1, reactionType=LIKE, userId=1, createdAt=2024-07-24, updateAt=null)]}, {LOVE=[ReactionComment(reactionCommentId=4, commentId=1, reactionType=LOVE, userId=3, createdAt=2024-07-24, updateAt=null)]}]
-            return reactionCommentResponseMapper.toReactionCommentResponse(commentId, reactionCommentUserDtos,
-                    reactionGroup.stream().map(
-                            entry -> ReactionCountDto.builder()
-                                    .type(entry.keySet().stream().findFirst().orElse(null))
-                                    .quantity((long) entry.values().stream().findFirst().orElse(null).size())
-                                    .build()
-                    ).toList()
-            );
-        }
-
-        // get from db
-        List<ReactionComment> reactionComments = reactionCommentPort.getByCommentIdAndType(commentId, getReactionCommentRequest);
+        List<ReactionComment> reactionComments = reactionCommentPort.getListReactionByCommentIdAndListBlock(commentId, getReactionCommentRequest, blockIds);
         List<ReactionUserDto> reactionCommentUserDtos = reactionComments.stream().map(
-                // get user info from db
                 reactionComment -> {
                     User userReact = authPort.getUserById(reactionComment.getUserId());
                     EReactionType reactionType = reactionComment.getReactionType();
                     return reactionInfoMapper.toReactionInfoResponse(userReact, reactionType);
                 }
         ).toList();
-        // save to redis
         return reactionCommentResponseMapper.toReactionCommentResponse(commentId, reactionCommentUserDtos,
                 reactionGroup.stream().map(
                         entry -> ReactionCountDto.builder()

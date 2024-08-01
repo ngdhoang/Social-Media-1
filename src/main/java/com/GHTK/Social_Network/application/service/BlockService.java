@@ -79,6 +79,8 @@ public class BlockService implements BlockPortInput {
       throw new CustomException("Cannot block request yourself", HttpStatus.BAD_REQUEST);
     }
 
+    profilePort.takeUserById(userReceiveId).orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+
     FriendShip friendShip = friendShipPort.getFriendShip(user.getUserId(), userReceiveId);
     if (friendShip != null) {
       if (friendShip.getFriendshipStatus().equals(EFriendshipStatus.BLOCK)) {
@@ -121,7 +123,7 @@ public class BlockService implements BlockPortInput {
       throw new CustomException("Not found", HttpStatus.NOT_FOUND);
     }
 
-    friendShipPort.deleteFriendShip(friendShip.getFriendShipId());
+    blockPort.unBlock(friendShip.getFriendShipId());
     return new MessageResponse("Request sent successfully");
   }
 

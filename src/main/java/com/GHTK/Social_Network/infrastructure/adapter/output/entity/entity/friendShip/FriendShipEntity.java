@@ -40,4 +40,10 @@ public class FriendShipEntity {
     public void prePersist() {
         createAt = LocalDate.now();
     }
+
+    public FriendShipEntity(Long userReceiveId, Long userInitiatorId, EFriendshipStatusEntity friendshipStatus) {
+        this.userReceiveId = userReceiveId;
+        this.userInitiatorId = userInitiatorId;
+        this.friendshipStatus = friendshipStatus;
+    }
 }

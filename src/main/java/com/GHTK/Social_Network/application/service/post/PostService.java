@@ -55,7 +55,6 @@ public class PostService implements PostPortInput {
         } else {
             status = PostPort.TAKE_POST_STATUS.PUBLIC;
         }
-        System.out.println(status);
 
         List<Post> postList = portPost.findPostsByUserIdAndFriendStatus(userId, status);
 

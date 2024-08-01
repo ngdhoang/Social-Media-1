@@ -40,51 +40,33 @@ public class ReactionPostService implements ReactionPostInput {
   private final ReactionInfoMapper reactionInfoMapper;
   private final ReactionPostResponseMapper reactionPostResponseMapper;
 
-  private User getUserAuth() {
-    User user = authPort.getUserAuth();
-    if (user == null) throw new CustomException("User not found", HttpStatus.NOT_FOUND);
-    return user;
-  }
-
-  private void validatePostAccess(Post post) {
+  private void validatePostAccess(Post post, User user) {
     if (post == null) {
       throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
     }
 
     Long postOwnerId = post.getUserId();
     User postOwner = authPort.getUserById(postOwnerId);
-    Long currentUserId = getUserAuth().getUserId();
+    Long currentUserId = user.getUserId();
 
     if (currentUserId.equals(postOwnerId)) {
       return;
     }
 
-    if (!postOwner.getIsProfilePublic()) {
-      throw new CustomException("Post not accessible", HttpStatus.FORBIDDEN);
-    }
-
-    if (friendShipPort.isBlock(postOwnerId, currentUserId)) {
+    if (!postOwner.getIsProfilePublic()
+            || post.getPostStatus() == EPostStatus.PRIVATE
+            || (post.getPostStatus() == EPostStatus.FRIEND && ( currentUserId.equals(0) || !friendShipPort.isFriend(postOwnerId, currentUserId)))
+            || friendShipPort.isBlock(postOwnerId, currentUserId)) {
       throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
     }
-
-
-    if (post.getPostStatus() == EPostStatus.PRIVATE) {
-      throw new CustomException("Post not accessible", HttpStatus.FORBIDDEN);
-    }
-//    if (post.getPostStatus() == EPostStatus.FRIEND) {
-//      if (friendShipPort.isFriend(postOwnerId, currentUserId)) {
-//        return;
-//      }
-//    }
-//
-//    return;
   }
 
   @Override
   public ReactionResponse handleReactionPost(Long postId, ReactionRequest reactionPostRequest) {
-    User user = getUserAuth();
+    User user = authPort.getUserAuthOrDefaultVirtual();
+
     Post post = postPort.findPostByPostId(postId);
-    validatePostAccess(post);
+    validatePostAccess(post, user);
 
     EReactionType newReactionType;
     try {
@@ -94,7 +76,7 @@ public class ReactionPostService implements ReactionPostInput {
     }
     ReactionPost reactionPost;
 
-    reactionPost = reactionPostPort.findByPostIdAndUserID(postId, getUserAuth().getUserId());
+    reactionPost = reactionPostPort.findByPostIdAndUserID(postId, user.getUserId());
 
     if (reactionPost == null) {
       ReactionPost newReactionPost = ReactionPost.builder()
@@ -111,11 +93,9 @@ public class ReactionPostService implements ReactionPostInput {
         reactionPostPort.deleteReaction(reactionPost);
         postPort.decrementReactionQuantity(postId);
 
-        // delete from redis
         return null;
       } else {
         reactionPost.setReactionType(newReactionType);
-        // save to redis
         return reactionPostMapper.postToResponse(reactionPostPort.saveReaction(reactionPost));
       }
     }
@@ -131,49 +111,21 @@ public class ReactionPostService implements ReactionPostInput {
   @Override
   public ReactionPostResponse getListReactionInPost(Long postId, GetReactionPostRequest getReactionPostRequest) {
     Post post = postPort.findPostByPostId(postId);
+    User user = authPort.getUserAuthOrDefaultVirtual();
+    validatePostAccess(post, user);
 
-    validatePostAccess(post);
     List<Map<EReactionType, Set<ReactionPost>>> reactionGroup = reactionPostPort.getReactionGroupByPostId(postId);
+    List<Long> blockIds = friendShipPort.getListBlockBoth(user.getUserId());
 
-    if (getReactionPostRequest.getReactionType() == null) {
-      // check in redis data example: reaction-post:1 - {postId: 1, userId: 1, reactionPostObjectRedisDtos: [{userId: 1, reactionType: LIKE}, {userId: 2, reactionType: LOVE}]}
-
-      // if not exist in redis, get from db
-      List<ReactionPost> reactionPosts = reactionPostPort.getListReactionByPostId(postId, getReactionPostRequest);
-
-
-      List<ReactionUserDto> reactionUserDtos = reactionPosts.stream().map(
-              // get user info from db
-              reactionPost -> {
-                User userReact = authPort.getUserById(reactionPost.getUserId());
-                EReactionType reactionType = reactionPost.getReactionType();
-                return reactionInfoMapper.toReactionInfoResponse(userReact, reactionType);
-              }
-      ).toList();
-      // save to redis list reaction of each type
-
-      //[{LIKE=[ReactionPost(reactionPostId=3, postId=1, reactionType=LIKE, userId=2, createdAt=2024-07-24, updateAt=null), ReactionPost(reactionPostId=2, postId=1, reactionType=LIKE, userId=1, createdAt=2024-07-24, updateAt=null)]}, {LOVE=[ReactionPost(reactionPostId=4, postId=1, reactionType=LOVE, userId=3, createdAt=2024-07-24, updateAt=null)]}]
-      return reactionPostResponseMapper.toReactionPostResponse(postId, reactionUserDtos,
-              reactionGroup.stream().map(
-                      entry -> ReactionCountDto.builder()
-                              .type(entry.keySet().stream().findFirst().orElse(null))
-                              .quantity((long) entry.values().stream().findFirst().orElse(null).size())
-                              .build()
-              ).toList()
-      );
-    }
-
-    // get from db
-    List<ReactionPost> reactionPosts = reactionPostPort.getByPostIdAndType(postId, getReactionPostRequest);
+    List<ReactionPost> reactionPosts = reactionPostPort.getListReactionByPostIdAndListBlock(postId, getReactionPostRequest, blockIds);
     List<ReactionUserDto> reactionUserDtos = reactionPosts.stream().map(
-            // get user info from db
             reactionPost -> {
               User userReact = authPort.getUserById(reactionPost.getUserId());
               EReactionType reactionType = reactionPost.getReactionType();
               return reactionInfoMapper.toReactionInfoResponse(userReact, reactionType);
             }
     ).toList();
-    // save to redis
+
     return reactionPostResponseMapper.toReactionPostResponse(postId, reactionUserDtos,
             reactionGroup.stream().map(
                     entry -> ReactionCountDto.builder()
@@ -182,7 +134,5 @@ public class ReactionPostService implements ReactionPostInput {
                             .build()
             ).toList()
     );
-
   }
-
 }

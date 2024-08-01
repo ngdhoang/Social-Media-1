@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.application.port.input.post;
 
+import com.GHTK.Social_Network.infrastructure.payload.requests.GetCommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.CommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.InteractionResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
@@ -12,11 +13,11 @@ public interface CommentPostInput {
 
   CommentResponse createCommentChild(Long commentIdSrc, CommentRequest comment);
 
-  List<CommentResponse> getCommentsByPostId(Long postId);
+  List<CommentResponse> getCommentsByPostId(Long postId, GetCommentRequest getCommentRequest);
 
   CommentResponse getCommentById(Long commentId);
 
-  List<CommentResponse> getAllCommentChildById(Long id);
+  List<CommentResponse> getCommentChildByParentId(Long id, GetCommentRequest getCommentRequest);
 
   MessageResponse deleteComment(Long commentId);
 

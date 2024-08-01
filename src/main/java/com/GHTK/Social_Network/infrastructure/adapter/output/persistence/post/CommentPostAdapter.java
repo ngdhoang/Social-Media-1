@@ -8,7 +8,9 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.repository.CommentR
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ReactionPostRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.CommentMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.ReactionCommentMapperETD;
+import com.GHTK.Social_Network.infrastructure.payload.requests.GetCommentRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -37,15 +39,18 @@ public class CommentPostAdapter implements CommentPostPort {
   }
 
   @Override
-  public List<Comment> findCommentByPostId(Long postId) {
-    return commentRepository.findAllByPostId(postId).stream().map(
+  public List<Comment> getListCommentByPostId(Long postId, List<Long> blockIds, GetCommentRequest getCommentRequest) {
+    Pageable pageable = getCommentRequest.toPageable();
+    return commentRepository.getListParentIdByPostIdAndListBlock(postId, blockIds, pageable).stream().map(
             commentMapperETD::toDomain
     ).toList();
   }
 
   @Override
-  public List<Comment> findCommentByParentId(Long commentId) {
-    return commentRepository.findAllByCommentParentId(commentId).stream()
+  public List<Comment> getListCommentByParentId(Long commentId, List<Long> blockIds, GetCommentRequest getCommentRequest) {
+    Pageable pageable = getCommentRequest.toPageable();
+
+    return commentRepository.getListByCommentParentIdAndListBlock(commentId, blockIds, pageable).stream()
             .map(commentMapperETD::toDomain)
             .toList();
   }
@@ -68,10 +73,6 @@ public class CommentPostAdapter implements CommentPostPort {
     commentRepository.deleteById(id);
   }
 
-//  @Override
-//  public ReactionPost findByCommentIdAndUserID(Long commentId, Long userID) {
-//    return reactionCommentMapperETD.toDomain(reactionPostRepository.findByCommentIdAndUserId(userID, commentId));
-//  }
 
   @Override
   public Comment setParentComment(Long commentParentId, Comment commentChild) {

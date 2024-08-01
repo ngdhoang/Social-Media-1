@@ -23,7 +23,8 @@ public interface ReactionPostPort {
 
   List<Map<EReactionType, Set<ReactionPost>>> getReactionGroupByPostId(Long postId);
 
-  List<ReactionPost> getByPostIdAndType(Long postId, GetReactionPostRequest getReactionPostRequest);
-
   List<ReactionPost> getListReactionByPostId(Long postId, GetReactionPostRequest getReactionPostRequest);
+
+  List<ReactionPost> getListReactionByPostIdAndListBlock(Long postId, GetReactionPostRequest getReactionPostRequest, List<Long> listBlock);
+
 }

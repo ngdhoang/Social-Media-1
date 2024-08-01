@@ -9,12 +9,14 @@ import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
 import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
 import com.GHTK.Social_Network.common.customException.CustomException;
+import com.GHTK.Social_Network.domain.model.post.EPostStatus;
 import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.domain.model.post.comment.Comment;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.CommentMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
+import com.GHTK.Social_Network.infrastructure.payload.requests.GetCommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.CommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.CommentResponse;
@@ -50,12 +52,18 @@ public class CommentService implements CommentPostInput {
             throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
         }
 
-        if (friendShipPort.isBlock(u.getUserId(), post.getUserId()) || (!authPort.getUserById(post.getUserId()).getIsProfilePublic() && !u.getUserId().equals(this.getUserAuth().getUserId()))) {
-            throw new CustomException("You are not allowed to create a comment", HttpStatus.FORBIDDEN);
+        Long postOwnerId = post.getUserId();
+
+        if (u.getUserId().equals(postOwnerId)){
+            return;
         }
 
-        if (friendShipPort.isFriend(post.getUserId(), u.getUserId())) {
-            throw new CustomException("You are not allowed to create a comment", HttpStatus.FORBIDDEN);
+        if (friendShipPort.isBlock(u.getUserId(), postOwnerId)
+                || (!authPort.getUserById(postOwnerId).getIsProfilePublic())
+                || post.getPostStatus().equals(EPostStatus.PRIVATE)
+                || (post.getPostStatus().equals(EPostStatus.FRIEND) && (u.getUserId().equals(0) || !friendShipPort.isFriend(u.getUserId(), postOwnerId)))
+        ) {
+            throw new CustomException("Not allow", HttpStatus.FORBIDDEN);
         }
     }
 
@@ -92,7 +100,7 @@ public class CommentService implements CommentPostInput {
         }
 
         if (friendShipPort.isBlock(user.getUserId(), parentComment.getUserId())) {
-            throw new CustomException("You are not allowed to create a comment", HttpStatus.FORBIDDEN);
+            throw new CustomException("Not allow comment", HttpStatus.FORBIDDEN);
         }
 
         String imageComment = getImageUrlCommentInRedis(comment.getPublicId(), this.getUserAuth());
@@ -114,38 +122,31 @@ public class CommentService implements CommentPostInput {
     }
 
     @Override
-    public List<CommentResponse> getCommentsByPostId(Long postId) {
+    public List<CommentResponse> getCommentsByPostId(Long postId, GetCommentRequest getCommentRequest) {
         Post post = postPort.findPostByPostId(postId);
-        checkCommentValid(post, this.getUserAuth());
-
-        List<Comment> allComments = commentPostPort.findCommentByPostId(postId);
-
-        return allComments.stream()
+        User user = authPort.getUserAuthOrDefaultVirtual();
+        checkCommentValid(post, user);
+        List<Comment> listComment = commentPostPort.getListCommentByPostId(postId, friendShipPort.getListBlockBoth(getUserAuth().getUserId()), getCommentRequest);
+        return listComment.stream()
                 .filter(comment -> comment.getParentCommentId() == null)
-                .filter(c -> !friendShipPort.isBlock(c.getUserId(), getUserAuth().getUserId()))
                 .map(rootComment ->
-                        processCommentWithChildren(rootComment, allComments)
+                        processCommentWithChildren(rootComment, listComment)
                 )
                 .collect(Collectors.toList());
     }
 
-    private CommentResponse processCommentWithChildren(Comment comment, List<Comment> allComments) {
+    private CommentResponse processCommentWithChildren(Comment comment, List<Comment> listComment) {
         User authComment = authPort.getUserById(comment.getUserId());
         CommentResponse response = commentMapper.commentToCommentResponse(comment, userMapper.userToUserBasicDto(authComment));
         if (comment.getCommentId() == null) {
             throw new CustomException("Comment is not found", HttpStatus.NOT_FOUND);
         }
 
-//        List<CommentResponse> childResponses = allComments.stream()
-//                .filter(c -> c.getParentCommentId() != null && c.getParentCommentId().equals(comment.getCommentId()))
-//                .map(childComment -> processCommentWithChildren(childComment, allComments))
-//                .toList();
-
         return response;
     }
 
     @Override
-    public CommentResponse getCommentById(Long commentId) {
+    public CommentResponse getCommentById(Long commentId ){
         Comment comment = commentPostPort.findCommentById(commentId);
         if (comment == null) {
             throw new CustomException("Comment not found", HttpStatus.NOT_FOUND);
@@ -158,8 +159,20 @@ public class CommentService implements CommentPostInput {
     }
 
     @Override
-    public List<CommentResponse> getAllCommentChildById(Long id) {
-        return commentPostPort.findCommentByParentId(id).stream().map(
+    public List<CommentResponse> getCommentChildByParentId(Long id, GetCommentRequest getCommentRequest) {
+        Comment commentParent = commentPostPort.findCommentById(id);
+        if (commentParent == null) {
+            throw new CustomException("Comment not found", HttpStatus.NOT_FOUND);
+        }
+        Post post = postPort.findPostByPostId(commentParent.getPostId());
+        User user = authPort.getUserAuthOrDefaultVirtual();
+        checkCommentValid(post, user);
+        if (friendShipPort.isBlock(user.getUserId(), commentParent.getUserId())) {
+            throw new CustomException("Not allow comment", HttpStatus.FORBIDDEN);
+        }
+
+        List<Long> blockIds = friendShipPort.getListBlockBoth(user.getUserId());
+        return commentPostPort.getListCommentByParentId(id, blockIds, getCommentRequest).stream().map(
                 comment -> {
                     User userAuth = authPort.getUserById(comment.getUserId());
                     return commentMapper.commentToCommentResponse(comment, userMapper.userToUserBasicDto(userAuth));

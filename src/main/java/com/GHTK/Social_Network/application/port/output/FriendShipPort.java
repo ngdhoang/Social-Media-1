@@ -4,6 +4,7 @@ import com.GHTK.Social_Network.domain.model.friendShip.EFriendshipStatus;
 import com.GHTK.Social_Network.domain.model.friendShip.FriendShip;
 import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.GetFriendShipRequest;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public interface FriendShipPort {
@@ -36,4 +37,11 @@ public interface FriendShipPort {
     Boolean isBlock(Long fistUserId, Long secondUserId);
 
     int getMutualFriend(Long userInitiatorId, Long userReceiveId);
+
+
+    LinkedList<Long> getListMeBlock(Long userId);
+
+    LinkedList<Long> getListBlockMe(Long userId);
+
+    LinkedList<Long> getListBlockBoth(Long userId);
 }

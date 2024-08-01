@@ -41,4 +41,5 @@ public class ReactionPostController {
   public ResponseEntity<Object> getReactionPostHandler(@PathVariable Long p, @Valid @ModelAttribute GetReactionCommentRequest getReactionCommentRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionCommentInput.getListReactionInComment(p, getReactionCommentRequest));
   }
+
 }

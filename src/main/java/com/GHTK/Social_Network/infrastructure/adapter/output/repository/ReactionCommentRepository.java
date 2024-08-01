@@ -19,9 +19,9 @@ public interface ReactionCommentRepository extends JpaRepository<ReactionComment
   ReactionCommentEntity findByCommentIdAndUserID(Long postId, Long userId);
 
   @Query("""
-                 select r from ReactionCommentEntity r where r.commentEntity.commentId = ?1
+                 select r from ReactionCommentEntity r where r.commentEntity.commentId = ?1 and r.userEntity.userId not in ?2
           """)
-  List<ReactionCommentEntity> findByCommentId(Long postId);
+  List<ReactionCommentEntity> findByCommentId(Long postId, List<Long> blockIds);
 
   @Query("""
                  select count(r) from ReactionCommentEntity r where r.commentEntity.commentId = ?1
@@ -56,5 +56,15 @@ public interface ReactionCommentRepository extends JpaRepository<ReactionComment
                  select r from ReactionCommentEntity r where r.commentEntity.commentId = ?1 and r.reactionType = ?2
           """)
   List<ReactionCommentEntity> getByCommentIdAndType(Long postId, EReactionTypeEntity reactionType, Pageable pageable);
+
+  @Query("""
+                 select r from ReactionCommentEntity r where ( r.commentEntity.commentId = ?1 and r.userEntity.userId not in ?2 )
+          """)
+  List<ReactionCommentEntity> getByCommentId(Long postId,  List<Long> listBlock, Pageable pageable);
+
+  @Query("""
+                 select r from ReactionCommentEntity r where ( r.commentEntity.commentId = ?1 and r.reactionType = ?2 and r.userEntity.userId not in ?3 )
+          """)
+  List<ReactionCommentEntity> getByCommentIdAndType(Long postId, EReactionTypeEntity reactionType, List<Long> listBlock,  Pageable pageable);
 
 }

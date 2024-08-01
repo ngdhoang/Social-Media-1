@@ -15,7 +15,7 @@ public interface ReactionCommentPort {
 
     void deleteReaction(ReactionComment reactionComment);
 
-    List<ReactionComment> findByCommentId(Long postId);
+    List<ReactionComment> findByCommentId(Long postId, List<Long> userIds);
 
     int countReactionByCommentId(Long postId);
 
@@ -23,9 +23,9 @@ public interface ReactionCommentPort {
 
     List<Map<EReactionType, Set<ReactionComment>>> getReactionGroupByCommentId(Long postId);
 
-    List<ReactionComment> getByCommentIdAndType(Long postId, GetReactionCommentRequest getReactionCommentRequest);
 
     List<ReactionComment> getListReactionByCommentId(Long postId, GetReactionCommentRequest getReactionCommentRequest);
 
 
+    List<ReactionComment> getListReactionByCommentIdAndListBlock(Long commentId, GetReactionCommentRequest getReactionCommentRequest, List<Long> listBlock);
 }

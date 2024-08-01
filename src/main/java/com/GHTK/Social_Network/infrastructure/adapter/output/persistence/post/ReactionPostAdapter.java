@@ -131,27 +131,7 @@ public class ReactionPostAdapter implements ReactionPostPort {
   }
 
   @Override
-  public List<ReactionPost> getByPostIdAndType(Long postId, GetReactionPostRequest getReactionPostRequest) {
-//    int page = getReactionPostRequest.getPage();
-//    int size = getReactionPostRequest.getSize();
-//    String orderBy = getReactionPostRequest.getOrderBy();
-//    String sortBy = getReactionPostRequest.getSortBy();
-//    sortBy = sortBy.equals(ESortBy.CREATED_AT.toString()) ? "createAt" : "reactionPostId";
-//    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderBy), sortBy));
-    Pageable pageable = getReactionPostRequest.toPageable();
-    EReactionType reactionType = getReactionPostRequest.getReactionType() == null ? null : EReactionType.valueOf(getReactionPostRequest.getReactionType());
-    return reactionPostRepository.getByPostIdAndType(postId, reactionTypeMapperETD.toEntity(reactionType), pageable).stream().map(reactionPostMapperETD::toDomain).toList();
-  }
-
-
-  @Override
   public List<ReactionPost> getListReactionByPostId(Long postId, GetReactionPostRequest getReactionPostRequest) {
-//    int page = getReactionPostRequest.getPage();
-//    int size = getReactionPostRequest.getSize();
-//    String orderBy = getReactionPostRequest.getOrderBy();
-//    String sortBy = getReactionPostRequest.getSortBy();
-//    sortBy = sortBy.equals(ESortBy.CREATED_AT.toString()) ? "createAt" : "reactionPostId";
-//    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderBy), sortBy));
     Pageable pageable = getReactionPostRequest.toPageable();
     EReactionType reactionType = getReactionPostRequest.getReactionType() == null ? null : EReactionType.valueOf(getReactionPostRequest.getReactionType());
 
@@ -159,6 +139,17 @@ public class ReactionPostAdapter implements ReactionPostPort {
       return reactionPostRepository.getByPostId(postId, pageable).stream().map(reactionPostMapperETD::toDomain).toList();
     }
     return reactionPostRepository.getByPostIdAndType(postId, reactionTypeMapperETD.toEntity(reactionType), pageable).stream().map(reactionPostMapperETD::toDomain).toList();
+  }
+
+  @Override
+  public List<ReactionPost> getListReactionByPostIdAndListBlock(Long postId, GetReactionPostRequest getReactionPostRequest, List<Long> listBlock) {
+    Pageable pageable = getReactionPostRequest.toPageable();
+    EReactionType reactionType = getReactionPostRequest.getReactionType() == null ? null : EReactionType.valueOf(getReactionPostRequest.getReactionType());
+
+    if (reactionType == null) {
+      return reactionPostRepository.getByPostId(postId, listBlock, pageable).stream().map(reactionPostMapperETD::toDomain).toList();
+    }
+    return reactionPostRepository.getByPostIdAndType(postId, reactionTypeMapperETD.toEntity(reactionType), listBlock, pageable).stream().map(reactionPostMapperETD::toDomain).toList();
   }
 
 }

@@ -59,4 +59,14 @@ public interface ReactionPostRepository extends JpaRepository<ReactionPostEntity
           """)
   List<ReactionPostEntity> getByPostIdAndType(Long postId, EReactionTypeEntity reactionType, Pageable pageable);
 
+  @Query("""
+                 select r from ReactionPostEntity r where ( r.postEntity.postId = ?1 and r.userEntity.userId not in ?2 ) 
+          """)
+  List<ReactionPostEntity> getByPostId(Long postId, List<Long> listBlock, Pageable pageable);
+
+  @Query("""
+                 select r from ReactionPostEntity r where ( r.postEntity.postId = ?1 and r.reactionType = ?2 and r.userEntity.userId not in ?3 )
+          """)
+  List<ReactionPostEntity> getByPostIdAndType(Long postId, EReactionTypeEntity reactionType,  List<Long> listBlock, Pageable pageable);
+
 }

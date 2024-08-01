@@ -4,6 +4,7 @@ import com.GHTK.Social_Network.application.port.input.post.CommentPostInput;
 import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
 //import com.GHTK.Social_Network.application.port.input.post.ReactionCommentInput;
 //import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.GetCommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.CommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.validation.Valid;
@@ -32,12 +33,12 @@ public class CommentController {
   }
 
   @GetMapping("/{postId}/comments")
-  public ResponseEntity<Object> getAllCommentForPost(@PathVariable Long postId) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByPostId(postId));
+  public ResponseEntity<Object> getListCommentForPost(@PathVariable Long postId, @Valid @ModelAttribute GetCommentRequest getCommentRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByPostId(postId, getCommentRequest));
   }
 
   @GetMapping("/comments/{commentId}")
-  public ResponseEntity<Object> getCommentById(@PathVariable Long commentId) {
+  public ResponseEntity<Object> getCommentById(@PathVariable Long commentId){
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentById(commentId));
   }
 
@@ -48,8 +49,8 @@ public class CommentController {
 
 
   @GetMapping("/comments/{commentId}/replies")
-  public ResponseEntity<Object> getAllCommentChildByCommentParentId(@PathVariable Long commentId) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getAllCommentChildById(commentId));
+  public ResponseEntity<Object> getListCommentChildByCommentParentId(@PathVariable Long commentId, @Valid @ModelAttribute GetCommentRequest getCommentRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentChildByParentId(commentId, getCommentRequest));
   }
 
   @DeleteMapping("/comments/{commentId}")

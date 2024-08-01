@@ -133,7 +133,6 @@ public class ProfileService implements ProfilePortInput {
 
     String url = (String) cloudPort.uploadPictureByFile(background, ImageHandlerPortInput.MAX_SIZE_AVATAR).get("url");
     String backgroundOld = profilePort.saveBackground(url, currentUser.getUserId());
-    System.out.println(backgroundOld);
     if (backgroundOld != null) {
       Profile profile = profilePort.takeProfileById(userId);
       UserDto userDto = userMapper.userAndProfileToUserDto(currentUser, profile);
