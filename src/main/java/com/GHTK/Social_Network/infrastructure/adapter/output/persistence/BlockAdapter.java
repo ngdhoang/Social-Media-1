@@ -36,13 +36,14 @@ public class BlockAdapter implements BlockPort {
 
   @Override
   public List<FriendShip> getListBlock(GetBlockRequest getBlockRequest) {
-    int page = getBlockRequest.getPage();
-    int size = getBlockRequest.getSize();
-    String orderBy = getBlockRequest.getOrderBy();
-    String sortBy = getBlockRequest.getSortBy();
+//    int page = getBlockRequest.getPage();
+//    int size = getBlockRequest.getSize();
+//    String orderBy = getBlockRequest.getOrderBy();
+//    String sortBy = getBlockRequest.getSortBy();
+//    sortBy = Objects.equals(sortBy, ESortBy.CREATED_AT.toString()) ? "createAt" : "friendShipId";
+//    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderBy), sortBy));
+    Pageable pageable = getBlockRequest.toPageable();
     Long userId = getBlockRequest.getUserId();
-    sortBy = Objects.equals(sortBy, ESortBy.CREATED_AT.toString()) ? "createAt" : "friendShipId";
-    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderBy), sortBy));
     return friendShipRepository.getListBlock(userId, pageable).stream().map(friendShipMapperETD::toDomain).toList();
   }
 

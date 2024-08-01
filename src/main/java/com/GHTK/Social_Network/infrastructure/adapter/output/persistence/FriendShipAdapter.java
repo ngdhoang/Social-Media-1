@@ -38,13 +38,14 @@ public class FriendShipAdapter implements FriendShipPort {
 
   @Override
   public List<FriendShip> getListFriendShip(GetFriendShipRequest getFriendShipRequest) {
-    int page = getFriendShipRequest.getPage();
-    int size = getFriendShipRequest.getSize();
-    String orderBy = getFriendShipRequest.getOrderBy();
-    String sortBy = getFriendShipRequest.getSortBy();
+//    int page = getFriendShipRequest.getPage();
+//    int size = getFriendShipRequest.getSize();
+//    String orderBy = getFriendShipRequest.getOrderBy();
+//    String sortBy = getFriendShipRequest.getSortBy();
+//    sortBy = Objects.equals(sortBy, ESortBy.CREATED_AT.toString()) ? "createAt" : "friendShipId";
+//    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderBy), sortBy));
+    Pageable pageable = getFriendShipRequest.toPageable();
     Long userId = getFriendShipRequest.getUserId();
-    sortBy = Objects.equals(sortBy, ESortBy.CREATED_AT.toString()) ? "createAt" : "friendShipId";
-    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderBy), sortBy));
     String statusString = getFriendShipRequest.getStatus();
     if (statusString != null && statusString.toUpperCase().equals("REQUESTED")) {
       return friendShipRepository.getListFriendRequest(userId, EFriendshipStatusEntity.PENDING, pageable).stream().map(friendShipMapperETD::toDomain).toList();

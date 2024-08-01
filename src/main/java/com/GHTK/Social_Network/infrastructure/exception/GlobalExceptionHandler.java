@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(value = CustomException.class)
   public ResponseEntity<Object> handleCustomException(CustomException e) {
-    return ResponseHandler.generateErrorResponse(e.getMessage(), e.getHttpStatus());
+    return ResponseHandler.generateErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler({MessagingException.class, UnsupportedEncodingException.class})
@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<Object> handleGeneralException(Exception ex) {
-//    log.error(ex.getMessage(), ex);
+    log.error(ex.getMessage(), ex);
     return ResponseHandler.generateErrorResponse("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

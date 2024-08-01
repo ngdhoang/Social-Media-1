@@ -13,8 +13,9 @@ public enum CustomPatternValidator {
 
     REACTION_TYPE("(?i)^(LIKE|LOVE|SMILE|ANGRY)$", "Invalid reaction format."),
 
-    STRONG_PASSWORD( "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!*()]).{8,}$", "Password: Must be 8 characters long and combination of uppercase letters, lowercase letters, numbers, special characters.");
-
+    STRONG_PASSWORD( "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!*()]).{8,}$", "Password: Must be 8 characters long and combination of uppercase letters, lowercase letters, numbers, special characters."),
+    ORDER_BY("(?i)^(ASC|DESC)$", "Order by: Must be a valid order by or not."),
+    SORT_BY("(?i)^(createAt|updateAt)$", "Sort by: Must be a valid sort by or not.");
     private final String pattern;
     private final String message;
 

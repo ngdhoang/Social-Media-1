@@ -122,26 +122,28 @@ public class ReactionCommentAdapter implements ReactionCommentPort {
 
   @Override
   public List<ReactionComment> getByCommentIdAndType(Long commentId, GetReactionCommentRequest getReactionCommentRequest) {
-    int page = getReactionCommentRequest.getPage();
-    int size = getReactionCommentRequest.getSize();
-    String orderBy = getReactionCommentRequest.getOrderBy();
-    String sortBy = getReactionCommentRequest.getSortBy();
+//    int page = getReactionCommentRequest.getPage();
+//    int size = getReactionCommentRequest.getSize();
+//    String orderBy = getReactionCommentRequest.getOrderBy();
+//    String sortBy = getReactionCommentRequest.getSortBy();
+//    sortBy = sortBy.equals(ESortBy.CREATED_AT.toString()) ? "createAt" : "reactionCommentId";
+//    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderBy), sortBy));
+    Pageable pageable = getReactionCommentRequest.toPageable();
     EReactionType reactionType = getReactionCommentRequest.getReactionType() == null ? null : EReactionType.valueOf(getReactionCommentRequest.getReactionType());
-    sortBy = sortBy.equals(ESortBy.CREATED_AT.toString()) ? "createAt" : "reactionCommentId";
-    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderBy), sortBy));
     return reactionCommentRepository.getByCommentIdAndType(commentId, reactionTypeMapperETD.toEntity(reactionType), pageable).stream().map(reactionCommentMapperETD::toDomain).toList();
   }
 
 
   @Override
   public List<ReactionComment> getListReactionByCommentId(Long commentId, GetReactionCommentRequest getReactionCommentRequest) {
-    int page = getReactionCommentRequest.getPage();
-    int size = getReactionCommentRequest.getSize();
-    String orderBy = getReactionCommentRequest.getOrderBy();
-    String sortBy = getReactionCommentRequest.getSortBy();
+//    int page = getReactionCommentRequest.getPage();
+//    int size = getReactionCommentRequest.getSize();
+//    String orderBy = getReactionCommentRequest.getOrderBy();
+//    String sortBy = getReactionCommentRequest.getSortBy();
+//    sortBy = sortBy.equals(ESortBy.CREATED_AT.toString()) ? "createAt" : "reactionCommentId";
+//    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderBy), sortBy));
+    Pageable pageable = getReactionCommentRequest.toPageable();
     EReactionType reactionType = getReactionCommentRequest.getReactionType() == null ? null : EReactionType.valueOf(getReactionCommentRequest.getReactionType());
-    sortBy = sortBy.equals(ESortBy.CREATED_AT.toString()) ? "createAt" : "reactionCommentId";
-    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(orderBy), sortBy));
     if (reactionType == null) {
       return reactionCommentRepository.getByCommentId(commentId, pageable).stream().map(reactionCommentMapperETD::toDomain).toList();
     }
