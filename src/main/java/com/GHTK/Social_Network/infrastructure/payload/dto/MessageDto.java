@@ -13,16 +13,20 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatMessageDto {
-  @NotNull(message = "Chanel id cannot null")
-  private Long channelId;
+public class MessageDto {
+  @NotNull(message = "Group id cannot null")
+  private Long groupId;
 
-  private EChatMessageType channelType;
+  private EChatMessageType groupType;
 
   @NotBlank(message = "message cannot blank")
-  private String message;
+  private String content;
 
-  private String messageType;
+  private EChatMessageType msgType;
 
-  private List<Long> tagUserIds = new ArrayList<>();
+  private List<Long> tags = new ArrayList<>();
+
+  private Long reactionQuantity;
+
+  private Long replyMsgId;
 }
