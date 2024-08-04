@@ -260,9 +260,8 @@ public class FriendShipAdapter implements FriendShipPort {
 
   @Override
   public Boolean isBlock(Long fistUserId, Long secondUserId) {
-      FriendshipCollection friendshipCollection = friendCollectionRepository.getBlock(fistUserId, secondUserId);
-      return friendshipCollection != null;
-
+      FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(fistUserId);
+      return friendshipCollection != null && (friendshipCollection.getListBlockedId().contains(secondUserId) || friendshipCollection.getListBlockId().contains(secondUserId));
   }
 
   @Override

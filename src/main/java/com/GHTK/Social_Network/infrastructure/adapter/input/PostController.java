@@ -2,6 +2,7 @@ package com.GHTK.Social_Network.infrastructure.adapter.input;
 
 import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
 import com.GHTK.Social_Network.application.port.input.post.PostPortInput;
+import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.PostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.validation.Valid;
@@ -26,18 +27,18 @@ public class PostController {
   }
 
   @GetMapping("/user/{userId}")
-  public ResponseEntity<Object> getPostsByUser(@PathVariable Long userId) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.getPostsByUserId(userId));
+  public ResponseEntity<Object> getPostsByUser(@PathVariable Long userId, @Valid @ModelAttribute GetPostRequest getPostRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.getPostsByUserId(userId, getPostRequest));
   }
 
-  @GetMapping("/interactions") // Get by reaction or comment
+  @GetMapping("/interactions")
   public ResponseEntity<Object> getPostsByInteractions() {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.getPostsByInteractions());
   }
 
   @GetMapping("/tags")
-  public ResponseEntity<Object> getPostsWithUserTag() {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.getPostsTagMe());
+  public ResponseEntity<Object> getPostsWithUserTag(@Valid @ModelAttribute GetPostRequest getPostRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, postService.getPostsTagMe(getPostRequest));
   }
 
   @GetMapping("/{postId}")

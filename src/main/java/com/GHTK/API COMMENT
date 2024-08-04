@@ -35,8 +35,7 @@
 
 
 
-// Get comment by reaction / comment
-// Get post by reaction / comment
+// Get comment by post / comment
 {
 	"roleId":
 	"role": "comment|post"
@@ -46,10 +45,15 @@
 			"lastName":
 			"avatar":
 		}
+	"post": {
+            "postId":
+            "postStatus":
+            "imagePosts":
+        }
 	"reactionType: ""
 	"content": "hello world",
-    "createUp": "2024-07-24T08:06:53.298+00:00",
-    "updateUp": "2024-07-24T08:06:53.298+00:00",
+	"parentCommentId"
+    "createAt": "2024-07-24T08:06:53.298+00:00",
     "imageUrl": "http://image"
 }
 

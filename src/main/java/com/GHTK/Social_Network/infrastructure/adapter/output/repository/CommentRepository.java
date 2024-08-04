@@ -42,6 +42,12 @@ public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
       """)
   List<CommentEntity> getListByPostIdAndListBlock(Long postId, List<Long> blockIds, Pageable pageable);
 
+
+  @Query("""
+          select c from CommentEntity c where c.userEntity.userId = ?1 
+          """)
+  List<CommentEntity> getListCommentByUserId(Long userId, Pageable pageable);
+
   @Query("""
           select c from CommentEntity c where ( c.parentCommentEntity.commentId = ?1  and c.userEntity.userId not in ?2)
           """)

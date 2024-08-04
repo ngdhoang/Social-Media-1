@@ -79,7 +79,7 @@ public class ReactionCommentService implements ReactionCommentInput {
             if (parentComment == null) {
                 throw new CustomException("Parent comment not found", HttpStatus.NOT_FOUND);
             }
-            if (friendShipPort.isBlock(postOwnerId, parentComment.getUserId())) {
+            if (friendShipPort.isBlock(postOwnerId, parentComment.getUserId()) || (!currentUserId.equals(0) &&friendShipPort.isBlock( currentUserId, parentComment.getUserId()))) {
                 throw new CustomException("Access deny", HttpStatus.FORBIDDEN);
             }
         }

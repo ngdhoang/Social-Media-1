@@ -15,7 +15,9 @@ public interface CommentPostPort {
 
   List<Comment> getListCommentByParentId(Long commentId, List<Long> blockIds, GetCommentRequest getCommentRequest);
 
-  List<Comment> findCommentParentByPostId(Long postId);
+    List<Comment> getListCommentByUserId(Long userId, GetCommentRequest getCommentRequest);
+
+    List<Comment> findCommentParentByPostId(Long postId);
 
   List<Comment> findCommentsByInteractions(Long userId);
 

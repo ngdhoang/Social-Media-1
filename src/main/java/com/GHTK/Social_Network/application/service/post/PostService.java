@@ -14,6 +14,7 @@ import com.GHTK.Social_Network.domain.model.post.*;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.PostMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
+import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.PostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.InteractionResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
@@ -43,7 +44,7 @@ public class PostService implements PostPortInput {
     private final UserMapper userMapper;
 
     @Override
-    public List<PostResponse> getPostsByUserId(Long userId) {
+    public List<PostResponse> getPostsByUserId(Long userId, GetPostRequest getPostRequest) {
         User currentUser = authPort.getUserAuthOrDefaultVirtual();
         validateUserStatus(currentUser.getUserId(), userId);
 
@@ -56,7 +57,8 @@ public class PostService implements PostPortInput {
             status = PostPort.TAKE_POST_STATUS.PUBLIC;
         }
 
-        List<Post> postList = portPost.findPostsByUserIdAndFriendStatus(userId, status);
+        List<Long> blockIds = friendShipPort.getListBlockBoth(userId);
+        List<Post> postList = portPost.findPostsByUserIdAndFriendStatus(userId, status, blockIds, getPostRequest);
 
         return postList.stream()
                 .map(this::mapPostToResponse)
@@ -77,9 +79,11 @@ public class PostService implements PostPortInput {
     //Lấy những bài viết mình đã được tag tên
     // Xem được thông báo những bài bị block nhưng không xem rõ được
     @Override
-    public List<InteractionResponse> getPostsTagMe() {
+    public List<InteractionResponse> getPostsTagMe(GetPostRequest getPostRequest) {
         User currentUser = authPort.getUserAuth();
-        List<Post> postList = portPost.findPostsTagMe(currentUser.getUserId());
+
+        List<Long> blockIds = friendShipPort.getListBlockBoth(currentUser.getUserId());
+        List<Post> postList = portPost.findPostsTagMe(currentUser.getUserId(), blockIds, getPostRequest);
 
         return generateInteractionPost(postList, currentUser);
     }
@@ -93,8 +97,9 @@ public class PostService implements PostPortInput {
         if (friendShipPort.isBlock(post.getUserId(), authPort.getUserAuthOrDefaultVirtual().getUserId()) || post.getPostStatus().equals(EPostStatus.PRIVATE)) {
             throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
         }
-        List<ImagePost> imagePosts = sortImagePosts(postId, portPost.findAllImageByPostId(post.getPostId()));
-        List<TagUser> tagUserList = portPost.findAllTagUserByPostId(post.getPostId());
+        List<ImagePost> imagePosts = sortImagePosts(postId, portPost.getListImageByPostId(post.getPostId()));
+        List<Long> blockIds = friendShipPort.getListBlockBoth(post.getUserId());
+        List<TagUser> tagUserList = portPost.getListTagUserByPostId(post.getPostId(), blockIds);
         List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getTagUserId())).toList();
         return postMapper.postToPostResponse(post, imagePosts, userTagList);
     }
@@ -104,7 +109,7 @@ public class PostService implements PostPortInput {
         User currentUser = authPort.getUserAuth();
 
         Post post = createNewPost(postRequest, currentUser);
-        post.setCreatedAt(LocalDate.now());
+        post.setCreateAt(LocalDate.now());
         Post newPost = portPost.savePost(post);
 
         List<TagUser> tagUserList = handleTagUsers(postRequest.getTagUserIds(), newPost); // Take tag user list
@@ -123,9 +128,11 @@ public class PostService implements PostPortInput {
 
         Post post = getAndValidatePostCurrentUser(postId, currentUser);
         updatePostDetails(post, postRequest);
-
+        List<Long> blockIds = new ArrayList<>();
+//        List<Long> previousTagUserList = portPost.getListTagUserIdByPostId(post.getPostId(), blockIds);
+        List<TagUser> previousTagUserList = portPost.getListTagUserByPostId(postId, blockIds);
         Post newPost = portPost.savePost(post);
-        List<TagUser> tagUserList = handleTagUsers(postRequest.getTagUserIds(), newPost);
+        List<TagUser> tagUserList = handleUpdateTagUsers(postRequest.getTagUserIds(), previousTagUserList, newPost);
         List<ImagePost> imagePostList = updateImagePosts(postRequest, newPost);
         portPost.savePost(newPost);
 
@@ -172,7 +179,7 @@ public class PostService implements PostPortInput {
                     .reactionType(reactionType)
                     .content(content)
                     .image(imageUrl)
-                    .createdAt(post.getCreatedAt())
+                    .createAt(post.getCreateAt())
                     .updateAt(post.getUpdateAt())
                     .build();
             interactionResponseList.add(interactionResponse);
@@ -233,6 +240,20 @@ public class PostService implements PostPortInput {
         List<TagUser> tagUserList = getTagUsers(tagUserIds, post);
         portPost.saveAllTagUser(tagUserList);
         return tagUserList;
+    }
+
+    private List<TagUser> handleUpdateTagUsers(List<Long> tagUserIds, List<TagUser> previousTagUserList, Post post) {
+        List<TagUser> removeTagUserList = previousTagUserList.stream()
+                .filter(t -> !tagUserIds.contains(t.getTagUserId()))
+                .collect(Collectors.toList());
+
+        List<Long> addTagUserList = tagUserIds.stream()
+                .filter(t -> previousTagUserList.stream().noneMatch(p -> p.getTagUserId().equals(t)))
+                .collect(Collectors.toList());
+
+        portPost.saveAllTagUser(addTagUserList, post.getPostId());
+        portPost.deleteAllTagUser(removeTagUserList);
+        return portPost.getListTagUserByPostId(post.getPostId(), new ArrayList<>());
     }
 
     private TagUser createTagUser(Long userId, Post post) {
@@ -345,7 +366,7 @@ public class PostService implements PostPortInput {
                 .toList();
         imagePostInput.deleteImagePost(imagesNotInList);
 
-        return sortImagePosts(post.getPostId(), portPost.findAllImageByPostId(post.getPostId()));
+        return sortImagePosts(post.getPostId(), portPost.getListImageByPostId(post.getPostId()));
     }
 
     private List<ImagePost> sortImagePosts(Long postId, List<ImagePost> imagePosts) {
@@ -380,8 +401,9 @@ public class PostService implements PostPortInput {
     }
 
     private PostResponse mapPostToResponse(Post p) {
-        List<ImagePost> imagePostList = portPost.findAllImageByPostId(p.getPostId());
-        List<TagUser> tagUserList = portPost.findAllTagUserByPostId(p.getPostId());
+        List<ImagePost> imagePostList = portPost.getListImageByPostId(p.getPostId());
+        List<Long> blockIds = friendShipPort.getListBlockBoth(p.getUserId());
+        List<TagUser> tagUserList = portPost.getListTagUserByPostId(p.getPostId(), blockIds);
         return postMapper.postToPostResponse(p, imagePostList, tagUserList);
     }
 

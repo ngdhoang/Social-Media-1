@@ -2,6 +2,7 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
 
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.TagUserEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,9 +15,9 @@ import java.util.List;
 @Repository
 public interface PostRepository extends JpaRepository<PostEntity, Long> {
   @Query("""
-          select p from PostEntity p where p.userEntity.userId = ?1
+          select p from PostEntity p where p.userEntity.userId = ?1 and p.userEntity.userId not in ?2
           """)
-  List<PostEntity> findAllByUserId(Long userEntityId);
+  List<PostEntity> getListByUserId(Long userEntityId, List<Long> blockIds, Pageable pageable);
 
   @Query("""
               select p from PostEntity p join p.tagUserEntities t where t = ?1
@@ -40,8 +41,9 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
             or (:status = 'FRIEND' and p.post_status in ('FRIEND', 'PUBLIC'))
             or (:status = 'ALL' and p.post_status in ('FRIEND', 'PUBLIC', 'PRIVATE'))
           )
+          and p.post_id not in :blockIds
           """, nativeQuery = true)
-  List<PostEntity> findAllByUserIdAndFriendStatus(@Param("userId") Long userId, @Param("status") String status);
+  List<PostEntity> getListByUserIdAndFriendStatus(@Param("userId") Long userId, @Param("status") String status, @Param("blockIds") List<Long> blockIds, Pageable pageable);
 
   @Query(value = """
           select distinct p from PostEntity p
@@ -54,7 +56,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
             or
             exists (select 1 from ReactionPostEntity r where r.postEntity = p and r.userEntity.userId = :userId and r.commentEntity is null)
           )
-          order by p.createdAt desc
+          order by p.createAt desc
           """, nativeQuery = true)
   List<PostEntity> findPostsWithUserInteractions(@Param("userId") Long userId);
 

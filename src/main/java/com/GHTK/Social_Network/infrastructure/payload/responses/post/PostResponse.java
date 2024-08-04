@@ -13,7 +13,7 @@ public class PostResponse {
 
   private String content;
 
-  private Date createdAt;
+  private Date createAt;
 
   private Date updateAt;
 

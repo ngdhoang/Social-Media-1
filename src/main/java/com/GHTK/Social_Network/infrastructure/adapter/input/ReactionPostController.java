@@ -2,6 +2,7 @@ package com.GHTK.Social_Network.infrastructure.adapter.input;
 
 import com.GHTK.Social_Network.application.port.input.post.ReactionCommentInput;
 import com.GHTK.Social_Network.application.port.input.post.ReactionPostInput;
+import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionCommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionPostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionRequest;
@@ -40,6 +41,11 @@ public class ReactionPostController {
   @GetMapping("/comment/{p}")
   public ResponseEntity<Object> getReactionPostHandler(@PathVariable Long p, @Valid @ModelAttribute GetReactionCommentRequest getReactionCommentRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionCommentInput.getListReactionInComment(p, getReactionCommentRequest));
+  }
+
+  @GetMapping("")
+  public ResponseEntity<Object> getReactionPostHandler(@Valid @ModelAttribute GetPostRequest getPostRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionPostInput.getListReactionInteractions(getPostRequest));
   }
 
 }

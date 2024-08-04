@@ -16,7 +16,7 @@ public class Post {
 
   private String content;
 
-  private LocalDate createdAt;
+  private LocalDate createAt;
 
   private LocalDate updateAt;
 

@@ -14,10 +14,13 @@ import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.domain.model.post.comment.Comment;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.CommentMapper;
+import com.GHTK.Social_Network.infrastructure.payload.Mapping.PostMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetCommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.CommentRequest;
+import com.GHTK.Social_Network.infrastructure.payload.responses.ActivityInteractionResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.InteractionResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.CommentResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -41,6 +45,7 @@ public class CommentService implements CommentPostInput {
 
     private final CommentMapper commentMapper;
     private final UserMapper userMapper;
+    private final PostMapper postMapper;
 
     private User getUserAuth() {
         User user = authPort.getUserAuth();
@@ -99,7 +104,7 @@ public class CommentService implements CommentPostInput {
             throw new CustomException("Parent comment not found", HttpStatus.NOT_FOUND);
         }
 
-        if (friendShipPort.isBlock(user.getUserId(), parentComment.getUserId())) {
+        if (friendShipPort.isBlock(user.getUserId(), parentComment.getUserId()) || friendShipPort.isBlock(parentComment.getUserId(), post.getUserId())) {
             throw new CustomException("Not allow comment", HttpStatus.FORBIDDEN);
         }
 
@@ -135,6 +140,75 @@ public class CommentService implements CommentPostInput {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<ActivityInteractionResponse> getListCommentInteractions(GetCommentRequest getCommentRequest) {
+        User user = authPort.getUserAuthOrDefaultVirtual();
+        if (user.getUserId().equals(0L)) {
+            throw new CustomException("Not authorized", HttpStatus.UNAUTHORIZED);
+        }
+        List<Comment> listComment = commentPostPort.getListCommentByUserId(user.getUserId(), getCommentRequest);
+
+        return listComment.stream().map(
+                comment -> {
+                    Post post = postPort.findPostByPostId(comment.getPostId());
+                    if (post == null) {
+                        return null;
+                    }
+                    if (comment.getParentCommentId() != null){
+                        Comment parentComment = commentPostPort.findCommentById(comment.getParentCommentId());
+                        User userParentComment = authPort.getUserById(parentComment.getUserId());
+                        if (parentComment == null) {
+                            return null;
+                        }
+                        if (friendShipPort.isBlock(user.getUserId(), post.getUserId())
+                                || post.getPostStatus().equals(EPostStatus.PRIVATE)
+                                || (post.getPostStatus().equals(EPostStatus.FRIEND) && !friendShipPort.isFriend(user.getUserId(), post.getUserId()))) {
+                            return ActivityInteractionResponse.builder()
+                                    .owner(post.getUserId().equals(parentComment.getUserId())
+                                            ? UserBasicDto.builder()
+                                                    .userId(userParentComment.getUserId())
+                                                    .firstName(userParentComment.getFirstName())
+                                                    .lastName(userParentComment.getLastName())
+                                                    .build()
+                                            : userMapper.userToUserBasicDto(userParentComment)
+                                            )
+                                    .role("comment")
+                                    .createAt(comment.getCreateAt())
+                                    .build();
+
+                        }
+                        if (friendShipPort.isBlock(user.getUserId(), userParentComment.getUserId())) {
+                            return ActivityInteractionResponse.builder()
+                                    .owner(UserBasicDto.builder()
+                                            .userId(userParentComment.getUserId())
+                                            .firstName(userParentComment.getFirstName())
+                                            .lastName(userParentComment.getLastName())
+                                            .build())
+                                    .roleId(comment.getCommentId())
+                                    .role("comment")
+                                    .createAt(comment.getCreateAt())
+                                    .build();
+                        }
+                        return commentMapper.commentToCommentActivityResponse(comment, userParentComment, post, "comment");
+                    }
+                    User ownerPost = authPort.getUserById(post.getUserId());
+                    if (friendShipPort.isBlock(user.getUserId(), post.getUserId())
+                            || post.getPostStatus().equals(EPostStatus.PRIVATE)
+                            || (post.getPostStatus().equals(EPostStatus.FRIEND) && !friendShipPort.isFriend(user.getUserId(), post.getUserId()))) {
+                        return ActivityInteractionResponse.builder()
+                                .owner(UserBasicDto.builder()
+                                        .userId(ownerPost.getUserId())
+                                        .firstName(ownerPost.getFirstName())
+                                        .lastName(ownerPost.getLastName())
+                                        .build())
+                                .role("post")
+                                .createAt(comment.getCreateAt())
+                                .build();
+                    }
+                    return commentMapper.commentToCommentActivityResponse(comment, ownerPost, post, "post");
+                }
+        ).filter(Objects::nonNull).collect(Collectors.toList());
+    }
     private CommentResponse processCommentWithChildren(Comment comment, List<Comment> listComment) {
         User authComment = authPort.getUserById(comment.getUserId());
         CommentResponse response = commentMapper.commentToCommentResponse(comment, userMapper.userToUserBasicDto(authComment));
@@ -220,11 +294,11 @@ public class CommentService implements CommentPostInput {
         return commentMapper.commentToCommentResponse(updatedComment, userBasicDto);
     }
 
-//  @Override
-//  public List<InteractionResponse> getCommentsByInteractions() {
-//    String role = "COMMENT";
-//    User currentUser = authPort.getUserAuth();
-//    List<InteractionResponse> interactionResponseList = new ArrayList<>();
+  @Override
+  public List<InteractionResponse> getCommentsByInteractions(GetCommentRequest getCommentRequest) {
+    String role = "COMMENT";
+    User currentUser = authPort.getUserAuth();
+    List<InteractionResponse> interactionResponseList = new ArrayList<>();
 //    commentPostPort.findCommentsByInteractions(authPort.getUserAuth().getUserId()).stream().forEach(
 //            c -> {
 //              String content = "You do not have sufficient permissions to view this content.";
@@ -242,14 +316,14 @@ public class CommentService implements CommentPostInput {
 //                      ).getReactionType())
 //                      .content(content)
 //                      .image(imageUrl)
-//                      .createdAt(c.getCreateAt())
+//                      .createAt(c.getCreateAt())
 //                      .updateAt(null)
 //                      .build();
 //              interactionResponseList.add(interactionResponse);
 //            }
 //    );
-//    return interactionResponseList;
-//  }
+    return interactionResponseList;
+  }
 //
 //  @Override
 //  public ReactionResponse handleReactionComment(Long commentId, String reactionType) {

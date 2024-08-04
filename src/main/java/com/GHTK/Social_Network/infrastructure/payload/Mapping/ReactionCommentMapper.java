@@ -18,7 +18,7 @@ public interface ReactionCommentMapper {
 //  @Mapping(source = "reactionType", target = "reactionType")
 //  @Mapping(target = "postId", ignore = true)
 //  @Mapping(target = "commentId", ignore = true)
-//  @Mapping(target = "createdAt", ignore = true)
+//  @Mapping(target = "createAt", ignore = true)
 //  @Mapping(target = "updateAt", ignore = true)
 //  ReactionPost responseToComment(ReactionResponse response);
 }

@@ -2,6 +2,7 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
 
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EReactionTypeEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionPostEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.ReactionCommentEntity;
 import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
@@ -68,5 +69,17 @@ public interface ReactionPostRepository extends JpaRepository<ReactionPostEntity
                  select r from ReactionPostEntity r where ( r.postEntity.postId = ?1 and r.reactionType = ?2 and r.userEntity.userId not in ?3 )
           """)
   List<ReactionPostEntity> getByPostIdAndType(Long postId, EReactionTypeEntity reactionType,  List<Long> listBlock, Pageable pageable);
+
+  @Query(value =
+            """
+                SELECT r.reaction_post_id AS roleId, r.reaction_type AS reactionType, r.post_id AS postId, DATE(r.create_at) AS createAt, "post" as role
+                FROM reaction_post r
+                WHERE r.user_id = :userId 
+                UNION ALL
+                SELECT r.reaction_comment_id AS roleId, r.reaction_type AS reactionType, r.comment_id AS commentId, DATE(r.create_at) AS createAt, "comment" as role
+                FROM reaction_comment r
+                WHERE r.user_id = :userId
+            """, nativeQuery = true)
+    List<Object[]> getReactionPostAndCommentByUserId(@Param("userId") Long userId, Pageable pageable);
 
 }

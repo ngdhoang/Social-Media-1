@@ -11,9 +11,6 @@ import java.util.Optional;
 
 @Repository
 public interface FriendCollectionRepository extends MongoRepository<FriendshipCollection, String> {
-//    @Query("{ 'userId' : ?0 }")
-//    FriendshipCollection findByUserId(String userId);
-
     @Query(
             """
                     {

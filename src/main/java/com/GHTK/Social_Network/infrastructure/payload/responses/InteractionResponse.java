@@ -26,7 +26,7 @@ public class InteractionResponse {
 
   private String image;
 
-  private LocalDate createdAt;
+  private LocalDate createAt;
 
   private LocalDate updateAt;
 }
