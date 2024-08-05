@@ -2,6 +2,7 @@ package com.GHTK.Social_Network.application.port.output.post;
 
 import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import com.GHTK.Social_Network.domain.model.post.ReactionPost;
+import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionPostRequest;
 
 import java.util.List;
@@ -27,4 +28,5 @@ public interface ReactionPostPort {
 
   List<ReactionPost> getListReactionByPostIdAndListBlock(Long postId, GetReactionPostRequest getReactionPostRequest, List<Long> listBlock);
 
+  List<Object[]> getListReactionInteractions(Long userId, GetPostRequest getPostRequest);
 }

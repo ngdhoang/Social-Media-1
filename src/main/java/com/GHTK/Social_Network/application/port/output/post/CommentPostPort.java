@@ -1,7 +1,6 @@
 package com.GHTK.Social_Network.application.port.output.post;
 
 import com.GHTK.Social_Network.domain.model.post.comment.Comment;
-import com.GHTK.Social_Network.domain.model.post.ReactionPost;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetCommentRequest;
 
 import java.util.List;
@@ -14,6 +13,8 @@ public interface CommentPostPort {
   List<Comment> getListCommentByPostId(Long postId, List<Long> blockIds, GetCommentRequest getCommentRequest);
 
   List<Comment> getListCommentByParentId(Long commentId, List<Long> blockIds, GetCommentRequest getCommentRequest);
+
+  List<Comment> getListCommentByUserId(Long userId, GetCommentRequest getCommentRequest);
 
   List<Comment> findCommentParentByPostId(Long postId);
 

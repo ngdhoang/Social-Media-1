@@ -26,7 +26,7 @@ public class PostEntity {
   @Column(columnDefinition = "TEXT")
   private String content;
 
-  private LocalDate createdAt;
+  private LocalDate createAt;
 
   private LocalDate updateAt;
 

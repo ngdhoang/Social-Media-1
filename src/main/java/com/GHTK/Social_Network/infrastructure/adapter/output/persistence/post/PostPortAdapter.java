@@ -13,8 +13,10 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.repository.TagUserR
 import com.GHTK.Social_Network.infrastructure.mapper.ImagePostMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.PostMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.TagUserMapperETD;
+import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -46,9 +48,10 @@ public class PostPortAdapter implements PostPort {
 
 
   @Override
-  public List<Post> findPostsByUserIdAndFriendStatus(Long userId, TAKE_POST_STATUS status) {
+  public List<Post> findPostsByUserIdAndFriendStatus(Long userId, TAKE_POST_STATUS status, List<Long> blockIds, GetPostRequest getPostRequest) {
     String statusString = status.toString();
-    return postRepository.findAllByUserIdAndFriendStatus(userId, statusString).stream().map(
+    Pageable pageable = getPostRequest.toPageable();
+    return postRepository.getListByUserIdAndFriendStatus(userId, statusString, blockIds, pageable).stream().map(
             postMapperETD::toDomain
     ).toList();
   }
@@ -69,8 +72,9 @@ public class PostPortAdapter implements PostPort {
   }
 
   @Override
-  public List<Post> findAllPostTagMeNotBlockAndPrivate(Long currentUser) {
-    List<TagUserEntity> tagUserList = tagUserRepository.findAllByUserId(currentUser);
+  public List<Post> getListPostTagMeNotBlockAndPrivate(Long currentUser, List<Long> blockIds, GetPostRequest getPostRequest) {
+    Pageable pageable = getPostRequest.toPageable();
+    List<TagUserEntity> tagUserList = tagUserRepository.getListByUserId(currentUser, blockIds, pageable);
     List<PostEntity> postList = new ArrayList<>();
     tagUserList.forEach(tagUser -> {
       PostEntity p = postRepository.findByTagUsers(tagUser);
@@ -83,8 +87,9 @@ public class PostPortAdapter implements PostPort {
 
 
   @Override
-  public List<Post> findPostsTagMe(Long currentUser) {
-    List<TagUserEntity> tagUserList = tagUserRepository.findAllByUserId(currentUser);
+  public List<Post> findPostsTagMe(Long currentUser, List<Long> blockIds, GetPostRequest getPostRequest) {
+    Pageable pageable = getPostRequest.toPageable();
+    List<TagUserEntity> tagUserList = tagUserRepository.getListByUserId(currentUser, blockIds, pageable);
     List<PostEntity> postList = new ArrayList<>();
     tagUserList.forEach(tagUser -> {
       PostEntity p = postRepository.findByTagUsers(tagUser);
@@ -113,23 +118,51 @@ public class PostPortAdapter implements PostPort {
   }
 
   @Override
+  public List<TagUser> saveAllTagUser(List<Long> tagUsers, Long postId) {
+    return tagUsers.stream().map(
+            tagUserId -> {
+              TagUser tagUser = new TagUser();
+              tagUser.setUserId(tagUserId);
+              tagUser.setPostId(postId);
+              return tagUser;
+            }
+    ).map(
+            tagUser -> tagUserMapperETD.ToDomain(
+                    tagUserRepository.save(tagUserMapperETD.toEntity(tagUser))
+            )
+    ).toList();
+  }
+
+  @Override
   public List<TagUser> saveAllTagUser(List<TagUser> tagUser) {
     return tagUser.stream().map(this::saveTagUser).toList();
   }
 
   @Override
-  public List<ImagePost> findAllImageByPostId(Long postId) {
+  public void deleteAllTagUser(List<TagUser> tagUsers) {
+    tagUsers.forEach(
+            tagUser -> tagUserRepository.delete(tagUserMapperETD.toEntity(tagUser))
+    );
+  }
+
+  @Override
+  public List<ImagePost> getListImageByPostId(Long postId) {
     return imagePostRepository.findAllByPostId(postId).stream().map(
             imagePostMapperETD::toDomain
     ).toList();
   }
 
-  @Override
-  public List<TagUser> findAllTagUserByPostId(Long postId) {
-    return tagUserRepository.findAllByPostId(postId).stream().map(
+  public List<TagUser> getListTagUserByPostId(Long postId, List<Long> blockIds) {
+    return tagUserRepository.getListByPostId(postId, blockIds).stream().map(
             tagUserMapperETD::ToDomain
     ).toList();
   }
+
+  @Override
+  public List<Long> getListTagUserIdByPostId(Long postId, List<Long> blockIds) {
+    return tagUserRepository.getListUserIdByPostId(postId, blockIds);
+  }
+
 
   @Override
   public void decrementReactionQuantity(Long postId) {

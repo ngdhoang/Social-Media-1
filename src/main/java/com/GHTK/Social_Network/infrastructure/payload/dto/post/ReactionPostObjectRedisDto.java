@@ -16,5 +16,5 @@ public class ReactionPostObjectRedisDto {
 
   Long reactionPostId;
 
-  LocalDate createdAt;
+  LocalDate createAt;
 }

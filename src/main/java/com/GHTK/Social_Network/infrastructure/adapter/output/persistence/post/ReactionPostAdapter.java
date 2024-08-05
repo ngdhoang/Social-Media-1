@@ -1,19 +1,17 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.post;
 
 import com.GHTK.Social_Network.application.port.output.post.ReactionPostPort;
-import com.GHTK.Social_Network.common.customAnnotation.Enum.ESortBy;
 import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import com.GHTK.Social_Network.domain.model.post.ReactionPost;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ReactionPostRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.ReactionPostMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.ReactionTypeMapperETD;
+import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionPostRequest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -87,17 +85,17 @@ public class ReactionPostAdapter implements ReactionPostPort {
                 ReactionPost reactionPost1 = new ReactionPost();
                 reactionPost1.setPostId(convertToLong(reactionPost.get("post_id")));
                 reactionPost1.setUserId(convertToLong(reactionPost.get("user_id")));
-                String createdAtStr = (String) reactionPost.get("create_at");
-                LocalDate createdAt = null;
-                try{
-                  createdAt = LocalDate.parse(createdAtStr);
-                  reactionPost1.setCreatedAt(createdAt);
-                  createdAt = LocalDate.parse(createdAtStr, DATE_FORMATTER);
+                String createAtStr = (String) reactionPost.get("create_at");
+                LocalDate createAt = null;
+                try {
+                  createAt = LocalDate.parse(createAtStr);
+                  reactionPost1.setCreateAt(createAt);
+                  createAt = LocalDate.parse(createAtStr, DATE_FORMATTER);
                 } catch (Exception e) {
                   System.out.print("");
                 }
-                
-                reactionPost1.setCreatedAt(createdAt);
+
+                reactionPost1.setCreateAt(createAt);
                 reactionPost1.setReactionPostId(convertToLong(reactionPost.get("reaction_post_id")));
                 reactionPost1.setReactionType(reactionType);
                 return reactionPost1;
@@ -152,4 +150,9 @@ public class ReactionPostAdapter implements ReactionPostPort {
     return reactionPostRepository.getByPostIdAndType(postId, reactionTypeMapperETD.toEntity(reactionType), listBlock, pageable).stream().map(reactionPostMapperETD::toDomain).toList();
   }
 
+  @Override
+  public List<Object[]> getListReactionInteractions(Long userId, GetPostRequest getPostRequest) {
+    Pageable pageable = getPostRequest.toPageable();
+    return reactionPostRepository.getReactionPostAndCommentByUserId(userId, pageable);
+  }
 }

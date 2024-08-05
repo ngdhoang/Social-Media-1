@@ -1,10 +1,11 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
-import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.domain.model.post.EPostStatus;
 import com.GHTK.Social_Network.domain.model.post.ImagePost;
 import com.GHTK.Social_Network.domain.model.post.Post;
+import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.post.PostBasicDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.PostResponse;
 import org.mapstruct.Mapper;
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
 public interface PostMapper {
   @Mapping(source = "post.postId", target = "postId")
   @Mapping(source = "post.content", target = "content")
-  @Mapping(source = "post.createdAt", target = "createdAt")
+  @Mapping(source = "post.createAt", target = "createAt")
   @Mapping(source = "post.updateAt", target = "updateAt")
   @Mapping(source = "post.postStatus", target = "status", qualifiedByName = "postStatusToString")
   @Mapping(source = "imagePosts", target = "imagePosts", qualifiedByName = "mapImagePosts")
@@ -68,4 +69,7 @@ public interface PostMapper {
 
   @Mapping(source = "userId", target = "userId")
   UserBasicDto userToUserBasicInfoDto(User user);
+
+  @Mapping(source = "postId", target = "postId")
+  PostBasicDto postToPostBasicDto(Post post);
 }

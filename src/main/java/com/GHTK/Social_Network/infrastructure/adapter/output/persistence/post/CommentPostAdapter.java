@@ -56,6 +56,14 @@ public class CommentPostAdapter implements CommentPostPort {
   }
 
   @Override
+  public List<Comment> getListCommentByUserId(Long userId, GetCommentRequest getCommentRequest) {
+    Pageable pageable = getCommentRequest.toPageable();
+    return commentRepository.getListCommentByUserId(userId, pageable).stream()
+            .map(commentMapperETD::toDomain)
+            .toList();
+  }
+
+  @Override
   public List<Comment> findCommentParentByPostId(Long postId) {
     return commentRepository.findAllCommentParentIdByPostId(postId).stream()
             .map(commentMapperETD::toDomain)
@@ -93,7 +101,7 @@ public class CommentPostAdapter implements CommentPostPort {
 
   @Override
   public void decreaseCommentCount(Long commentId, Long quantity) {
-        commentRepository.decreaseCommentCount(commentId, quantity);
+    commentRepository.decreaseCommentCount(commentId, quantity);
   }
 
 

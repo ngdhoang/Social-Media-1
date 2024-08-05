@@ -29,9 +29,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableMethodSecurity
 public class WebSecurityConfig {
   private final AuthEntryPointJwt unAuthorizationHandler;
-
   private final UserDetailsServiceImpl userDetailsService;
-
   private final AuthJwtFilter authJwtFilter;
 
   @Bean

@@ -3,6 +3,7 @@ package com.GHTK.Social_Network.application.port.output.post;
 import com.GHTK.Social_Network.domain.model.post.ImagePost;
 import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.domain.model.post.TagUser;
+import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
 
 import java.util.List;
 
@@ -18,15 +19,15 @@ public interface PostPort {
 
   Post findPostById(Long id);
 
-  List<Post> findPostsByUserIdAndFriendStatus(Long userId, TAKE_POST_STATUS status);
+  List<Post> findPostsByUserIdAndFriendStatus(Long userId, TAKE_POST_STATUS status, List<Long> blockIds, GetPostRequest getPostRequest);
 
   Post findPostByPostId(Long postId);
 
   Boolean deletePostById(Long id);
 
-  List<Post> findAllPostTagMeNotBlockAndPrivate(Long currentUser);
+  List<Post> getListPostTagMeNotBlockAndPrivate(Long currentUser, List<Long> blockIds, GetPostRequest getPostRequest);
 
-  List<Post> findPostsTagMe(Long currentUser);
+  List<Post> findPostsTagMe(Long currentUser, List<Long> blockIds, GetPostRequest getPostRequest);
 
   List<Post> findPostsWithUserInteractions(Long userId);
 
@@ -34,11 +35,17 @@ public interface PostPort {
 
   TagUser saveTagUser(TagUser tagUser);
 
-  List<TagUser> saveAllTagUser(List<TagUser> tagUser);
+  List<TagUser> saveAllTagUser(List<Long> tagUsers, Long postId);
 
-  List<ImagePost> findAllImageByPostId(Long postId);
+  List<TagUser> saveAllTagUser(List<TagUser> tagUsers);
 
-  List<TagUser> findAllTagUserByPostId(Long postId);
+  void deleteAllTagUser(List<TagUser> tagUserIds);
+
+  List<ImagePost> getListImageByPostId(Long postId);
+
+  List<TagUser> getListTagUserByPostId(Long postId, List<Long> blockIds);
+
+  List<Long> getListTagUserIdByPostId(Long postId, List<Long> blockIds);
 
   void decrementReactionQuantity(Long postId);
 

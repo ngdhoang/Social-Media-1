@@ -80,16 +80,15 @@ public class ReactionCommentAdapter implements ReactionCommentPort {
                 ReactionComment reactionComment1 = new ReactionComment();
                 reactionComment1.setCommentId(convertToLong(reactionComment.get("comment_id")));
                 reactionComment1.setUserId(convertToLong(reactionComment.get("user_id")));
-                String createdAtStr = (String) reactionComment.get("create_at");
-                LocalDate createdAt = LocalDate.parse(createdAtStr, DATE_FORMATTER);
-                reactionComment1.setCreatedAt(createdAt);
+                String createAtStr = (String) reactionComment.get("create_at");
+                LocalDate createAt = LocalDate.parse(createAtStr, DATE_FORMATTER);
+                reactionComment1.setCreateAt(createAt);
                 reactionComment1.setReactionCommentId(convertToLong(reactionComment.get("reaction_comment_id")));
                 reactionComment1.setReactionType(reactionType);
                 return reactionComment1;
               }
       ).collect(Collectors.toSet());
       result.add(Map.of(reactionType, reactionCommentSet));
-
     }
     return result;
   }
@@ -131,7 +130,7 @@ public class ReactionCommentAdapter implements ReactionCommentPort {
     Pageable pageable = getReactionCommentRequest.toPageable();
     EReactionType reactionType = getReactionCommentRequest.getReactionType() == null ? null : EReactionType.valueOf(getReactionCommentRequest.getReactionType());
     if (reactionType == null) {
-      return reactionCommentRepository.getByCommentId(commentId,listBlock, pageable).stream().map(reactionCommentMapperETD::toDomain).toList();
+      return reactionCommentRepository.getByCommentId(commentId, listBlock, pageable).stream().map(reactionCommentMapperETD::toDomain).toList();
     }
     return reactionCommentRepository.getByCommentIdAndType(commentId, reactionTypeMapperETD.toEntity(reactionType), listBlock, pageable).stream().map(reactionCommentMapperETD::toDomain).toList();
   }

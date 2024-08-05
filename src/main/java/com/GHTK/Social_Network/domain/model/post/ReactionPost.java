@@ -19,13 +19,13 @@ public class ReactionPost {
 
   private Long userId;
 
-  private LocalDate createdAt;
+  private LocalDate createAt;
 
   private LocalDate updateAt;
 
   @PrePersist
   public void prePersist() {
-    this.createdAt = LocalDate.now();
+    this.createAt = LocalDate.now();
   }
 
   @PreUpdate
