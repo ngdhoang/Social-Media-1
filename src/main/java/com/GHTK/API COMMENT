@@ -1,0 +1,59 @@
+// Delete Post: ?p=
+
+// Get Comment
+{
+	"user": {
+			"userId":
+			"firstName":
+			"lastName":
+			"userEmail":
+			"avatar":
+		}
+	"commentId": 34,
+    "createUp": "2024-07-24T08:06:53.298+00:00",
+    "updateUp": "2024-07-24T08:06:53.298+00:00",
+    "content": "hello world",
+    "parentCommentId": null,
+    "childQuantity": 26,
+    "imageUrl": "http://image"
+    "reactionQuantity": 10
+}
+
+// Create Comment {}
+{
+    "postId": 26,
+    "content": "hello world",
+    "publicId": "da48c5c1",
+}
+
+// Update Comment ?c=
+{
+    "postId": 26,
+    "content": "hello world",
+    "publicId": "da48c5c1",
+}
+
+
+
+// Get comment by post / comment
+{
+	"roleId":
+	"role": "comment|post"
+	"owner": {
+			"userId":
+			"firstName":
+			"lastName":
+			"avatar":
+		}
+	"post": {
+            "postId":
+            "postStatus":
+            "imagePosts":
+        }
+	"reactionType: ""
+	"content": "hello world",
+	"parentCommentId"
+    "createAt": "2024-07-24T08:06:53.298+00:00",
+    "imageUrl": "http://image"
+}
+
