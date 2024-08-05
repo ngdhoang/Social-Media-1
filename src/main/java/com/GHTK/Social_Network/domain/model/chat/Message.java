@@ -28,15 +28,6 @@ public class Message {
 
   private ReactionMessages reactionMsgs;
 
-  @AllArgsConstructor
-  @Getter
-  class ReactionMessages {
-    private List<Long> likeIds;
-    private List<Long> smileIds;
-    private List<Long> argyIds;
-    private List<Long> loveIds;
-  }
-
   private Long reactionQuantity;
 
   private Date createAt;

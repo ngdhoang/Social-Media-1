@@ -6,7 +6,9 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+@Slf4j
 @Service
 public class JwtUtils implements JwtPort {
   @Value("${application.GHTK.JwtUtils.secretKey}")
@@ -100,5 +103,13 @@ public class JwtUtils implements JwtPort {
             .compact();
   }
 
+  public String parseJwt(StompHeaderAccessor accessor) {
+    String token = accessor.getFirstNativeHeader("Authorization");
+    String jwt = null;
+    if (token != null) {
+      jwt = token.substring(7);
+    }
+    return jwt;
+  }
 }
 

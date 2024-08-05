@@ -22,7 +22,7 @@ public class WebSocketAdapter implements WebSocketPort {
     messagingTemplate.convertAndSend(destination, chatMessage);
     // save message into database
 
-    MessageCollection messageCollection = chatMapperETD.messageDtoToMessageCollection(chatMessage.getChatMessage());
-    messageRepository.save(messageCollection);
+//    MessageCollection messageCollection = chatMapperETD.messageDtoToMessageCollection(chatMessage.getChatMessage());
+//    messageRepository.save(messageCollection);
   }
 }

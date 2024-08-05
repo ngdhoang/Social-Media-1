@@ -1,9 +1,8 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt;
 
+import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsServiceImpl;
 import com.GHTK.Social_Network.infrastructure.adapter.output.persistence.user.AuthAdapter;
-import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,8 +10,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,12 +23,8 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class AuthJwtFilter extends OncePerRequestFilter {
   private final JwtUtils jwtUtils;
-
   private final UserDetailsServiceImpl userDetailsService;
-
   private final AuthAdapter tokenRepository;
-
-  private final ObjectMapper objectMapper;
 
   @Override
   protected void doFilterInternal(
@@ -47,53 +40,32 @@ public class AuthJwtFilter extends OncePerRequestFilter {
 
     final String jwt = authHeader.substring(7);
     if (jwt.isEmpty()) {
-      sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Empty token");
-      return;
+      throw new CustomException("Empty token", HttpStatus.UNAUTHORIZED);
     }
 
     try {
       final String userEmail = jwtUtils.extractUserEmail(jwt);
       if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
-        var tokenOptional = tokenRepository.findByToken(jwt);
 
-        if (tokenOptional != null) {
-          var token = tokenOptional;
-          if (token.isExpired() || token.isRevoked()) {
-            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Token has expired or revoked");
-            return;
-          }
-          if (jwtUtils.isTokenValid(jwt, userDetails)) {
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                    userDetails,
-                    null,
-                    userDetails.getAuthorities()
-            );
-            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-          } else {
-            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid token");
-            return;
-          }
-        } else {
-          sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid token");
-          return;
+        var tokenOptional = tokenRepository.findByToken(jwt);
+        if (tokenOptional == null || tokenOptional.isExpired() || tokenOptional.isRevoked() || !jwtUtils.isTokenValid(jwt, userDetails)) {
+          throw new CustomException("Invalid token", HttpStatus.UNAUTHORIZED);
         }
+
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
+        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
       }
     } catch (Exception e) {
       logger.error("Cannot set user authentication: " + e);
-      sendErrorResponse(response, HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while processing the token");
-      return;
+      throw new CustomException("An error occurred while processing the token", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     filterChain.doFilter(request, response);
-  }
-
-  private void sendErrorResponse(HttpServletResponse response, HttpStatus status, String errorMessage) throws IOException {
-    response.setStatus(status.value());
-    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-    ResponseEntity<Object> responseEntity = ResponseHandler.generateErrorResponse(errorMessage, status);
-    String jsonResponse = objectMapper.writeValueAsString(responseEntity.getBody());
-    response.getWriter().write(jsonResponse);
   }
 }
