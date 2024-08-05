@@ -31,6 +31,4 @@ public class ResponseHandler {
   public static ResponseEntity<Object> generateErrorResponse(Exception e, HttpStatus status){
     return ResponseHandler.generateResponse(e.getMessage(), status, null);
   }
-
-
 }

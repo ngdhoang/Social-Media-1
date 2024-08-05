@@ -55,4 +55,3 @@ public class ProfileController {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.updateBackgroundProfile(background));
   }
 }
-

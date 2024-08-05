@@ -17,7 +17,6 @@ import java.util.Map;
 @Slf4j
 @Component
 public class AuthEntryPointJwt implements AuthenticationEntryPoint {
-
   @Override
   public void commence(
           HttpServletRequest request,

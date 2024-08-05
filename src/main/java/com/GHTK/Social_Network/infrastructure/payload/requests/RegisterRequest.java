@@ -26,7 +26,6 @@ public class RegisterRequest {
   @Email(message = "Email invalidate")
   private String userEmail;
 
-
   @ValidPattern(CustomPatternValidator.STRONG_PASSWORD)
   @NotBlank(message = "password cannot blank")
   private String password;
