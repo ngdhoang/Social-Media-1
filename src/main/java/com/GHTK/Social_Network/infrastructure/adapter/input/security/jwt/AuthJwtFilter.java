@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt;
 
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsServiceImpl;
-import com.GHTK.Social_Network.infrastructure.adapter.output.persistence.AuthRepositoryPortImpl;
+import com.GHTK.Social_Network.infrastructure.adapter.output.persistence.user.AuthAdapter;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -29,7 +29,7 @@ public class AuthJwtFilter extends OncePerRequestFilter {
 
   private final UserDetailsServiceImpl userDetailsService;
 
-  private final AuthRepositoryPortImpl tokenRepository;
+  private final AuthAdapter tokenRepository;
 
   private final ObjectMapper objectMapper;
 
@@ -57,8 +57,8 @@ public class AuthJwtFilter extends OncePerRequestFilter {
         UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
         var tokenOptional = tokenRepository.findByToken(jwt);
 
-        if (tokenOptional.isPresent()) {
-          var token = tokenOptional.get();
+        if (tokenOptional != null) {
+          var token = tokenOptional;
           if (token.isExpired() || token.isRevoked()) {
             sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Token has expired or revoked");
             return;

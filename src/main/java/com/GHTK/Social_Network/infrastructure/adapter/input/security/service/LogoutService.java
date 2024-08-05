@@ -1,7 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.security.service;
 
-import com.GHTK.Social_Network.infrastructure.adapter.output.persistence.AuthRepositoryPortImpl;
-
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.TokenRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class LogoutService implements LogoutHandler {
-  private final AuthRepositoryPortImpl tokenRepository;
+  private final TokenRepository tokenRepository;
 
   @Override
   public void logout(
@@ -27,9 +26,9 @@ public class LogoutService implements LogoutHandler {
     final String jwt = authHeader.substring(7);
     var storedToken = tokenRepository.findByToken(jwt).orElse(null);
     if (storedToken != null){
-      storedToken.setRevoked(false);
-      storedToken.setExpired(false);
-      tokenRepository.saveToken(storedToken);
+      storedToken.setRevoked(true);
+      storedToken.setExpired(true);
+      tokenRepository.save(storedToken);
       SecurityContextHolder.clearContext();
     }
   }

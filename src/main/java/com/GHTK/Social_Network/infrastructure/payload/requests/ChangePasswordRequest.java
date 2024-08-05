@@ -1,7 +1,8 @@
 package com.GHTK.Social_Network.infrastructure.payload.requests;
 
-import com.GHTK.Social_Network.application.customAnnotation.config.PasswordMatching;
-import com.GHTK.Social_Network.application.customAnnotation.config.StrongPassword;
+import com.GHTK.Social_Network.common.customAnnotation.config.PasswordMatching;
+import com.GHTK.Social_Network.common.customAnnotation.config.ValidPattern;
+import com.GHTK.Social_Network.common.customAnnotation.logic.CustomPatternValidator;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -13,10 +14,10 @@ import lombok.Data;
 )
 public class ChangePasswordRequest {
     @NotBlank(message = "Old password cannot blank")
-    @StrongPassword
     private String oldPassword;
 
     @NotBlank(message = "New password cannot blank")
+    @ValidPattern(CustomPatternValidator.STRONG_PASSWORD)
     private String newPassword;
 
     @NotBlank(message = "Confirm new password cannot blank")

@@ -18,11 +18,19 @@ public class ResponseHandler {
 
     return new ResponseEntity<Object>(body, status);
   }
-  public static ResponseEntity<Object> generateErrorResponse(Exception e, HttpStatus status){
-    return ResponseHandler.generateResponse(MESSAGE_FAIL, status, e.getMessage());
+
+  public static ResponseEntity<Object> notFoundResponse(){
+    String message = "Not found";
+    return ResponseHandler.generateResponse(message, HttpStatus.MULTI_STATUS, null);
   }
 
   public static ResponseEntity<Object> generateErrorResponse(String e, HttpStatus status){
-    return ResponseHandler.generateResponse(MESSAGE_FAIL, status, e);
+    return ResponseHandler.generateResponse(e, status, null);
   }
+
+  public static ResponseEntity<Object> generateErrorResponse(Exception e, HttpStatus status){
+    return ResponseHandler.generateResponse(e.getMessage(), status, null);
+  }
+
+
 }

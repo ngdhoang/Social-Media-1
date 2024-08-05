@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.security.service;
 
-import com.GHTK.Social_Network.domain.entity.user.User;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,21 +13,21 @@ import java.util.Collection;
 public class UserDetailsImpl implements UserDetails {
   @Getter
   @Setter
-  private User user;
+  private UserEntity userEntity;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return user.getRole().getAuthorities();
+    return userEntity.getRole().getAuthorities();
   }
 
   @Override
   public String getPassword() {
-    return user.getPassword();
+    return userEntity.getPassword();
   }
 
   @Override
   public String getUsername() {
-    return user.getUserEmail();
+    return userEntity.getUserEmail();
   }
 
   @Override

@@ -7,9 +7,9 @@ import lombok.Data;
 
 @Data
 public class AuthRequest {
-  @NotBlank(message = "email cannot blank")
   @Size(max = 50)
   @Email(message = "Email invalidate")
+  @NotBlank(message = "email cannot blank")
   private String userEmail;
 
   @NotBlank(message = "password cannot blank")

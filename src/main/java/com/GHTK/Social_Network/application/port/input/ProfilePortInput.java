@@ -1,11 +1,22 @@
 package com.GHTK.Social_Network.application.port.input;
 
-import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
+import com.GHTK.Social_Network.infrastructure.payload.requests.profile.UpdateProfilePrivacyRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.profile.UpdateProfileRequest;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.ProfileStateDto;
+
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ProfilePortInput {
-  ProfileDto getProfile(Long id);
+  UserDto getProfile(Long id);
 
-  Boolean updateProfile(ProfileDto profileDto);
+  UserDto updateProfile(UpdateProfileRequest updateProfileRequest);
 
-  Boolean setStateProfile(Integer state);
+  UserDto setStateProfile(ProfileStateDto profileStateDto);
+
+  UserDto setProfilePrivacy(UpdateProfilePrivacyRequest profileStateDto);
+
+  UserDto updateAvatarProfile(MultipartFile file);
+
+  UserDto updateBackgroundProfile(MultipartFile background);
 }
