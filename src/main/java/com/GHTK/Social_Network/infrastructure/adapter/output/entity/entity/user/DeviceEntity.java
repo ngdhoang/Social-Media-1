@@ -6,24 +6,21 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Entity
-@Table(name = "token")
+@Table(name = "device")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TokenEntity {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long tokenId;
+public class DeviceEntity {
+  @EmbeddedId
+  private DeviceEntityId id;
 
-  private String fingerprinting;
+  private EDeviceTypeEntity deviceType;
 
-  private String ;
-
-  private boolean revoked;
-
-  private boolean expired;
+  private LocalDate localDate;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "user_id", nullable = false)

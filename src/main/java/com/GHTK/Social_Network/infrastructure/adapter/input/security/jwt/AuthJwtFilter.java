@@ -1,8 +1,8 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt;
 
+import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsServiceImpl;
-import com.GHTK.Social_Network.infrastructure.adapter.output.persistence.user.AuthAdapter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,7 +24,7 @@ import java.io.IOException;
 public class AuthJwtFilter extends OncePerRequestFilter {
   private final JwtUtils jwtUtils;
   private final UserDetailsServiceImpl userDetailsService;
-  private final AuthAdapter tokenRepository;
+  private final AuthPort authPort;
 
   @Override
   protected void doFilterInternal(
@@ -48,7 +48,7 @@ public class AuthJwtFilter extends OncePerRequestFilter {
       if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
-        var tokenOptional = tokenRepository.findByToken(jwt);
+        var tokenOptional = authPort.findByToken(jwt);
         if (tokenOptional == null || tokenOptional.isExpired() || tokenOptional.isRevoked() || !jwtUtils.isTokenValid(jwt, userDetails)) {
           throw new CustomException("Invalid token", HttpStatus.UNAUTHORIZED);
         }

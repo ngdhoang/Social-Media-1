@@ -5,20 +5,20 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Token {
-  private Long tokenId;
+public class Device {
+  private String fingerprinting;
 
-  private String token;
+  private String deviceInformation;
 
-  private String tokenType = "BEARER";
+  private EDeviceType deviceType;
 
-  private boolean revoked;
-
-  private boolean expired;
+  private LocalDate localDate;
 
   private Long userId;
 }
