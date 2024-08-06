@@ -8,23 +8,25 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.LinkedList;
-import java.util.List;
 
 @Document
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class FriendshipCollection {
-
+public class UserCollection {
     @Id
     private String id;
+
     private Long userId;
+
     private LinkedList<Long> listFriendId;
+
     private LinkedList<Long> listBlockId;
+
     private LinkedList<Long> listBlockedId;
 
-    public FriendshipCollection(Long userId) {
+    public UserCollection(Long userId) {
         this.userId = userId;
         this.listFriendId = new LinkedList<>();
         this.listBlockId = new LinkedList<>();

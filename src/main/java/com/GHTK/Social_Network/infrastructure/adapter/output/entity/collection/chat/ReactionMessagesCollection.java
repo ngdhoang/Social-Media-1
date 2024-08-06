@@ -9,7 +9,10 @@ import java.util.List;
 @Getter
 public class ReactionMessagesCollection {
   private List<Long> likeIds;
+
   private List<Long> smileIds;
+
   private List<Long> argyIds;
+
   private List<Long> loveIds;
 }

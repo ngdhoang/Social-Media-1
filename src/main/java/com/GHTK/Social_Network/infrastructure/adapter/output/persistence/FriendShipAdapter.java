@@ -3,7 +3,7 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.domain.model.friendShip.EFriendshipStatus;
 import com.GHTK.Social_Network.domain.model.friendShip.FriendShip;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.FriendshipCollection;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.UserCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.EFriendshipStatusEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.FriendShipEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.FriendSuggestion;
@@ -68,7 +68,7 @@ public class FriendShipAdapter implements FriendShipPort {
     }
     EFriendshipStatus status = statusString != null ? EFriendshipStatus.valueOf(statusString.toUpperCase()) : null;
     EFriendshipStatusEntity statusEntity = status != null ? eFriendShipStatusMapperETD.toEntity(status) : null;
-    if (status != null ) {
+    if (status != null) {
       if (status.equals(EFriendshipStatus.PENDING)) {
         return friendShipRepository.countByUserReceiveIdAndFriendshipStatus(userId, statusEntity);
       }
@@ -87,7 +87,7 @@ public class FriendShipAdapter implements FriendShipPort {
   }
 
   @Override
-  public Long countByUserInitiatorIdAndFriendshipStatus(GetFriendShipRequest getFriendShipRequest){
+  public Long countByUserInitiatorIdAndFriendshipStatus(GetFriendShipRequest getFriendShipRequest) {
     Long userId = getFriendShipRequest.getUserId();
     String statusString = getFriendShipRequest.getStatus();
     EFriendshipStatus status = statusString != null ? EFriendshipStatus.valueOf(statusString.toUpperCase()) : null;
@@ -111,6 +111,7 @@ public class FriendShipAdapter implements FriendShipPort {
   public FriendShip addFriendShip(Long userInitiatorId, Long userReceiveId, EFriendshipStatus status) {
     FriendShipEntity friendShipEntity = new FriendShipEntity(userReceiveId, userInitiatorId, eFriendShipStatusMapperETD.toEntity(status));
     FriendShip friendShip = friendShipMapperETD.toDomain(friendShipRepository.save(friendShipEntity));
+
 
     FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userInitiatorId);
     FriendshipCollection friendshipCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId);
@@ -223,7 +224,7 @@ public class FriendShipAdapter implements FriendShipPort {
 
   @Override
   public FriendShip getFriendShipById(Long id) {
-    FriendShipEntity friendShipEntity= friendShipRepository.findById(id).orElse(null);
+    FriendShipEntity friendShipEntity = friendShipRepository.findById(id).orElse(null);
     return friendShipMapperETD.toDomain(friendShipEntity);
   }
 
@@ -294,6 +295,8 @@ public class FriendShipAdapter implements FriendShipPort {
         }else {
             userNodeRepository.deleteFriend(userReceiveId, userInitiateId);
         }
+        friendCollectionRepository.save(userCollectionReceive);
+      }
     }
   }
 
@@ -327,13 +330,13 @@ public class FriendShipAdapter implements FriendShipPort {
 
   @Override
   public int getMutualFriend(Long userInitiatorId, Long userReceiveId) {
-    FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userInitiatorId);
-    FriendshipCollection friendshipCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId);
-    if (friendshipCollection == null || friendshipCollectionReceive == null) {
+    UserCollection userCollection = friendCollectionRepository.findByUserId(userInitiatorId);
+    UserCollection userCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId);
+    if (userCollection == null || userCollectionReceive == null) {
       return 0;
     }
-    LinkedList<Long> listFriendInitiator = friendshipCollection.getListFriendId();
-    LinkedList<Long> listFriendReceive = friendshipCollectionReceive.getListFriendId();
+    LinkedList<Long> listFriendInitiator = userCollection.getListFriendId();
+    LinkedList<Long> listFriendReceive = userCollectionReceive.getListFriendId();
     Set<Long> multiFriend = Set.of(listFriendInitiator.toArray(new Long[0]));
     multiFriend.retainAll(listFriendReceive);
     return multiFriend.size();
@@ -346,11 +349,11 @@ public class FriendShipAdapter implements FriendShipPort {
 
   @Override
   public LinkedList<Long> getListMeBlock(Long userId) {
-    FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userId);
-    if (friendshipCollection == null) {
+    UserCollection userCollection = friendCollectionRepository.findByUserId(userId);
+    if (userCollection == null) {
       return new LinkedList<>();
     }
-    return friendshipCollection.getListBlockId();
+    return userCollection.getListBlockId();
   }
 
   @Override

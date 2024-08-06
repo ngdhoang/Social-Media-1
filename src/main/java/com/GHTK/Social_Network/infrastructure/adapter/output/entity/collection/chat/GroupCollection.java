@@ -18,7 +18,9 @@ import java.util.List;
 @Data
 public class GroupCollection {
   @Id
-  private String groupId;
+  private String id;
+
+  private Long groupId;
 
   private String groupBackground;
 
@@ -26,17 +28,17 @@ public class GroupCollection {
 
   private EGroupTypeCollection groupType;
 
-  private List<member> members;
+  private List<Member> members;
 
-  class member {
+  class Member {
     private String userId;
 
     private String nickname;
 
     private String lastMsgSeen;
-  }
 
-  private List<Long> adminIds;
+    private String role;
+  }
 
   private List<Long> msgPin;
 

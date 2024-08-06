@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.application.port.output;
 
-import com.GHTK.Social_Network.infrastructure.payload.responses.ChatMessageResponse;
+import com.GHTK.Social_Network.domain.collection.chat.Message;
 
 public interface WebSocketPort {
-  void SendAndSaveChatMessage(ChatMessageResponse chatMessage, Long receiverId);
+  void SendAndSaveChatMessage(Message message, Long sendId, Long receiverId);
 }

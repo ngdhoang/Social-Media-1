@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.domain.model.user;
+package com.GHTK.Social_Network.infrastructure.payload.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,13 +6,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Token {
-  private Long tokenId;
-
-  private String token;
+@Builder
+public class AccessTokenDto {
+  private String fingerprinting;
 
   private String tokenType = "BEARER";
 

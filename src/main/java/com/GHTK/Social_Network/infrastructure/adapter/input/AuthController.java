@@ -2,7 +2,6 @@ package com.GHTK.Social_Network.infrastructure.adapter.input;
 
 import com.GHTK.Social_Network.application.port.input.AuthPortInput;
 import com.GHTK.Social_Network.application.port.input.ProfilePortInput;
-import com.GHTK.Social_Network.application.service.Authentication.AuthService;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.*;
@@ -13,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
@@ -26,19 +26,23 @@ import java.io.UnsupportedEncodingException;
 @RequiredArgsConstructor
 public class AuthController {
   private final AuthPortInput authService;
-
   private final LogoutHandler logoutService;
-
   private final ProfilePortInput profilePort;
 
+  private Pair<String, String> extractDeviceInfo(HttpServletRequest httpServletRequest) {
+    String userAgent = httpServletRequest.getHeader("User-Agent");
+    String fingerprinting = httpServletRequest.getHeader("fingerprinting");
+    return Pair.of(userAgent, fingerprinting);
+  }
+
   @PostMapping("/authentication")
-  public ResponseEntity<Object> logIn(@RequestBody @Valid AuthRequest authRequest) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.authenticate(authRequest));
+  public ResponseEntity<Object> logIn(HttpServletRequest request, @RequestBody @Valid AuthRequest authRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.authenticate(authRequest, extractDeviceInfo(request).getLeft(), extractDeviceInfo(request).getRight()));
   }
 
   @PostMapping("/register")
-  public ResponseEntity<Object> signUp(@RequestBody @Valid RegisterRequest registerRequest) throws MessagingException, UnsupportedEncodingException {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.register(registerRequest));
+  public ResponseEntity<Object> signUp(HttpServletRequest request, @RequestBody @Valid RegisterRequest registerRequest) throws MessagingException, UnsupportedEncodingException {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.register(registerRequest, extractDeviceInfo(request).getLeft(), extractDeviceInfo(request).getRight()));
   }
 
   @PostMapping("/change-password")
@@ -52,8 +56,8 @@ public class AuthController {
   }
 
   @PostMapping("/register/check-otp")
-  public ResponseEntity<Object> checkOtpRegister(@RequestBody @Valid RegisterRequest registerRequest) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.checkOtpRegister(registerRequest, AuthPortInput.MAX_COUNT_OTP, 100000L));
+  public ResponseEntity<Object> checkOtpRegister(HttpServletRequest request, @RequestBody @Valid RegisterRequest registerRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.checkOtpRegister(registerRequest, extractDeviceInfo(request).getLeft(), extractDeviceInfo(request).getRight(), AuthPortInput.MAX_COUNT_OTP, 100000L));
   }
 
   @PostMapping("/forgot-password/check-otp")
@@ -69,6 +73,12 @@ public class AuthController {
   @DeleteMapping("/delete-account/check-otp")
   public ResponseEntity<Object> checkOtpDeleteAccount(@RequestBody @Valid OTPRequest otpRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.checkOtpDeleteAccount(otpRequest, AuthPortInput.MAX_COUNT_OTP, 100000L));
+  }
+
+
+  @GetMapping("/check-success")
+  public ResponseEntity<Object> checkSuccessInNewDevice(HttpServletRequest request, @RequestParam String key) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.checkSuccessDevice(key, extractDeviceInfo(request).getLeft(), extractDeviceInfo(request).getRight()));
   }
 
   @GetMapping("/verify-token")
@@ -88,7 +98,7 @@ public class AuthController {
     } else {
       throw new CustomException("Invalid Authorization header", HttpStatus.BAD_REQUEST);
     }
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.refreshToken(token));
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.refreshToken(token, extractDeviceInfo(request).getRight()));
   }
 
   @GetMapping("/logout")

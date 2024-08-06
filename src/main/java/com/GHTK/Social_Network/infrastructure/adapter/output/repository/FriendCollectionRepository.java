@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
 
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.FriendshipCollection;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.UserCollection;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
