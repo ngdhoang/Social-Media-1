@@ -28,6 +28,7 @@ public class DeviceService implements DevicePortInput {
   public MessageResponse checkDeviceOtp(int otp) {
     if (otp < 0) { // no success new device
       redisAuthPort.deleteAllByTail(RedisAuthPort.DEVICE_TAIL + authPort.getUserAuth().getUserEmail());
+      return new MessageResponse("Success delete device");
     }
     String key = otp + RedisAuthPort.DEVICE_TAIL + authPort.getUserAuth().getUserEmail();
     if (redisAuthPort.existsByKey(otp + RedisAuthPort.DEVICE_TAIL + authPort.getUserAuth().getUserEmail())) {
