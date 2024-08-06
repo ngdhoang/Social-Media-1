@@ -100,6 +100,7 @@ public class AuthService implements AuthPortInput {
       String email = authRedisDto.getRegisterRequest().getUserEmail();
       var user = authPort.findByEmail(email)
               .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+      redisAuthPort.deleteByKey(newKey);
       return authenticationWithDeviceTrust(user, fingerprinting);
     }
     return new MessageResponse("Nothing...");
