@@ -28,11 +28,6 @@ public class RedisImageAdapter implements RedisImageTemplatePort {
   }
 
   @Override
-  public String formatKey(String key) {
-    return "";
-  }
-
-  @Override
   public Boolean existsByKey(String key) {
     return imageRedisTemplate.hasKey(key);
   }

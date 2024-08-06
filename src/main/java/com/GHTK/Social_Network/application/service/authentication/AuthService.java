@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.application.service.Authentication;
+package com.GHTK.Social_Network.application.service.authentication;
 
 import com.GHTK.Social_Network.application.port.input.AuthPortInput;
 import com.GHTK.Social_Network.application.port.output.OtpPort;
@@ -41,7 +41,7 @@ public class AuthService implements AuthPortInput {
   private final RedisAuthPort redisAuthPort;
 
   @Override
-  public AuthResponse authenticate(AuthRequest authRequest) {
+  public AuthResponse authenticate(AuthRequest authRequest, String fingerprinting) {
     try {
       authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
               authRequest.getUserEmail(),
@@ -54,8 +54,8 @@ public class AuthService implements AuthPortInput {
     var user = authPort.findByEmail(authRequest.getUserEmail())
             .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
     UserDetailsImpl userDetails = authPort.getUserDetails(user);
-    var jwtToken = jwtUtils.generateToken(userDetails);
-    var refreshToken = jwtUtils.generateRefreshToken(userDetails);
+    var jwtToken = jwtUtils.generateToken(userDetails, fingerprinting);
+    var refreshToken = jwtUtils.generateRefreshToken(userDetails, fingerprinting);
     revokeAllUserTokens(userDetails);
     saveUserToken(userDetails, jwtToken);
 
@@ -63,13 +63,13 @@ public class AuthService implements AuthPortInput {
   }
 
   @Override
-  public MessageResponse checkOtpRegister(RegisterRequest registerRequest, int attemptCount, Long timeInterval) {
+  public MessageResponse checkOtpRegister(RegisterRequest registerRequest, int attemptCount, Long timeInterval, String fingerprinting) {
     validateOtp(registerRequest.getUserEmail(), registerRequest.getOtp(), attemptCount, timeInterval);
 
     User userSave = createUser(registerRequest);
     userSave = authPort.saveUser(userSave);
     UserDetailsImpl userDetails = authPort.getUserDetails(userSave);
-    String jwtToken = jwtUtils.generateToken(userDetails);
+    String jwtToken = jwtUtils.generateToken(userDetails, fingerprinting);
     saveUserToken(userDetails, jwtToken);
 
     return new MessageResponse("Registration successful");
@@ -126,8 +126,8 @@ public class AuthService implements AuthPortInput {
   }
 
   @Override
-  public AuthResponse refreshToken(String refreshToken) {
-    Pair<UserDetailsImpl, String> infoAuth = authPort.refreshToken(refreshToken);
+  public AuthResponse refreshToken(String refreshToken, String fingerprinting) {
+    Pair<UserDetailsImpl, String> infoAuth = authPort.refreshToken(refreshToken, fingerprinting);
     if (infoAuth == null) {
       throw new CustomException("Invalid refresh token", HttpStatus.UNAUTHORIZED);
     }

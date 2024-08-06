@@ -1,8 +1,8 @@
 package com.GHTK.Social_Network.infrastructure.mapper;
 
-import com.GHTK.Social_Network.domain.model.chat.EMessageType;
-import com.GHTK.Social_Network.domain.model.chat.Message;
-import com.GHTK.Social_Network.domain.model.chat.ReactionMessages;
+import com.GHTK.Social_Network.domain.collection.chat.EMessageType;
+import com.GHTK.Social_Network.domain.collection.chat.Message;
+import com.GHTK.Social_Network.domain.collection.chat.ReactionMessages;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat.EMessageTypeCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat.MessageCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat.ReactionMessagesCollection;

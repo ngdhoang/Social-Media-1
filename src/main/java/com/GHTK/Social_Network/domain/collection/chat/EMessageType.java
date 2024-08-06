@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.domain.model.chat;
+package com.GHTK.Social_Network.domain.collection.chat;
 
 public enum EMessageType {
   ADD_GROUP,
@@ -7,5 +7,6 @@ public enum EMessageType {
   MESSAGE,
   RECALL,
   DELETE,
-  EMOJI
+  EMOJI,
+  IMAGE
 }

@@ -20,11 +20,13 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.*;
 
 @Service
@@ -123,18 +125,26 @@ public class AuthAdapter implements AuthPort {
   }
 
   @Override
-  public Pair<UserDetailsImpl, String> refreshToken(String refreshToken) {
+  public Pair<UserDetailsImpl, String> refreshToken(String refreshToken, String fingerprinting) {
     String userEmail = jwtUtils.extractUserEmail(refreshToken);
     if (userEmail != null) {
       UserEntity user = userRepository.findByUserEmail(userEmail)
               .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
       UserDetailsImpl userDetails = new UserDetailsImpl(user);
       if (jwtUtils.isTokenValid(refreshToken, userDetails)) {
-        var accessToken = jwtUtils.generateToken(userDetails);
+        var accessToken = jwtUtils.generateToken(userDetails, fingerprinting);
         return Pair.of(userDetails, accessToken);
       }
     }
     return null;
+  }
+
+  @Override
+  public Pair<Long, UserDetailsImpl> getUserDetails(Principal principal) {
+      UsernamePasswordAuthenticationToken user = (UsernamePasswordAuthenticationToken) principal;
+      Object object = user.getPrincipal();
+      UserDetailsImpl u =  (UserDetailsImpl) object;
+      return Pair.of(u.getUserEntity().getUserId(), u);
   }
 
   private boolean isInvalidAuthentication(Authentication authentication) {

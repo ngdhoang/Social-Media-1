@@ -2,7 +2,6 @@ package com.GHTK.Social_Network.infrastructure.adapter.input;
 
 import com.GHTK.Social_Network.application.port.input.AuthPortInput;
 import com.GHTK.Social_Network.application.port.input.ProfilePortInput;
-import com.GHTK.Social_Network.application.service.Authentication.AuthService;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.*;
@@ -26,14 +25,16 @@ import java.io.UnsupportedEncodingException;
 @RequiredArgsConstructor
 public class AuthController {
   private final AuthPortInput authService;
-
   private final LogoutHandler logoutService;
-
   private final ProfilePortInput profilePort;
 
+  private String extractFingerprinting(HttpServletRequest httpServletRequest) {
+    return httpServletRequest.getHeader("fingerprinting");
+  }
+
   @PostMapping("/authentication")
-  public ResponseEntity<Object> logIn(@RequestBody @Valid AuthRequest authRequest) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.authenticate(authRequest));
+  public ResponseEntity<Object> logIn(HttpServletRequest request, @RequestBody @Valid AuthRequest authRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.authenticate(authRequest, extractFingerprinting(request)));
   }
 
   @PostMapping("/register")
@@ -52,8 +53,8 @@ public class AuthController {
   }
 
   @PostMapping("/register/check-otp")
-  public ResponseEntity<Object> checkOtpRegister(@RequestBody @Valid RegisterRequest registerRequest) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.checkOtpRegister(registerRequest, AuthPortInput.MAX_COUNT_OTP, 100000L));
+  public ResponseEntity<Object> checkOtpRegister(HttpServletRequest request, @RequestBody @Valid RegisterRequest registerRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.checkOtpRegister(registerRequest, AuthPortInput.MAX_COUNT_OTP, 100000L, extractFingerprinting(request)));
   }
 
   @PostMapping("/forgot-password/check-otp")
@@ -88,7 +89,7 @@ public class AuthController {
     } else {
       throw new CustomException("Invalid Authorization header", HttpStatus.BAD_REQUEST);
     }
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.refreshToken(token));
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.refreshToken(token, extractFingerprinting(request)));
   }
 
   @GetMapping("/logout")

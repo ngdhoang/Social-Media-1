@@ -17,9 +17,9 @@ public class TokenEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long tokenId;
 
-  private String token;
+  private String fingerprinting;
 
-  private String tokenType = "BEARER";
+  private String ;
 
   private boolean revoked;
 

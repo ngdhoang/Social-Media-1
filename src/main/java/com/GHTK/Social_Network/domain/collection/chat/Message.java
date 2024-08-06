@@ -1,6 +1,9 @@
-package com.GHTK.Social_Network.domain.model.chat;
+package com.GHTK.Social_Network.domain.collection.chat;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.List;
@@ -10,9 +13,11 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class Message {
-  private String msgId;
+  private String id;
 
-  private String groupId;
+  private Long msgId;
+
+  private Long groupId;
 
   private Long userAuthId;
 

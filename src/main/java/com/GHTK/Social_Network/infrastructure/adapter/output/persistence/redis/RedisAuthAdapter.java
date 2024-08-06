@@ -27,11 +27,6 @@ public class RedisAuthAdapter implements RedisAuthPort {
   }
 
   @Override
-  public String formatKey(String key) {
-    return "";
-  }
-
-  @Override
   public Boolean existsByKey(String key) {
     return authRedisTemplate.hasKey(key);
   }

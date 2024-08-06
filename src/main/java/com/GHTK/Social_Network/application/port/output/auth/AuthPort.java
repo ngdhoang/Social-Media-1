@@ -5,6 +5,7 @@ import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsImpl;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.security.Principal;
 import java.util.List;
 
 import java.util.Optional;
@@ -38,5 +39,7 @@ public interface AuthPort {
 
   UserDetailsImpl getUserDetails(User user);
 
-  Pair<UserDetailsImpl, String> refreshToken(String refreshToken);
+  Pair<UserDetailsImpl, String> refreshToken(String refreshToken, String fingerprinting);
+
+  Pair<Long, UserDetailsImpl> getUserDetails(Principal principal);
 }

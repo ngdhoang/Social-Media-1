@@ -1,7 +1,6 @@
-package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
+package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.chat;
 
 import com.GHTK.Social_Network.application.port.output.ChatPort;
-import com.GHTK.Social_Network.domain.model.user.User;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,7 +14,7 @@ public class ChatAdapter implements ChatPort {
   }
 
   @Override
-  public boolean isUserInGroup(User currentUser) {
+  public boolean isUserInGroup(Long userId) {
     return false;
   }
 }
