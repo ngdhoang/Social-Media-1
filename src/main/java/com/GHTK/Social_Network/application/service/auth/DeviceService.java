@@ -5,6 +5,8 @@ import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.auth.DevicePort;
 import com.GHTK.Social_Network.application.port.output.auth.RedisAuthPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
+import com.GHTK.Social_Network.domain.model.user.Device;
+import com.GHTK.Social_Network.domain.model.user.EDeviceType;
 import com.GHTK.Social_Network.infrastructure.payload.dto.redis.AuthRedisDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.RegisterRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
@@ -12,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -29,12 +32,22 @@ public class DeviceService implements DevicePortInput {
     String key = otp + RedisAuthPort.DEVICE_TAIL + authPort.getUserAuth().getUserEmail();
     if (redisAuthPort.existsByKey(otp + RedisAuthPort.DEVICE_TAIL + authPort.getUserAuth().getUserEmail())) {
       AuthRedisDto authRedisDto = redisAuthPort.findByKey(key);
-      String newKey = authRedisDto.getFingerprinting() + "_" + authRedisDto.getUserAgent() + RedisAuthPort.DEVICE_CHECK_TAIL;
+      String newKey = authRedisDto.getKey() + "_" + authRedisDto.getFingerprinting() + "_" + authRedisDto.getUserAgent() + RedisAuthPort.DEVICE_CHECK_TAIL;
       RegisterRequest registerRequest = RegisterRequest.builder().userEmail(authPort.getUserAuth().getUserEmail()).build();
-      redisAuthPort.createOrUpdate(newKey, AuthRedisDto.builder().registerRequest(
-              registerRequest
-      ).build());
+      redisAuthPort.createOrUpdate(newKey, AuthRedisDto.builder()
+              .registerRequest(registerRequest)
+              .build());
+      devicePort.saveDevice(
+              new Device(
+                      authRedisDto.getFingerprinting(),
+                      authRedisDto.getUserAgent(),
+                      EDeviceType.NORMAL,
+                      LocalDate.now()
+              ),
+              authPort.getUserAuth().getUserId()
+      );
       redisAuthPort.deleteByKey(key);
+      return new MessageResponse("Success new device");
     }
     throw new CustomException("Otp invalid", HttpStatus.BAD_REQUEST);
   }

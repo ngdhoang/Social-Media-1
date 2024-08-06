@@ -41,7 +41,7 @@ public class WebsocketTokenFilter implements ChannelInterceptor {
         String userEmail = jwtUtils.extractUserEmail(jwt);
         UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
-        var tokenOptional = tokenRepository.findByToken(jwt);
+        var tokenOptional = tokenRepository.findByToken(jwt, userEmail);
         if (tokenOptional == null || tokenOptional.isExpired() || tokenOptional.isRevoked()) {
           throw new CustomException("Invalid token", HttpStatus.UNAUTHORIZED);
         }

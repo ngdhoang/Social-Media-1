@@ -7,12 +7,10 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface DeviceMapperETD {
-  @Mapping(source = "id.fingerprinting", target = "fingerprinting")
-  @Mapping(source = "id.deviceInformation", target = "deviceInformation")
+  @Mapping(source = "deviceId", target = "deviceId")
   @Mapping(source = "userEntity.userId", target = "userId")
   Device toDomain(DeviceEntity entity);
 
-  @Mapping(target = "id", expression = "java(new DeviceEntityId(dto.getFingerprinting(), dto.getDeviceInformation()))")
   @Mapping(target = "userEntity", ignore = true)
   DeviceEntity toEntity(Device dto);
 }

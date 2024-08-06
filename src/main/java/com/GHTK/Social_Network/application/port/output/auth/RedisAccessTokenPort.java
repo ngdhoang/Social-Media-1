@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 public interface RedisAccessTokenPort extends RedisTemplatePort<String, AccessTokenDto> {
-  String ACCESS_TOKEN_TAIL = "_ACCESS_TOKEN";
+  String ACCESS_TOKEN_TAIL = "_ACCESS_TOKEN_";
 
   Set<Map<String, AccessTokenDto>> findAllByTail(String tail);
 }

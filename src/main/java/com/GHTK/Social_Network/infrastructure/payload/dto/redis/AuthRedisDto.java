@@ -26,7 +26,18 @@ public class AuthRedisDto {
 
   private int count;
 
+  private String key;
+
   public AuthRedisDto(List<String> otp, Date createAt, int count) {
+    this.otp = otp;
+    this.createAt = createAt;
+    this.count = count;
+  }
+
+  public AuthRedisDto(RegisterRequest registerRequest, String fingerprinting, String userAgent, List<String> otp, Date createAt, int count) {
+    this.registerRequest = registerRequest;
+    this.fingerprinting = fingerprinting;
+    this.userAgent = userAgent;
     this.otp = otp;
     this.createAt = createAt;
     this.count = count;

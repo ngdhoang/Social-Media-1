@@ -77,8 +77,8 @@ public class AuthController {
 
 
   @GetMapping("/check-success")
-  public ResponseEntity<Object> checkSuccessInNewDevice(HttpServletRequest request) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.checkSuccessDevice(extractDeviceInfo(request).getLeft(), extractDeviceInfo(request).getRight()));
+  public ResponseEntity<Object> checkSuccessInNewDevice(HttpServletRequest request, @RequestParam String key) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.checkSuccessDevice(key, extractDeviceInfo(request).getLeft(), extractDeviceInfo(request).getRight()));
   }
 
   @GetMapping("/verify-token")

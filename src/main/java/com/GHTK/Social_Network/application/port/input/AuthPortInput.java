@@ -28,5 +28,5 @@ public interface AuthPortInput {
 
   AuthResponse refreshToken(String refreshTokenRequest, String fingerprinting);
 
-  Object checkSuccessDevice(String userAgent, String fingerprinting);
+  Object checkSuccessDevice(String key, String userAgent, String fingerprinting);
 }

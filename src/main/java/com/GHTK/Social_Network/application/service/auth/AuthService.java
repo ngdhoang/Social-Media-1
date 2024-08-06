@@ -29,10 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,7 +59,7 @@ public class AuthService implements AuthPortInput {
 
     var user = authPort.findByEmail(authRequest.getUserEmail())
             .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
-    if (devicePort.getDevice(fingerprinting, userAgent) == null) {
+    if (devicePort.getDevice(fingerprinting, userAgent, user.getUserId()) == null) {
       Map<String, Object> otpData = devicePortInput.generateOtp(3);
       Integer chosenNumber = (Integer) otpData.get("selectedNumber");
       List<Integer> listNumber = (List<Integer>) otpData.get("generatedNumbers");
@@ -76,7 +73,9 @@ public class AuthService implements AuthPortInput {
                       .fingerprinting(fingerprinting)
                       .userAgent(userAgent)
                       .otp(otpList)
+                      .key(generateKeyDevicePing())
                       .build());
+
       return new MessageResponse("OTP: " + chosenNumber);
     }
 
@@ -88,16 +87,16 @@ public class AuthService implements AuthPortInput {
     var jwtToken = jwtUtils.generateToken(userDetails, fingerprinting);
     var refreshToken = jwtUtils.generateRefreshToken(userDetails, fingerprinting);
     revokeAllUserTokens(userDetails);
-    saveUserToken(userDetails, jwtToken);
+    saveUserToken(userDetails, jwtToken, fingerprinting);
 
     return new AuthResponse(jwtToken, refreshToken, user.getRole().toString());
   }
 
   @Override
-  public Object checkSuccessDevice(String userAgent, String fingerprinting) {
-    String key = fingerprinting + "_" + userAgent + RedisAuthPort.DEVICE_CHECK_TAIL;
-    if (redisAuthPort.existsByKey(key)) {
-      AuthRedisDto authRedisDto = redisAuthPort.findByKey(key);
+  public Object checkSuccessDevice(String key, String userAgent, String fingerprinting) {
+    String newKey =  key + "_" +fingerprinting + "_" + userAgent + RedisAuthPort.DEVICE_CHECK_TAIL;
+    if (redisAuthPort.existsByKey(newKey)) {
+      AuthRedisDto authRedisDto = redisAuthPort.findByKey(newKey);
       String email = authRedisDto.getRegisterRequest().getUserEmail();
       var user = authPort.findByEmail(email)
               .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
@@ -114,16 +113,20 @@ public class AuthService implements AuthPortInput {
     userSave = authPort.saveUser(userSave);
     UserDetailsImpl userDetails = authPort.getUserDetails(userSave);
     String jwtToken = jwtUtils.generateToken(userDetails, fingerprinting);
-    saveUserToken(userDetails, jwtToken);
+    saveUserToken(userDetails, jwtToken, fingerprinting);
+    System.out.println(userSave);
 
     // save new device default
-    devicePort.saveDevice(
-            new Device(
+    Device newDevice = new Device
+            (
                     fingerprinting,
                     userAgent,
                     EDeviceType.DEFAULT,
                     LocalDate.now(),
-                    userSave.getUserId())
+                    userSave.getUserId());
+    devicePort.saveDevice(
+            newDevice,
+            userSave.getUserId()
     );
 
     return new MessageResponse("Registration successful");
@@ -186,7 +189,7 @@ public class AuthService implements AuthPortInput {
       throw new CustomException("Invalid refresh token", HttpStatus.UNAUTHORIZED);
     }
     revokeAllUserTokens(infoAuth.getLeft());
-    saveUserToken(infoAuth.getLeft(), infoAuth.getRight());
+    saveUserToken(infoAuth.getLeft(), infoAuth.getRight(), fingerprinting);
     var user = authPort.findByEmail(infoAuth.getLeft().getUsername())
             .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
@@ -279,13 +282,15 @@ public class AuthService implements AuthPortInput {
     return user;
   }
 
-  private void saveUserToken(UserDetailsImpl userDetails, String jwtToken) {
+  private void saveUserToken(UserDetailsImpl userDetails, String jwtToken, String fingerprinting) {
     AccessTokenDto token = AccessTokenDto.builder()
             .userId(userDetails.getUserEntity().getUserId())
+            .fingerprinting(fingerprinting)
             .tokenType("BEARER")
             .expired(false)
             .revoked(false)
             .build();
+    System.out.println(token);
     authPort.saveAccessTokenInRedis(jwtToken, token);
   }
 
@@ -301,6 +306,11 @@ public class AuthService implements AuthPortInput {
     }));
 
     authPort.saveAllAccessTokenInRedis(userDetails, validUserTokens);
+  }
+
+  private String generateKeyDevicePing(){
+    UUID uuid = UUID.randomUUID();
+    return uuid.toString();
   }
 
 }

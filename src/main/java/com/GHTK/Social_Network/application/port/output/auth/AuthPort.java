@@ -19,7 +19,7 @@ public interface AuthPort {
 
   void changePassword(String newPassword, Long id);
 
-  AccessTokenDto findByToken(String jwt);
+  AccessTokenDto findByToken(String jwt, String email);
 
   void deleteUserByEmail(String email);
 

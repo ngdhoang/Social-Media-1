@@ -12,6 +12,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Device {
+  private Long deviceId;
+
   private String fingerprinting;
 
   private String deviceInformation;
@@ -21,4 +23,19 @@ public class Device {
   private LocalDate localDate;
 
   private Long userId;
+
+  public Device(String fingerprinting, String deviceInformation, EDeviceType deviceType, LocalDate localDate, Long userId) {
+    this.fingerprinting = fingerprinting;
+    this.deviceInformation = deviceInformation;
+    this.deviceType = deviceType;
+    this.localDate = localDate;
+    this.userId = userId;
+  }
+
+  public Device(String fingerprinting, String deviceInformation, EDeviceType deviceType, LocalDate localDate) {
+    this.fingerprinting = fingerprinting;
+    this.deviceInformation = deviceInformation;
+    this.deviceType = deviceType;
+    this.localDate = localDate;
+  }
 }

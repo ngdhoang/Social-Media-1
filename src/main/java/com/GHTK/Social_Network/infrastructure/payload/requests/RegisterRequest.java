@@ -6,8 +6,10 @@ import com.GHTK.Social_Network.common.customAnnotation.logic.CustomPatternValida
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
@@ -16,6 +18,8 @@ import lombok.Data;
         confirmPassword = "confirmPassword",
         message = "Passwords do not match!"
 )
+@AllArgsConstructor
+@NoArgsConstructor
 public class RegisterRequest {
   @NotBlank(message = "firstName cannot blank")
   private String firstName;

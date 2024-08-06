@@ -15,8 +15,13 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DeviceEntity {
-  @EmbeddedId
-  private DeviceEntityId id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long deviceId;
+
+  private String fingerprinting;
+
+  private String deviceInformation;
 
   private EDeviceTypeEntity deviceType;
 
@@ -25,5 +30,4 @@ public class DeviceEntity {
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "user_id", nullable = false)
   private UserEntity userEntity;
-
 }

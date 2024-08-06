@@ -44,13 +44,14 @@ public class AuthAdapter implements AuthPort {
 
   @Override
   public void saveAccessTokenInRedis(String token, AccessTokenDto accessTokenDto) {
-    redisAccessTokenPort.createOrUpdate(token + RedisAccessTokenPort.ACCESS_TOKEN_TAIL + accessTokenDto.getUserId(), accessTokenDto);
+    UserEntity user = userRepository.findById(accessTokenDto.getUserId()).orElse(null);
+    redisAccessTokenPort.createOrUpdate(token + RedisAccessTokenPort.ACCESS_TOKEN_TAIL + user.getUserEmail(), accessTokenDto);
   }
 
   @Override
   public void saveAllAccessTokenInRedis(String userEmail, Set<Map<String, AccessTokenDto>> tokenEntities) {
-    tokenEntities.forEach(tokenMap -> tokenMap.forEach((key, token) -> {
-      saveAccessTokenInRedis(key + RedisAccessTokenPort.ACCESS_TOKEN_TAIL + userEmail, token);
+    tokenEntities.forEach(tokenMap -> tokenMap.forEach((key, accessTokenDto) -> {
+      saveAccessTokenInRedis(key + RedisAccessTokenPort.ACCESS_TOKEN_TAIL + userEmail, accessTokenDto);
     }));
   }
 
@@ -80,8 +81,8 @@ public class AuthAdapter implements AuthPort {
   }
 
   @Override
-  public AccessTokenDto findByToken(String jwt) {
-    return redisAccessTokenPort.findByKey(jwt);
+  public AccessTokenDto findByToken(String jwt, String email) {
+    return redisAccessTokenPort.findByKey(jwt + RedisAccessTokenPort.ACCESS_TOKEN_TAIL + email);
   }
 
   @Override

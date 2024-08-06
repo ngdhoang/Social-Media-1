@@ -38,7 +38,7 @@ public class LogoutService implements LogoutHandler {
     final String userEmail = jwtPort.extractUserEmail(token);
     if (userEmail != null) {
       UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
-      AccessTokenDto accessTokenDto = authPort.findByToken(token);
+      AccessTokenDto accessTokenDto = authPort.findByToken(token, userEmail);
       if (jwtPort.isTokenValid(token, userDetails)) {
         accessTokenDto.setRevoked(false);
         accessTokenDto.setExpired(false);
