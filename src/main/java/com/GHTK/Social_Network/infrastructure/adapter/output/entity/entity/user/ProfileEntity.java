@@ -24,7 +24,7 @@ public class ProfileEntity {
 
   private String phoneNumber;
 
-  private String homeTown;
+  private Integer homeTown;
 
   private String schoolName;
 

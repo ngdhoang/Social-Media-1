@@ -6,9 +6,13 @@ import com.GHTK.Social_Network.domain.model.friendShip.FriendShip;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.UserCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.EFriendshipStatusEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.FriendShipEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.FriendSuggestion;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.RelationshipScores;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.UserNode;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendCollectionRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendShipRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.UserNodeRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.EFriendShipStatusMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.FriendShipMapperETD;
 import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.GetFriendShipRequest;
@@ -26,8 +30,8 @@ public class FriendShipAdapter implements FriendShipPort {
 
   private final FriendShipRepository friendShipRepository;
   private final FriendCollectionRepository friendCollectionRepository;
-
   private final UserRepository userRepository;
+  private final UserNodeRepository userNodeRepository;
 
   private final EFriendShipStatusMapperETD eFriendShipStatusMapperETD;
   private final FriendShipMapperETD friendShipMapperETD;
@@ -108,26 +112,29 @@ public class FriendShipAdapter implements FriendShipPort {
     FriendShipEntity friendShipEntity = new FriendShipEntity(userReceiveId, userInitiatorId, eFriendShipStatusMapperETD.toEntity(status));
     FriendShip friendShip = friendShipMapperETD.toDomain(friendShipRepository.save(friendShipEntity));
 
-    UserCollection userCollection = friendCollectionRepository.findByUserId(userInitiatorId);
-    UserCollection userCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId);
-    if (status != null && !status.equals(EFriendshipStatus.PENDING)) {
-      if (userCollection != null) {
-        userCollection.getListFriendId().add(userReceiveId);
-        friendCollectionRepository.save(userCollection);
+
+    FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userInitiatorId);
+    FriendshipCollection friendshipCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId);
+    if(status != null && !status.equals(EFriendshipStatus.PENDING)){
+      if (friendshipCollection != null) {
+        friendshipCollection.getListFriendId().add(userReceiveId);
+        friendCollectionRepository.save(friendshipCollection);
       } else {
-        UserCollection newUserCollection = new UserCollection(userInitiatorId);
-        newUserCollection.addFriend(userReceiveId);
-        friendCollectionRepository.save(newUserCollection);
+        FriendshipCollection newFriendshipCollection = new FriendshipCollection(userInitiatorId);
+        newFriendshipCollection.addFriend(userReceiveId);
+        friendCollectionRepository.save(newFriendshipCollection);
       }
-      if (userCollectionReceive != null) {
-        userCollectionReceive.getListFriendId().add(userInitiatorId);
-        friendCollectionRepository.save(userCollectionReceive);
+      if (friendshipCollectionReceive != null) {
+        friendshipCollectionReceive.getListFriendId().add(userInitiatorId);
+        friendCollectionRepository.save(friendshipCollectionReceive);
       } else {
-        UserCollection newUserCollectionReceive = new UserCollection(userReceiveId);
-        newUserCollectionReceive.addFriend(userInitiatorId);
-        friendCollectionRepository.save(newUserCollectionReceive);
+        FriendshipCollection newFriendshipCollectionReceive = new FriendshipCollection(userReceiveId);
+        newFriendshipCollectionReceive.addFriend(userInitiatorId);
+        friendCollectionRepository.save(newFriendshipCollectionReceive);
       }
+      userNodeRepository.createFriend(userInitiatorId, userReceiveId, eFriendShipStatusMapperETD.toEntity(status));
     }
+
     return friendShip;
   }
 
@@ -140,48 +147,71 @@ public class FriendShipAdapter implements FriendShipPort {
     EFriendshipStatusEntity prevStatus = friendShipEntity.getFriendshipStatus();
     friendShipEntity.setFriendshipStatus(eFriendShipStatusMapperETD.toEntity(status));
     friendShipRepository.save(friendShipEntity);
-    UserCollection userCollection = friendCollectionRepository.findByUserId(friendShipEntity.getUserInitiatorId());
-    UserCollection userCollectionReceive = friendCollectionRepository.findByUserId(friendShipEntity.getUserReceiveId());
-    if (status != null && status.equals(EFriendshipStatus.BLOCK)) {
-      if (userCollection != null) {
-        userCollection.getListBlockId().add(friendShipEntity.getUserReceiveId());
-        userCollection.getListFriendId().remove(friendShipEntity.getUserReceiveId());
-        friendCollectionRepository.save(userCollection);
+    FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(friendShipEntity.getUserInitiatorId());
+    FriendshipCollection friendshipCollectionReceive = friendCollectionRepository.findByUserId(friendShipEntity.getUserReceiveId());
+    if(status != null && status.equals(EFriendshipStatus.BLOCK)){
+      if (friendshipCollection != null) {
+        friendshipCollection.getListBlockId().add(friendShipEntity.getUserReceiveId());
+        friendshipCollection.getListFriendId().remove(friendShipEntity.getUserReceiveId());
+        friendCollectionRepository.save(friendshipCollection);
+        System.out.println("block1");
       } else {
-        UserCollection newUserCollection = new UserCollection(friendShipEntity.getUserInitiatorId());
-        newUserCollection.addBlock(friendShipEntity.getUserReceiveId());
-        friendCollectionRepository.save(newUserCollection);
+        FriendshipCollection newFriendshipCollection = new FriendshipCollection(friendShipEntity.getUserInitiatorId());
+        newFriendshipCollection.addBlock(friendShipEntity.getUserReceiveId());
+        friendCollectionRepository.save(newFriendshipCollection);
+        System.out.println("block2");
       }
-      if (userCollectionReceive != null) {
-        userCollectionReceive.getListBlockedId().add(friendShipEntity.getUserInitiatorId());
-        userCollectionReceive.getListFriendId().remove(friendShipEntity.getUserInitiatorId());
-        friendCollectionRepository.save(userCollectionReceive);
+
+      if (friendshipCollectionReceive != null) {
+        friendshipCollectionReceive.getListBlockedId().add(friendShipEntity.getUserInitiatorId());
+        friendshipCollectionReceive.getListFriendId().remove(friendShipEntity.getUserInitiatorId());
+        friendCollectionRepository.save(friendshipCollectionReceive);
+        System.out.println("block3");
       } else {
-        UserCollection newUserCollectionReceive = new UserCollection(friendShipEntity.getUserReceiveId());
-        newUserCollectionReceive.addBlocked(friendShipEntity.getUserInitiatorId());
-        friendCollectionRepository.save(newUserCollectionReceive);
+        FriendshipCollection newFriendshipCollectionReceive = new FriendshipCollection(friendShipEntity.getUserReceiveId());
+        newFriendshipCollectionReceive.addBlocked(friendShipEntity.getUserInitiatorId());
+        friendCollectionRepository.save(newFriendshipCollectionReceive);
+        System.out.println("block4");
       }
+
+      userNodeRepository.createBlockUser(friendShipEntity.getUserInitiatorId(), friendShipEntity.getUserReceiveId());
+
     } else {
-      if (userCollection != null) {
+      if (friendshipCollection != null) {
         if (prevStatus.equals((EFriendshipStatusEntity.PENDING))) {
-          userCollection.getListFriendId().add(friendShipEntity.getUserReceiveId());
-          friendCollectionRepository.save(userCollection);
+          friendshipCollection.getListFriendId().add(friendShipEntity.getUserReceiveId());
+          friendCollectionRepository.save(friendshipCollection);
+
+          System.out.println("add1");
         }
       } else {
-        UserCollection newUserCollection = new UserCollection(friendShipEntity.getUserInitiatorId());
-        newUserCollection.addFriend(friendShipEntity.getUserReceiveId());
-        friendCollectionRepository.save(newUserCollection);
+        FriendshipCollection newFriendshipCollection = new FriendshipCollection(friendShipEntity.getUserInitiatorId());
+        newFriendshipCollection.addFriend(friendShipEntity.getUserReceiveId());
+        friendCollectionRepository.save(newFriendshipCollection);
+
+        System.out.println("add2");
       }
-      if (userCollectionReceive != null) {
+      if (friendshipCollectionReceive != null) {
         if (prevStatus.equals((EFriendshipStatusEntity.PENDING))) {
-          userCollectionReceive.getListFriendId().add(friendShipEntity.getUserInitiatorId());
-          friendCollectionRepository.save(userCollectionReceive);
+          friendshipCollectionReceive.getListFriendId().add(friendShipEntity.getUserInitiatorId());
+          friendCollectionRepository.save(friendshipCollectionReceive);
+
+          System.out.println("add3");
         }
-      } else {
-        UserCollection newUserCollectionReceive = new UserCollection(friendShipEntity.getUserReceiveId());
-        newUserCollectionReceive.addFriend(friendShipEntity.getUserInitiatorId());
-        friendCollectionRepository.save(newUserCollectionReceive);
+      }else {
+        FriendshipCollection newFriendshipCollectionReceive = new FriendshipCollection(friendShipEntity.getUserReceiveId());
+        newFriendshipCollectionReceive.addFriend(friendShipEntity.getUserInitiatorId());
+        friendCollectionRepository.save(newFriendshipCollectionReceive);
+
+        System.out.println("add4");
       }
+
+      System.out.println("add5");
+      System.out.println("type:" + status.getClass());
+      System.out.println(eFriendShipStatusMapperETD.toEntity(status));
+      EFriendshipStatusEntity statusEntity = status == null ? EFriendshipStatusEntity.CLOSE_FRIEND : eFriendShipStatusMapperETD.toEntity(status);
+    userNodeRepository.createOrUpdateFriend(friendShipEntity.getUserInitiatorId(), friendShipEntity.getUserReceiveId(), statusEntity);
+
     }
     return true;
   }
@@ -202,24 +232,32 @@ public class FriendShipAdapter implements FriendShipPort {
   public void deleteFriendShip(Long userReceiveId, Long userInitiateId) {
     FriendShipEntity friendShipEntity = friendShipRepository.findFriendShip(userReceiveId, userInitiateId);
     if (friendShipEntity != null) {
+      EFriendshipStatusEntity status = friendShipEntity.getFriendshipStatus();
+
       friendShipRepository.delete(friendShipEntity);
-      UserCollection userCollection = friendCollectionRepository.findByUserId(userInitiateId);
-      UserCollection userCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId);
-      if (userCollection != null) {
-        if (friendShipEntity.getFriendshipStatus().equals(EFriendshipStatusEntity.BLOCK)) {
-          userCollection.getListBlockId().remove(userReceiveId);
-        } else {
-          userCollection.getListFriendId().remove(userReceiveId);
+      FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userInitiateId);
+      FriendshipCollection friendshipCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId);
+      if (friendshipCollection != null) {
+        if (friendShipEntity.getFriendshipStatus().equals(EFriendshipStatusEntity.BLOCK)){
+          friendshipCollection.getListBlockId().remove(userReceiveId);
+        }else {
+          friendshipCollection.getListFriendId().remove(userReceiveId);
         }
-        friendCollectionRepository.save(userCollection);
+        friendCollectionRepository.save(friendshipCollection);
       }
-      if (userCollectionReceive != null) {
-        if (friendShipEntity.getFriendshipStatus().equals(EFriendshipStatusEntity.BLOCK)) {
-          userCollectionReceive.getListBlockId().remove(userInitiateId);
-        } else {
-          userCollectionReceive.getListFriendId().remove(userInitiateId);
+      if (friendshipCollectionReceive != null) {
+        if (friendShipEntity.getFriendshipStatus().equals(EFriendshipStatusEntity.BLOCK)){
+          friendshipCollectionReceive.getListBlockId().remove(userInitiateId);
+        }else {
+          friendshipCollectionReceive.getListFriendId().remove(userInitiateId);
         }
-        friendCollectionRepository.save(userCollectionReceive);
+        friendCollectionRepository.save(friendshipCollectionReceive);
+      }
+
+      if (status != null && status.equals(EFriendshipStatusEntity.BLOCK)) {
+        userNodeRepository.unblockUser(userReceiveId, userInitiateId);
+      }else {
+        userNodeRepository.deleteFriend(userReceiveId, userInitiateId);
       }
     }
   }
@@ -229,24 +267,33 @@ public class FriendShipAdapter implements FriendShipPort {
     FriendShipEntity friendShipEntity = friendShipRepository.findById(friendShipId).orElse(null);
     friendShipRepository.deleteById(friendShipId);
     if (friendShipEntity != null) {
+      EFriendshipStatusEntity status = friendShipEntity.getFriendshipStatus();
       Long userInitiateId = friendShipEntity.getUserInitiatorId();
       Long userReceiveId = friendShipEntity.getUserReceiveId();
-      UserCollection userCollection = friendCollectionRepository.findByUserId(userInitiateId);
-      UserCollection userCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId);
-      if (userCollection != null) {
-        if (friendShipEntity.getFriendshipStatus().equals(EFriendshipStatusEntity.BLOCK)) {
-          userCollection.getListBlockId().remove(userReceiveId);
-        } else {
-          userCollection.getListFriendId().remove(userReceiveId);
+      FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userInitiateId);
+      FriendshipCollection friendshipCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId);
+      if (friendshipCollection != null) {
+        if (friendShipEntity.getFriendshipStatus().equals(EFriendshipStatusEntity.BLOCK)){
+          friendshipCollection.getListBlockId().remove(userReceiveId);
+        }else {
+          friendshipCollection.getListFriendId().remove(userReceiveId);
         }
-        friendCollectionRepository.save(userCollection);
+        friendCollectionRepository.save(friendshipCollection);
       }
 
-      if (userCollectionReceive != null) {
-        if (friendShipEntity.getFriendshipStatus().equals(EFriendshipStatusEntity.BLOCK)) {
-          userCollectionReceive.getListBlockId().remove(userInitiateId);
-        } else {
-          userCollectionReceive.getListFriendId().remove(userInitiateId);
+      if (friendshipCollectionReceive != null) {
+        if (friendShipEntity.getFriendshipStatus().equals(EFriendshipStatusEntity.BLOCK)){
+          friendshipCollectionReceive.getListBlockId().remove(userInitiateId);
+        }else {
+          friendshipCollectionReceive.getListFriendId().remove(userInitiateId);
+        }
+        friendCollectionRepository.save(friendshipCollectionReceive);
+      }
+
+        if (status != null && status.equals(EFriendshipStatusEntity.BLOCK)) {
+            userNodeRepository.unblockUser(userReceiveId, userInitiateId);
+        }else {
+            userNodeRepository.deleteFriend(userReceiveId, userInitiateId);
         }
         friendCollectionRepository.save(userCollectionReceive);
       }
@@ -260,8 +307,25 @@ public class FriendShipAdapter implements FriendShipPort {
 
   @Override
   public Boolean isBlock(Long fistUserId, Long secondUserId) {
-    UserCollection userCollection = friendCollectionRepository.findByUserId(fistUserId);
-    return userCollection != null && (userCollection.getListBlockedId().contains(secondUserId) || userCollection.getListBlockId().contains(secondUserId));
+    FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(fistUserId);
+    return friendshipCollection != null && (friendshipCollection.getListBlockedId().contains(secondUserId) || friendshipCollection.getListBlockId().contains(secondUserId));
+  }
+
+  @Override
+  public List<Long> getListSuggestFriend(Long userId) {
+    List<FriendSuggestion> listFriend = userNodeRepository.getListPotentialFriends(
+            userId,
+            RelationshipScores.CLOSE_FRIEND_SCORE,
+            RelationshipScores.SIBLING_SCORE,
+            RelationshipScores.PARENT_SCORE,
+            RelationshipScores.OTHER_SCORE,
+            RelationshipScores.SAME_HOMETOWN_SCORE
+    );
+
+    return listFriend.stream()
+            .map(FriendSuggestion::getPotentialFriend)
+            .map(UserNode::getUserId)
+            .toList();
   }
 
   @Override
@@ -279,6 +343,11 @@ public class FriendShipAdapter implements FriendShipPort {
   }
 
   @Override
+  public int getMutualFriendNeo(Long firstUser, Long secondUser) {
+    return userNodeRepository.getMutualFriend(firstUser, secondUser);
+  }
+
+  @Override
   public LinkedList<Long> getListMeBlock(Long userId) {
     UserCollection userCollection = friendCollectionRepository.findByUserId(userId);
     if (userCollection == null) {
@@ -290,9 +359,9 @@ public class FriendShipAdapter implements FriendShipPort {
   @Override
   public LinkedList<Long> getListBlockMe(Long userId) {
     LinkedList<Long> listBlock = new LinkedList<>();
-    UserCollection userCollection = friendCollectionRepository.findByUserId(userId);
-    if (userCollection != null && userCollection.getListBlockedId() != null) {
-      listBlock.addAll(userCollection.getListBlockedId());
+    FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userId);
+    if (friendshipCollection != null && friendshipCollection.getListBlockedId() != null) {
+      listBlock.addAll(friendshipCollection.getListBlockedId());
     }
     return listBlock;
   }
@@ -300,12 +369,12 @@ public class FriendShipAdapter implements FriendShipPort {
   @Override
   public LinkedList<Long> getListBlockBoth(Long userId) {
     LinkedList<Long> listBlock = new LinkedList<>();
-    UserCollection userCollection = friendCollectionRepository.findByUserId(userId);
-    if (userCollection == null) {
+    FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userId);
+    if (friendshipCollection == null) {
       return listBlock;
     }
-    LinkedList<Long> listMeBlock = userCollection.getListBlockId();
-    LinkedList<Long> listBlockMe = userCollection.getListBlockedId();
+    LinkedList<Long> listMeBlock = friendshipCollection.getListBlockId();
+    LinkedList<Long> listBlockMe = friendshipCollection.getListBlockedId();
     if (listMeBlock != null) {
       listBlock.addAll(listMeBlock);
     }

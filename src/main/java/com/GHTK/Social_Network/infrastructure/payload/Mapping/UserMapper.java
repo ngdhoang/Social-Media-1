@@ -69,7 +69,7 @@ public interface UserMapper {
   }
 
   @Named("mapHomeTown")
-  default FieldVisibilityDto<String> mapHomeTown(Profile profile) {
+  default FieldVisibilityDto<Integer> mapHomeTown(Profile profile) {
     return new FieldVisibilityDto<>(profile.getHomeTown(), profile.getIsHomeTownPublic());
   }
 

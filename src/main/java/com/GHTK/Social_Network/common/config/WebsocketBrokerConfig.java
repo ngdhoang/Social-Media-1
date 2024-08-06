@@ -22,7 +22,6 @@ public class WebsocketBrokerConfig implements WebSocketMessageBrokerConfigurer {
     registry.setApplicationDestinationPrefixes("/app");
   }
 
-
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry

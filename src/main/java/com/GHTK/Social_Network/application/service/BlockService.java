@@ -102,6 +102,7 @@ public class BlockService implements BlockPortInput {
         return new MessageResponse("Request sent successfully");
       }
       friendShipPort.deleteFriendShip(friendShip.getFriendShipId());
+      blockPort.addBlock(user.getUserId(), userReceiveId);
       return new MessageResponse("Request sent successfully");
     }
 

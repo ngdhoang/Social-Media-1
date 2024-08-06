@@ -67,7 +67,12 @@ public class AuthAdapter implements AuthPort {
 
   @Override
   public User saveUser(User user) {
-    return userMapperETD.toDomain(userRepository.save(userMapperETD.toEntity(user)));
+    User newUser = userMapperETD.toDomain(userRepository.save(userMapperETD.toEntity(user)));
+
+    UserNode newUserNode = userMapperETD.userDomainToNode(newUser);
+    UserNode newUserNodeSave = userNodeRepository.save(newUserNode);
+
+    return newUser;
   }
 
   @Override

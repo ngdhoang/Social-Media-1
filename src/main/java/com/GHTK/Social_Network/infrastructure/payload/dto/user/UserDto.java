@@ -30,7 +30,7 @@ public class UserDto {
 
   private FieldVisibilityDto<String> phoneNumber;
 
-  private FieldVisibilityDto<String> homeTown;
+  private FieldVisibilityDto<Integer> homeTown;
 
   private FieldVisibilityDto<String> schoolName;
 

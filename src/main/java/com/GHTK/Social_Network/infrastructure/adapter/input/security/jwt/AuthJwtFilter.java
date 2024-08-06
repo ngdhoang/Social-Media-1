@@ -26,6 +26,7 @@ public class AuthJwtFilter extends OncePerRequestFilter {
   private final UserDetailsService userDetailsService;
   private final AuthPort authPort;
 
+
   @Override
   protected void doFilterInternal(
           @NonNull HttpServletRequest request,
@@ -49,6 +50,7 @@ public class AuthJwtFilter extends OncePerRequestFilter {
         UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
         var tokenOptional = authPort.findByToken(jwt, userEmail);
+
         if (tokenOptional == null || tokenOptional.isExpired() || tokenOptional.isRevoked() || !jwtUtils.isTokenValid(jwt, userDetails)) {
           throw new CustomException("Invalid token", HttpStatus.UNAUTHORIZED);
         }
