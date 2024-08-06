@@ -2,8 +2,6 @@ package com.GHTK.Social_Network.infrastructure.adapter.input;
 
 import com.GHTK.Social_Network.application.port.input.post.CommentPostInput;
 import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
-//import com.GHTK.Social_Network.application.port.input.post.ReactionCommentInput;
-//import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetCommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.CommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
@@ -37,7 +35,7 @@ public class CommentController {
   }
 
   @GetMapping("/comments/{commentId}")
-  public ResponseEntity<Object> getCommentById(@PathVariable Long commentId){
+  public ResponseEntity<Object> getCommentById(@PathVariable Long commentId) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentById(commentId));
   }
 
@@ -45,7 +43,6 @@ public class CommentController {
   public ResponseEntity<Object> getCommentsByInteractions(@Valid @ModelAttribute GetCommentRequest getCommentRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getListCommentInteractions(getCommentRequest));
   }
-
 
   @GetMapping("/comments/{commentId}/replies")
   public ResponseEntity<Object> getListCommentChildByCommentParentId(@PathVariable Long commentId, @Valid @ModelAttribute GetCommentRequest getCommentRequest) {
@@ -66,6 +63,5 @@ public class CommentController {
   public ResponseEntity<Object> addImageToComment(@RequestParam MultipartFile image) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, imagePostInput.createImage(image, ImagePostInput.COMMENT_TAIL));
   }
-
 }
 

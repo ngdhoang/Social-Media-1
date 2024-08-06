@@ -19,7 +19,6 @@ public interface ReactionPostMapper {
   @Mapping(target = "updateAt", ignore = true)
   ReactionPost responseToPost(ReactionResponse response);
 
-
   @Mapping(target = "owner", source = "user")
   @Mapping(target = "roleId", source = "reactionId")
   @Mapping(target = "post", source = "post")

@@ -1,0 +1,35 @@
+GROUP:
+{
+    _id: ObjectId("..."),
+    groupId: 1,
+    groupBackground: "http://avatar.png",
+    groupName: "anticoder",
+    groupType: "Group|Personal",
+    members: [
+        {
+            userId: 1,
+            nickname: "anticoder",
+            lastMsgSeen: 1
+        }
+    ],
+    admins: [1, 2],
+    msgPin: [1],
+    createdAt: ISODate("2004-02-26T..."),
+    messageCount: 1000
+}
+
+MESSAGE:
+{
+    _id: ObjectId("..."),
+    groupId: 1,  // Reference to the group
+    msgId: 1,
+    userAuthId: 1,
+    replyMsgId: 2,
+    msgType: "add_group|leave_group|kick_group|message|recall|delete|emoji",
+    content: "hello world <@1>",
+    tags: [1],
+    createdAt: ISODate("2004-02-26T..."),
+    imgs: [
+        "http://image.jpg"
+    ]
+}

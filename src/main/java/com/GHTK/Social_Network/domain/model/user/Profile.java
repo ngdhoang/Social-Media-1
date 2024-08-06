@@ -16,7 +16,7 @@ public class Profile {
 
   private String phoneNumber;
 
-  private String homeTown;
+  private Integer homeTown;
 
   private String schoolName;
 

@@ -10,8 +10,10 @@ import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.Use
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.TokenEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.UserNode;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.TokenRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.UserNodeRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.TokenMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.UserMapperETD;
 import lombok.AllArgsConstructor;
@@ -32,9 +34,9 @@ import java.util.*;
 public class AuthAdapter implements AuthPort {
   private final JwtUtils jwtUtils;
 
-
   private final TokenRepository tokenRepository;
   private final UserRepository userRepository;
+  private final UserNodeRepository userNodeRepository;
 
   private final TokenMapperETD tokenMapperETD;
   private final UserMapperETD userMapperETD;
@@ -72,7 +74,12 @@ public class AuthAdapter implements AuthPort {
 
   @Override
   public User saveUser(User user) {
-    return userMapperETD.toDomain(userRepository.save(userMapperETD.toEntity(user)));
+    User newUser = userMapperETD.toDomain(userRepository.save(userMapperETD.toEntity(user)));
+
+    UserNode newUserNode = userMapperETD.userDomainToNode(newUser);
+    UserNode newUserNodeSave = userNodeRepository.save(newUserNode);
+
+    return newUser;
   }
 
   @Override
