@@ -7,7 +7,9 @@ import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsImpl;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.UserNode;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.UserNodeRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.UserMapperETD;
 import com.GHTK.Social_Network.infrastructure.payload.dto.AccessTokenDto;
 import lombok.AllArgsConstructor;
@@ -29,6 +31,7 @@ public class AuthAdapter implements AuthPort {
   private final JwtPort jwtPort;
   private final UserRepository userRepository;
   private final UserMapperETD userMapperETD;
+  private final UserNodeRepository userNodeRepository;
 
   private final RedisAccessTokenPort redisAccessTokenPort;
 

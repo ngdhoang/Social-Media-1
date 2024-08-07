@@ -9,7 +9,7 @@ import java.util.LinkedList;
 
 
 @Repository
-public interface FriendCollectionRepository extends MongoRepository<FriendshipCollection, String> {
+public interface FriendCollectionRepository extends MongoRepository<UserCollection, String> {
   @Query(
           """
                           {
@@ -30,9 +30,9 @@ public interface FriendCollectionRepository extends MongoRepository<FriendshipCo
                           }
                   """
   )
-  FriendshipCollection getBlock(Long firstUserId, Long secondUserId);
+  UserCollection getBlock(Long firstUserId, Long secondUserId);
 
-  FriendshipCollection findByUserId(Long userId);
+  UserCollection findByUserId(Long userId);
 
   @Query(value = "{ 'userId' : ?0 }", fields = "{ 'listFriendId' : 1}")
   LinkedList<Long> getFriendsById(Long userId);
