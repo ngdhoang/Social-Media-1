@@ -2,7 +2,7 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
 import com.GHTK.Social_Network.application.port.output.BlockPort;
 import com.GHTK.Social_Network.domain.model.friendShip.FriendShip;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.FriendshipCollection;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.UserCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.EFriendshipStatusEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.FriendShipEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendCollectionRepository;
@@ -44,24 +44,24 @@ public class BlockAdapter implements BlockPort {
   public FriendShip addBlock(Long userInitiatorId, Long userReceiveId) {
     FriendShipEntity friendShipEntity = new FriendShipEntity(userReceiveId, userInitiatorId, EFriendshipStatusEntity.BLOCK);
     FriendShip friendShip = friendShipMapperETD.toDomain(friendShipRepository.save(friendShipEntity));
-    FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userInitiatorId);
-    FriendshipCollection friendshipCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId);
-    if (friendshipCollection == null) {
-        FriendshipCollection newFriendshipCollection = new FriendshipCollection(userInitiatorId);
-        newFriendshipCollection.addBlock(userReceiveId);
-        friendCollectionRepository.save(newFriendshipCollection);
+    UserCollection userCollection = friendCollectionRepository.findByUserId(userInitiatorId);
+    UserCollection userCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId);
+    if (userCollection == null) {
+        UserCollection newUserCollection = new UserCollection(userInitiatorId);
+        newUserCollection.addBlock(userReceiveId);
+        friendCollectionRepository.save(newUserCollection);
     } else {
-        friendshipCollection.getListBlockId().add(userReceiveId);
-        friendCollectionRepository.save(friendshipCollection);
+        userCollection.getListBlockId().add(userReceiveId);
+        friendCollectionRepository.save(userCollection);
     }
 
-    if (friendshipCollectionReceive == null) {
-        FriendshipCollection newFriendshipCollectionReceive = new FriendshipCollection(userReceiveId);
-        newFriendshipCollectionReceive.addBlocked(userInitiatorId);
-        friendCollectionRepository.save(newFriendshipCollectionReceive);
+    if (userCollectionReceive == null) {
+        UserCollection newUserCollectionReceive = new UserCollection(userReceiveId);
+        newUserCollectionReceive.addBlocked(userInitiatorId);
+        friendCollectionRepository.save(newUserCollectionReceive);
     } else {
-        friendshipCollectionReceive.getListBlockedId().add(userInitiatorId);
-        friendCollectionRepository.save(friendshipCollectionReceive);
+        userCollectionReceive.getListBlockedId().add(userInitiatorId);
+        friendCollectionRepository.save(userCollectionReceive);
     }
 
     userNodeRepository.createBlockUser(userInitiatorId, userReceiveId);
@@ -99,9 +99,9 @@ public class BlockAdapter implements BlockPort {
       friendShipRepository.delete(friendShipEntity);
     }
 
-    FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userInitiateId);
-    FriendshipCollection friendshipCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId);
-    handlerUnBlockCollection(friendshipCollection, friendshipCollectionReceive);
+    UserCollection userCollection = friendCollectionRepository.findByUserId(userInitiateId);
+    UserCollection userCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId);
+    handlerUnBlockCollection(userCollection, userCollectionReceive);
 
     userNodeRepository.unblockUser(userReceiveId, userInitiateId);
   }
@@ -110,18 +110,18 @@ public class BlockAdapter implements BlockPort {
   public void unBlock(Long friendShipId) {
     FriendShipEntity friendShipEntity = friendShipRepository.findBlockById(friendShipId);
     friendShipRepository.deleteById(friendShipId);
-    FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(friendShipEntity.getUserInitiatorId());
-    FriendshipCollection friendshipCollectionReceive = friendCollectionRepository.findByUserId(friendShipEntity.getUserReceiveId());
-    handlerUnBlockCollection(friendshipCollection, friendshipCollectionReceive);
+    UserCollection userCollection = friendCollectionRepository.findByUserId(friendShipEntity.getUserInitiatorId());
+    UserCollection userCollectionReceive = friendCollectionRepository.findByUserId(friendShipEntity.getUserReceiveId());
+    handlerUnBlockCollection(userCollection, userCollectionReceive);
 
     userNodeRepository.unblockUser(friendShipEntity.getUserReceiveId(), friendShipEntity.getUserInitiatorId());
   }
 
-  private void handlerUnBlockCollection(FriendshipCollection friendshipCollection, FriendshipCollection friendshipCollectionReceive) {
-    friendshipCollection.getListBlockId().remove(friendshipCollectionReceive.getUserId());
-    friendCollectionRepository.save(friendshipCollection);
-    friendshipCollectionReceive.getListBlockedId().remove(friendshipCollection.getUserId());
-    friendCollectionRepository.save(friendshipCollectionReceive);
+  private void handlerUnBlockCollection(UserCollection userCollection, UserCollection userCollectionReceive) {
+    userCollection.getListBlockId().remove(userCollectionReceive.getUserId());
+    friendCollectionRepository.save(userCollection);
+    userCollectionReceive.getListBlockedId().remove(userCollection.getUserId());
+    friendCollectionRepository.save(userCollectionReceive);
   }
 
   @Override

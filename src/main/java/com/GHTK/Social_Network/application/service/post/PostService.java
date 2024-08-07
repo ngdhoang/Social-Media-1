@@ -404,7 +404,8 @@ public class PostService implements PostPortInput {
     List<ImagePost> imagePostList = portPost.getListImageByPostId(p.getPostId());
     List<Long> blockIds = friendShipPort.getListBlockBoth(p.getUserId());
     List<TagUser> tagUserList = portPost.getListTagUserByPostId(p.getPostId(), blockIds);
-    return postMapper.postToPostResponse(p, imagePostList, tagUserList);
+    List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getTagUserId())).toList();
+    return postMapper.postToPostResponse(p, imagePostList, userTagList);
   }
 
 }

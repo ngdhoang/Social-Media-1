@@ -14,7 +14,7 @@ import java.util.LinkedList;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class FriendshipCollection {
+public class UserCollection {
     @Id
     private String id;
 
@@ -26,7 +26,7 @@ public class FriendshipCollection {
 
     private LinkedList<Long> listBlockedId;
 
-    public FriendshipCollection(Long userId) {
+    public UserCollection(Long userId) {
         this.userId = userId;
         this.listFriendId = new LinkedList<>();
         this.listBlockId = new LinkedList<>();

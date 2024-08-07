@@ -3,6 +3,7 @@ package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 import com.GHTK.Social_Network.domain.model.post.EPostStatus;
 import com.GHTK.Social_Network.domain.model.post.ImagePost;
 import com.GHTK.Social_Network.domain.model.post.Post;
+import com.GHTK.Social_Network.domain.model.post.TagUser;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.post.PostBasicDto;
@@ -48,6 +49,7 @@ public interface PostMapper {
 
   @Named("mapTagUsers")
   default List<UserBasicDto> mapTagUsers(List<?> tagUsers) {
+    System.out.println(tagUsers);
     if (tagUsers == null) {
       return null;
     }
@@ -61,7 +63,15 @@ public interface PostMapper {
               .map(this::userToUserBasicInfoDto)
               .collect(Collectors.toList());
     }
-    throw new IllegalArgumentException("Unsupported tag users type");
+//    if (tagUsers.get(0) instanceof TagUser) {
+//      return ((List<TagUser>) tagUsers).stream()
+//              .map(tagUser -> UserBasicDto.builder()
+//                      .userId(tagUser.getUserId())
+//                      .firstName(tagUser.get())
+//                      .build())
+//              .collect(Collectors.toList());
+//    }
+    return List.of();
   }
 
   @Mapping(source = "imagePostId", target = "imageId")
