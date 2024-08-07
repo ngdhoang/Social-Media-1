@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -68,7 +69,7 @@ public class FriendShipAdapter implements FriendShipPort {
     }
     EFriendshipStatus status = statusString != null ? EFriendshipStatus.valueOf(statusString.toUpperCase()) : null;
     EFriendshipStatusEntity statusEntity = status != null ? eFriendShipStatusMapperETD.toEntity(status) : null;
-    if (status != null ) {
+    if (status != null) {
       if (status.equals(EFriendshipStatus.PENDING)) {
         return friendShipRepository.countByUserReceiveIdAndFriendshipStatus(userId, statusEntity);
       }
@@ -87,7 +88,7 @@ public class FriendShipAdapter implements FriendShipPort {
   }
 
   @Override
-  public Long countByUserInitiatorIdAndFriendshipStatus(GetFriendShipRequest getFriendShipRequest){
+  public Long countByUserInitiatorIdAndFriendshipStatus(GetFriendShipRequest getFriendShipRequest) {
     Long userId = getFriendShipRequest.getUserId();
     String statusString = getFriendShipRequest.getStatus();
     EFriendshipStatus status = statusString != null ? EFriendshipStatus.valueOf(statusString.toUpperCase()) : null;
@@ -111,6 +112,7 @@ public class FriendShipAdapter implements FriendShipPort {
   public FriendShip addFriendShip(Long userInitiatorId, Long userReceiveId, EFriendshipStatus status) {
     FriendShipEntity friendShipEntity = new FriendShipEntity(userReceiveId, userInitiatorId, eFriendShipStatusMapperETD.toEntity(status));
     FriendShip friendShip = friendShipMapperETD.toDomain(friendShipRepository.save(friendShipEntity));
+
 
     FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userInitiatorId);
     FriendshipCollection friendshipCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId);
@@ -223,7 +225,7 @@ public class FriendShipAdapter implements FriendShipPort {
 
   @Override
   public FriendShip getFriendShipById(Long id) {
-    FriendShipEntity friendShipEntity= friendShipRepository.findById(id).orElse(null);
+    FriendShipEntity friendShipEntity = friendShipRepository.findById(id).orElse(null);
     return friendShipMapperETD.toDomain(friendShipEntity);
   }
 
@@ -294,7 +296,7 @@ public class FriendShipAdapter implements FriendShipPort {
         }else {
             userNodeRepository.deleteFriend(userReceiveId, userInitiateId);
         }
-    }
+      }
   }
 
   @Override
@@ -332,9 +334,14 @@ public class FriendShipAdapter implements FriendShipPort {
     if (friendshipCollection == null || friendshipCollectionReceive == null) {
       return 0;
     }
-    LinkedList<Long> listFriendInitiator = friendshipCollection.getListFriendId();
-    LinkedList<Long> listFriendReceive = friendshipCollectionReceive.getListFriendId();
-    Set<Long> multiFriend = Set.of(listFriendInitiator.toArray(new Long[0]));
+    List<Long> listFriendInitiator = friendshipCollection.getListFriendId();
+    List<Long> listFriendReceive = friendshipCollectionReceive.getListFriendId();
+
+    if (listFriendInitiator == null || listFriendReceive == null) {
+      return 0;
+    }
+
+    Set<Long> multiFriend = new HashSet<>(listFriendInitiator);
     multiFriend.retainAll(listFriendReceive);
     return multiFriend.size();
   }

@@ -1,5 +1,6 @@
-package com.GHTK.Social_Network.infrastructure.adapter.input.filter;
+package com.GHTK.Social_Network.infrastructure.adapter.input.websocket;
 
+import com.GHTK.Social_Network.application.port.output.auth.JwtPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt.JwtUtils;
 import com.GHTK.Social_Network.infrastructure.adapter.output.persistence.user.AuthAdapter;
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class WebsocketTokenFilter implements ChannelInterceptor {
-  private final JwtUtils jwtUtils;
+  private final JwtPort jwtUtils;
   private final UserDetailsService userDetailsService;
   private final AuthAdapter tokenRepository;
 
@@ -40,7 +41,7 @@ public class WebsocketTokenFilter implements ChannelInterceptor {
         String userEmail = jwtUtils.extractUserEmail(jwt);
         UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
-        var tokenOptional = tokenRepository.findByToken(jwt);
+        var tokenOptional = tokenRepository.findByToken(jwt, userEmail);
         if (tokenOptional == null || tokenOptional.isExpired() || tokenOptional.isRevoked()) {
           throw new CustomException("Invalid token", HttpStatus.UNAUTHORIZED);
         }

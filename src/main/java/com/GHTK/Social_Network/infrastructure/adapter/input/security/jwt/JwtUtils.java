@@ -1,13 +1,13 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt;
 
 import com.GHTK.Social_Network.application.port.output.auth.JwtPort;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import com.GHTK.Social_Network.common.customException.CustomException;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -40,11 +40,11 @@ public class JwtUtils implements JwtPort {
   }
 
   private Claims extractAllClaims(String token) {
-    return Jwts.parser()
-            .verifyWith(getSignInKey())
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
+      return Jwts.parser()
+              .verifyWith(getSignInKey())
+              .build()
+              .parseSignedClaims(token)
+              .getPayload();
   }
 
   public boolean isTokenValid(String token, UserDetails userDetails) {
@@ -65,27 +65,28 @@ public class JwtUtils implements JwtPort {
     return Keys.hmacShaKeyFor(keyBytes);
   }
 
-  public String generateToken(UserDetails userDetails) {
-
-    return Jwts.builder()
-            .subject(userDetails.getUsername())
-            .issuedAt(new Date(System.currentTimeMillis()))
-            .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
-            .signWith(getSignInKey())
-            .compact();
+  public String generateToken(UserDetails userDetails, String fingerprinting) {
+    Map<String, Object> claims = new HashMap<>();
+    claims.put("fingerprinting", fingerprinting);
+    return buildToken(claims, userDetails, jwtExpiration);
   }
 
   public String generateToken(
           Map<String, Object> extraClaims,
-          UserDetails userDetails
+          UserDetails userDetails,
+          String fingerprinting
   ) {
+    extraClaims.put("fingerprinting", fingerprinting);
     return buildToken(extraClaims, userDetails, jwtExpiration);
   }
 
   public String generateRefreshToken(
-          UserDetails userDetails
+          UserDetails userDetails,
+          String fingerprinting
   ) {
-    return buildToken(new HashMap<>(), userDetails, refreshExpiration);
+    Map<String, Object> claims = new HashMap<>();
+    claims.put("fingerprinting", fingerprinting);
+    return buildToken(claims, userDetails, refreshExpiration);
   }
 
   private String buildToken(
@@ -103,6 +104,11 @@ public class JwtUtils implements JwtPort {
             .compact();
   }
 
+  public String extractFingerprinting(String token) {
+    return extractClaim(token, claims -> claims.get("fingerprinting", String.class));
+  }
+
+  @Override
   public String parseJwt(StompHeaderAccessor accessor) {
     String token = accessor.getFirstNativeHeader("Authorization");
     String jwt = null;
@@ -110,6 +116,31 @@ public class JwtUtils implements JwtPort {
       jwt = token.substring(7);
     }
     return jwt;
+  }
+
+  @Override
+  public boolean isValidJwtFormat(String token) {
+    if (token == null || token.isEmpty()) {
+      return false;
+    }
+
+    String[] parts = token.split("\\.");
+    if (parts.length != 3) {
+      return false;
+    }
+
+    for (String part : parts) {
+      if (!isBase64UrlEncoded(part)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private boolean isBase64UrlEncoded(String str) {
+    String base64UrlPattern = "^[A-Za-z0-9_-]*={0,2}$";
+    return str.matches(base64UrlPattern);
   }
 }
 

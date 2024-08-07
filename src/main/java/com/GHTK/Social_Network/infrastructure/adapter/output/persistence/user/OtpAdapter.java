@@ -16,6 +16,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 
 @Slf4j
@@ -40,7 +41,7 @@ public class OtpAdapter implements OtpPort {
       throw new CustomException("Maximum OTP attempts exceeded", HttpStatus.TOO_MANY_REQUESTS);
     }
 
-    if (System.currentTimeMillis() > authRedisDto.getCreateTime().getTime() + timeInterval) {
+    if (System.currentTimeMillis() > authRedisDto.getCreateAt().getTime() + timeInterval) {
       authenticationRedisTemplate.delete(email);
       throw new CustomException("OTP has expired", HttpStatus.BAD_REQUEST);
     }
@@ -56,7 +57,7 @@ public class OtpAdapter implements OtpPort {
 
   @Override
   public void saveOtp(String email, String otp) {
-    AuthRedisDto authRedisDto = new AuthRedisDto(null, otp, new Date(), 0);
+    AuthRedisDto authRedisDto = new AuthRedisDto(List.of(otp), new Date(), 0);
     authenticationRedisTemplate.opsForValue().set(email, authRedisDto);
   }
 

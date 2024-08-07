@@ -1,7 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
 import com.GHTK.Social_Network.application.port.output.BlockPort;
-import com.GHTK.Social_Network.common.customAnnotation.Enum.ESortBy;
 import com.GHTK.Social_Network.domain.model.friendShip.FriendShip;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.FriendshipCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.EFriendshipStatusEntity;
@@ -10,18 +9,13 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendCo
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendShipRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.UserNodeRepository;
-import com.GHTK.Social_Network.infrastructure.mapper.EFriendShipStatusMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.FriendShipMapperETD;
 import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.GetBlockRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -104,6 +98,7 @@ public class BlockAdapter implements BlockPort {
     if (friendShipEntity != null) {
       friendShipRepository.delete(friendShipEntity);
     }
+
     FriendshipCollection friendshipCollection = friendCollectionRepository.findByUserId(userInitiateId);
     FriendshipCollection friendshipCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId);
     handlerUnBlockCollection(friendshipCollection, friendshipCollectionReceive);

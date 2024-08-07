@@ -83,15 +83,18 @@ public class FriendShipService implements FriendShipPortInput {
   }
 
   private List<FriendShipUserDto> getProfileDtos(List<Long> friendShips, User user) {
+    System.out.println(friendShips);
       Map<Long, User> profileUsersMap = friendShips.stream()
               .map(profilePort::takeUserById)
               .filter(Optional::isPresent)
               .map(Optional::get)
               .collect(Collectors.toMap(User::getUserId, Function.identity()));
-
+    System.out.println(profileUsersMap);
       return friendShips.stream()
               .map(friendShipId -> {
+                System.out.println(friendShipId);
                 User profileUser = profileUsersMap.get(friendShipId);
+                System.out.println(profileUser);
                 FriendShip friendship = friendShipPort.getFriendShip(user.getUserId(), friendShipId);
                 EFriendshipStatus status = friendship != null ? friendship.getFriendshipStatus() : null;
                 long mutualFriends = friendShipPort.getMutualFriendNeo(user.getUserId(), friendShipId);

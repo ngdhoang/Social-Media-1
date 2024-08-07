@@ -81,7 +81,6 @@ public class CommentService implements CommentPostInput {
 
     String imageCommentUrl = getImageUrlCommentInRedis(comment.getPublicId(), getUserAuth());
     Comment newComment = new Comment(
-            LocalDate.now(),
             comment.getContent(),
             user.getUserId(),
             post.getPostId(),
@@ -112,7 +111,6 @@ public class CommentService implements CommentPostInput {
 
     String imageComment = getImageUrlCommentInRedis(comment.getPublicId(), this.getUserAuth());
     Comment newComment = new Comment(
-            LocalDate.now(),
             comment.getContent(),
             user.getUserId(),
             post.getPostId(),
@@ -261,6 +259,11 @@ public class CommentService implements CommentPostInput {
   @Override
   public MessageResponse deleteComment(Long commentId) {
     Comment commentEntity = commentPostPort.findCommentById(commentId);
+
+    if (commentEntity == null || !Objects.equals(commentEntity.getUserId(), this.getUserAuth().getUserId())) {
+      throw new CustomException("Comment not found", HttpStatus.NOT_FOUND);
+    }
+
     Post post = postPort.findPostByPostId(commentEntity.getPostId());
     checkCommentValid(post, getUserAuth());
     if (commentEntity == null || !Objects.equals(commentEntity.getUserId(), this.getUserAuth().getUserId())) {
@@ -286,6 +289,11 @@ public class CommentService implements CommentPostInput {
     checkCommentValid(post, user);
 
     Comment updatedComment = commentPostPort.findCommentById(commentId);
+
+    if (updatedComment == null) {
+      throw new CustomException("Comment not found", HttpStatus.NOT_FOUND);
+    }
+
     String imageComment = getImageUrlCommentInRedis(comment.getPublicId(), this.getUserAuth());
     if (imageComment != null) {
       updatedComment.setImageUrl(imageComment);

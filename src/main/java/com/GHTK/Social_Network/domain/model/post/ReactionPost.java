@@ -4,6 +4,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import lombok.*;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Data
@@ -19,18 +20,18 @@ public class ReactionPost {
 
   private Long userId;
 
-  private LocalDate createAt;
+  private Instant createAt;
 
-  private LocalDate updateAt;
+  private Instant updateAt;
 
   @PrePersist
   public void prePersist() {
-    this.createAt = LocalDate.now();
+    this.createAt = Instant.now();
   }
 
   @PreUpdate
   public void preUpdate() {
-    this.updateAt = LocalDate.now();
+    this.updateAt = Instant.now();
   }
 
 }

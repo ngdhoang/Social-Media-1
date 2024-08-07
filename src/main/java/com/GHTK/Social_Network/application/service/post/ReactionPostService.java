@@ -28,6 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -155,7 +156,7 @@ public class ReactionPostService implements ReactionPostInput {
                 EReactionType reactionType = EReactionType.valueOf((String) reactionInteraction[1]);
                 Long targetId = (Long) reactionInteraction[2];
                 Date createAtDate = (Date) reactionInteraction[3];
-                LocalDate createAt = createAtDate.toLocalDate();
+                Instant createAt = createAtDate.toInstant();
                 String role = (String) reactionInteraction[4];
                 if (role.equals("post")) {
                   Post post = postPort.findPostByPostId(targetId);

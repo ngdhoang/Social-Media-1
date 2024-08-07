@@ -15,9 +15,9 @@ import java.util.List;
 @Data
 public class MessageCollection {
   @Id
-  private String msgId;
+  private Long msgId;
 
-  private String groupId;
+  private Long groupId;
 
   private Long userAuthId;
 

@@ -14,7 +14,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +31,7 @@ public class ReactionPostAdapter implements ReactionPostPort {
   private final ReactionPostRepository reactionPostRepository;
   private final ReactionPostMapperETD reactionPostMapperETD;
   private final ReactionTypeMapperETD reactionTypeMapperETD;
-  private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+  private static final DateTimeFormatter DATE_FORMATTER =  DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS");
 
   @Override
   public ReactionPost findByPostIdAndUserID(Long postId, Long userId) {
@@ -86,11 +89,14 @@ public class ReactionPostAdapter implements ReactionPostPort {
                 reactionPost1.setPostId(convertToLong(reactionPost.get("post_id")));
                 reactionPost1.setUserId(convertToLong(reactionPost.get("user_id")));
                 String createAtStr = (String) reactionPost.get("create_at");
-                LocalDate createAt = null;
+                Instant createAt = null;
                 try {
-                  createAt = LocalDate.parse(createAtStr);
+                  createAt = Instant.parse(createAtStr);
                   reactionPost1.setCreateAt(createAt);
-                  createAt = LocalDate.parse(createAtStr, DATE_FORMATTER);
+                  LocalDateTime localDateTime = LocalDateTime.parse(createAtStr, DATE_FORMATTER);
+                  ZoneId zoneId = ZoneId.systemDefault();
+                  createAt = localDateTime.atZone(zoneId).toInstant();
+                  reactionPost1.setCreateAt(createAt);
                 } catch (Exception e) {
                   System.out.print("");
                 }

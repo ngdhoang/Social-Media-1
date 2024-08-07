@@ -8,7 +8,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.LinkedList;
-import java.util.List;
 
 @Document
 @Builder
@@ -16,12 +15,15 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class FriendshipCollection {
-
     @Id
     private String id;
+
     private Long userId;
+
     private LinkedList<Long> listFriendId;
+
     private LinkedList<Long> listBlockId;
+
     private LinkedList<Long> listBlockedId;
 
     public FriendshipCollection(Long userId) {

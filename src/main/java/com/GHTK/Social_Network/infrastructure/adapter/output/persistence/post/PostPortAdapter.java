@@ -50,8 +50,8 @@ public class PostPortAdapter implements PostPort {
   @Override
   public List<Post> findPostsByUserIdAndFriendStatus(Long userId, TAKE_POST_STATUS status, List<Long> blockIds, GetPostRequest getPostRequest) {
     String statusString = status.toString();
-    Pageable pageable = getPostRequest.toPageable();
-    return postRepository.getListByUserIdAndFriendStatus(userId, statusString, blockIds, pageable).stream().map(
+    Pageable pageable = getPostRequest.toPageableNotSort();
+    return postRepository.getListByUserIdAndFriendStatus(userId, statusString, pageable).stream().map(
             postMapperETD::toDomain
     ).toList();
   }
@@ -73,7 +73,7 @@ public class PostPortAdapter implements PostPort {
 
   @Override
   public List<Post> getListPostTagMeNotBlockAndPrivate(Long currentUser, List<Long> blockIds, GetPostRequest getPostRequest) {
-    Pageable pageable = getPostRequest.toPageable();
+    Pageable pageable = getPostRequest.toPageableNotSort();
     List<TagUserEntity> tagUserList = tagUserRepository.getListByUserId(currentUser, blockIds, pageable);
     List<PostEntity> postList = new ArrayList<>();
     tagUserList.forEach(tagUser -> {
@@ -88,7 +88,7 @@ public class PostPortAdapter implements PostPort {
 
   @Override
   public List<Post> findPostsTagMe(Long currentUser, List<Long> blockIds, GetPostRequest getPostRequest) {
-    Pageable pageable = getPostRequest.toPageable();
+    Pageable pageable = getPostRequest.toPageableNotSort();
     List<TagUserEntity> tagUserList = tagUserRepository.getListByUserId(currentUser, blockIds, pageable);
     List<PostEntity> postList = new ArrayList<>();
     tagUserList.forEach(tagUser -> {

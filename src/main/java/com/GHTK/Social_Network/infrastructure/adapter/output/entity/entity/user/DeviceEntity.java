@@ -6,27 +6,34 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+import java.time.LocalDate;
+
 @Entity
-@Table(name = "token")
+@Table(name = "device")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TokenEntity {
+public class DeviceEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long tokenId;
+  private Long deviceId;
 
-  private String token;
+  private String fingerprinting;
 
-  private String tokenType = "BEARER";
+  private String deviceInformation;
 
-  private boolean revoked;
+  private EDeviceTypeEntity deviceType;
 
-  private boolean expired;
+  private Instant localDate;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "user_id", nullable = false)
   private UserEntity userEntity;
 
+  @PrePersist
+  public void onPersist(){
+    this.localDate = Instant.now();
+  }
 }

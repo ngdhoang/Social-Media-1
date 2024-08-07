@@ -92,7 +92,7 @@ public class PostService implements PostPortInput {
   @Override
   public PostResponse getPostByPostId(Long postId) {
     Post post = getPostAndCheckAccess(postId);
-    if (post.getPostStatus().equals(EPostStatus.FRIEND) && !friendShipPort.isFriend(post.getUserId(), authPort.getUserAuthOrDefaultVirtual().getUserId())) {
+    if (post.getPostStatus().equals(EPostStatus.FRIEND) && !friendShipPort.isFriend(post.getUserId(), authPort.getUserAuthOrDefaultVirtual().getUserId()) && !post.getUserId().equals(authPort.getUserAuthOrDefaultVirtual().getUserId())) {
       throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
     }
     if (friendShipPort.isBlock(post.getUserId(), authPort.getUserAuthOrDefaultVirtual().getUserId()) || post.getPostStatus().equals(EPostStatus.PRIVATE)) {
@@ -110,7 +110,6 @@ public class PostService implements PostPortInput {
     User currentUser = authPort.getUserAuth();
 
     Post post = createNewPost(postRequest, currentUser);
-    post.setCreateAt(LocalDate.now());
     Post newPost = portPost.savePost(post);
 
     List<TagUser> tagUserList = handleTagUsers(postRequest.getTagUserIds(), newPost); // Take tag user list
@@ -202,7 +201,6 @@ public class PostService implements PostPortInput {
     EPostStatus ePostStatusEntity = filterStatusPost(postRequest.getStatus());
     post.setPostStatus(ePostStatusEntity);
     post.setContent(postRequest.getContent());
-    post.setUpdateAt(LocalDate.now());
   }
 
   private Post getAndValidatePostCurrentUser(Long postId, User currentUser) {

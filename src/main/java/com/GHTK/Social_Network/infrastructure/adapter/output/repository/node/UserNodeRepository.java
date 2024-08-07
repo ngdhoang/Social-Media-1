@@ -56,6 +56,10 @@ public interface UserNodeRepository extends Neo4jRepository<UserNode, Long> {
             int sameHometownScore
     );
 
+    @Query("MATCH (u:User {email: $email})\n" +
+            "RETURN u")
+    UserNode getUserNodeByEmail(String email);
+
     @Query("MATCH (u:User {userId: $userId})\n" +
             "RETURN u")
     UserNode getUserNodeById(Long userId);

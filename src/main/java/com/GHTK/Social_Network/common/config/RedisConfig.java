@@ -1,7 +1,9 @@
 package com.GHTK.Social_Network.common.config;
 
-import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.AccessTokenDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.SessionWsDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.redis.AuthRedisDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,6 +60,33 @@ public class RedisConfig {
     template.setConnectionFactory(redisConnectionFactory);
     template.setKeySerializer(new StringRedisSerializer());
     template.setValueSerializer(new Jackson2JsonRedisSerializer<>(String.class));
+    return template;
+  }
+
+  @Bean
+  public RedisTemplate<String, SessionWsDto> sessionWsTemplate(RedisConnectionFactory redisConnectionFactory) {
+    RedisTemplate<String, SessionWsDto> template = new RedisTemplate<>();
+    template.setConnectionFactory(redisConnectionFactory);
+    template.setKeySerializer(new StringRedisSerializer());
+    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(SessionWsDto.class));
+    return template;
+  }
+
+  @Bean
+  public RedisTemplate<String, String> refeshTokenRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    RedisTemplate<String, String> template = new RedisTemplate<>();
+    template.setConnectionFactory(redisConnectionFactory);
+    template.setKeySerializer(new StringRedisSerializer());
+    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(String.class));
+    return template;
+  }
+
+  @Bean
+  public RedisTemplate<String, AccessTokenDto> accessTokenRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    RedisTemplate<String, AccessTokenDto> template = new RedisTemplate<>();
+    template.setConnectionFactory(redisConnectionFactory);
+    template.setKeySerializer(new StringRedisSerializer());
+    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(AccessTokenDto.class));
     return template;
   }
 }

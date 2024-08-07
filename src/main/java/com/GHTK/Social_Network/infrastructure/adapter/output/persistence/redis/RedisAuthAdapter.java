@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 public class RedisAuthAdapter implements RedisAuthPort {
@@ -27,12 +29,16 @@ public class RedisAuthAdapter implements RedisAuthPort {
   }
 
   @Override
-  public String formatKey(String key) {
-    return "";
+  public Boolean existsByKey(String key) {
+    return authRedisTemplate.hasKey(key);
   }
 
   @Override
-  public Boolean existsByKey(String key) {
-    return authRedisTemplate.hasKey(key);
+  public void deleteAllByTail(String tail) {
+    Set<String> keys = authRedisTemplate.keys("*" + tail);
+
+    if (keys != null && !keys.isEmpty()) {
+      authRedisTemplate.delete(keys);
+    }
   }
 }

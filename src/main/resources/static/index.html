@@ -9,29 +9,31 @@
 <body>
 <div>
     <div>
-        <h1>Spring Boot Tutorial.</h1>
-        <h2>Websockets.</h2>
+        <h1>Websocket UI Test</h1>
         <div class="row">
             <form id="form">
                 <div class="row">
                     <label for="connect">WebSocket connection:</label>
                     <button id="connect" type="submit">Connect</button>
-                    <button id="disconnect" type="submit" disabled="disabled">Disconnect
-                    </button>
+                    <button id="disconnect" type="submit" disabled="disabled">Disconnect</button>
                 </div>
             </form>
         </div>
-        <input type="text" id="inputName" placeholder="Name....">
-        <button id="sendName" type="button">Send</button>
         <div class="row">
-            <form>
-                <div>
-                    <label class="row" for="name">What is your name?</label>
-                    <input type="text" id="name" placeholder="Your name here...">
-                    <button id="send" type="button">Send</button>
-                </div>
-            </form>
-        </div id="row">
+            <label for="device">Enter your device:</label>
+            <input type="text" id="device" placeholder="JWT Token here...">
+        </div>
+        <div class="row">
+            <label for="inputName">Name:</label>
+            <input type="text" id="inputName" placeholder="Name....">
+            <button id="sendName" type="button">Send</button>
+        </div>
+        <div class="row">
+            <label for="name">What is your name?</label>
+            <input type="text" id="name" placeholder="Your name here...">
+            <button id="send" type="button">Send</button>
+        </div>
+
     </div>
     <div>
         <div id="conversation">

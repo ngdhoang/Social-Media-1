@@ -42,9 +42,10 @@ public class GlobalExceptionHandler {
     return ResponseHandler.generateErrorResponse("Error sending email: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
+
   @ExceptionHandler(Exception.class)
   public ResponseEntity<Object> handleGeneralException(Exception ex) {
     log.error(ex.getMessage(), ex);
-    return ResponseHandler.generateErrorResponse("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+    return ResponseHandler.generateErrorResponse("Internal Server Error...", HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }
