@@ -1,11 +1,11 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat;
 
-import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
@@ -18,9 +18,7 @@ import java.util.List;
 @Data
 public class GroupCollection {
   @Id
-  private String id;
-
-  private Long groupId;
+  private String groupId;
 
   private String groupBackground;
 
@@ -28,19 +26,9 @@ public class GroupCollection {
 
   private EGroupTypeCollection groupType;
 
-  private List<Member> members;
+  private List<MemberCollection> members;
 
-  class Member {
-    private String userId;
-
-    private String nickname;
-
-    private String lastMsgSeen;
-
-    private String role;
-  }
-
-  private List<Long> msgPin;
+  private List<String> msgPin;
 
   @CreatedDate
   private Date createAt;

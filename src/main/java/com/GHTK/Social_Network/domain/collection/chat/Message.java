@@ -13,11 +13,9 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class Message {
-  private String id;
+  private String msgId;
 
-  private Long msgId;
-
-  private Long groupId;
+  private String groupId;
 
   private Long userAuthId;
 

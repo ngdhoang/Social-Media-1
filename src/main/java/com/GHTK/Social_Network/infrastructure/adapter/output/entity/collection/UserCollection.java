@@ -20,6 +20,8 @@ public class UserCollection {
 
     private Long userId;
 
+    private boolean isDelete;
+
     private LinkedList<Long> listFriendId;
 
     private LinkedList<Long> listBlockId;
@@ -31,6 +33,7 @@ public class UserCollection {
         this.listFriendId = new LinkedList<>();
         this.listBlockId = new LinkedList<>();
         this.listBlockedId = new LinkedList<>();
+        this.isDelete = false;
     }
 
     public void addFriend(Long friendId) {

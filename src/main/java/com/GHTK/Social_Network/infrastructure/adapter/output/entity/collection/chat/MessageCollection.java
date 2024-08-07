@@ -1,8 +1,8 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat;
 
-import jakarta.persistence.Id;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
@@ -15,9 +15,9 @@ import java.util.List;
 @Data
 public class MessageCollection {
   @Id
-  private Long msgId;
+  private String msgId;
 
-  private Long groupId;
+  private String groupId;
 
   private Long userAuthId;
 

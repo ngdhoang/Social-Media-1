@@ -384,4 +384,10 @@ public class FriendShipAdapter implements FriendShipPort {
 
     return listBlock;
   }
+
+  @Override
+  public boolean isDeleteUser(Long userId) {
+    UserCollection userCollection = friendCollectionRepository.findByUserId(userId);
+    return userCollection.isDelete();
+  }
 }

@@ -50,4 +50,6 @@ public interface FriendShipPort {
     LinkedList<Long> getListBlockMe(Long userId);
 
     LinkedList<Long> getListBlockBoth(Long userId);
+
+    boolean isDeleteUser(Long userId);
 }

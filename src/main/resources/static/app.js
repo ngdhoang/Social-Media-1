@@ -1,4 +1,4 @@
-const url = "ws://localhost:2602/ws";
+const url = "ws://localhost:8080/ws";
 const topic = "/topic/public";
 const app = "/app/channel";
 let client;
@@ -6,7 +6,7 @@ let client;
 var buttonConnect;
 var buttonDisConnect;
 var buttonSend;
-var conversation;
+var conversationDisplay;
 var greetings;
 var formInput;
 var nameInput;
@@ -70,18 +70,25 @@ function disconnect() {
 	}
 }
 
-function sendName() {
-	console.log("Sending name");
+function sendMessage() {
+	console.log("Sending message");
 	if (client) {
+		const messageDto = {
+			groupId: "123", // Thay đổi theo nhóm của bạn
+			groupType: "PERSONAL", // Thay đổi nếu cần thiết
+			content: nameInput.value, // Nội dung tin nhắn
+			msgType: "MESSAGE" // Loại tin nhắn
+		};
+
 		client.publish({
 			destination: app,
-			body: JSON.stringify({ name: nameInput.value })
+			body: JSON.stringify(messageDto)
 		});
 	}
 }
 
 function showGreeting(message) {
-	greetings.innerHTML += Name + "<tr><td>" + message + "</td></tr>";
+	greetings.innerHTML += `<tr><td>${Name}: ${message}</td></tr>`;
 }
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -94,7 +101,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	nameInput = document.getElementById("name");
 	inputName = document.getElementById("inputName");
 	buttonSendName = document.getElementById("sendName");
-	tokenInput = document.getElementById("token");
+	tokenInput = document.getElementById("device");
 
 	buttonConnect.addEventListener("click", (e) => {
 		connect();
@@ -105,10 +112,9 @@ document.addEventListener("DOMContentLoaded", function() {
 		e.preventDefault();
 	});
 	buttonSend.addEventListener("click", (e) => {
-		sendName();
+		sendMessage();
 		e.preventDefault();
 	});
-	formInput.addEventListener("submit", (e) => e.preventDefault());
 	buttonSendName.addEventListener("click", (e) => {
 		Name = inputName.value;
 		e.preventDefault();

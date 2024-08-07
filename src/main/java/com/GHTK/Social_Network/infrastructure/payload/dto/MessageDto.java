@@ -5,18 +5,20 @@ import com.GHTK.Social_Network.domain.collection.chat.EMessageType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class MessageDto {
   @NotNull(message = "Group id cannot null")
-  private Long groupId;
+  private String groupId;
 
   private EGroupType groupType;
 

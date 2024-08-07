@@ -1,6 +1,5 @@
 package com.GHTK.Social_Network.domain.collection.chat;
 
-import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,9 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class Group {
-  private String id;
-
-  private Long groupId;
+  private String groupId;
 
   private String groupBackground;
 
@@ -23,18 +20,7 @@ public class Group {
 
   private EGroupType groupType;
 
-  private List<member> members;
+  private List<Member> members;
 
-  @AllArgsConstructor
-  class member {
-    private String userId;
-
-    private String nickname;
-
-    private String lastMsgSeen;
-  }
-
-  private List<Long> adminIds;
-
-  private List<Long> msgPin;
+  private List<String> msgPin;
 }
