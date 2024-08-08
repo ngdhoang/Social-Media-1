@@ -13,6 +13,10 @@ var nameInput;
 var inputName;
 var buttonSendName;
 var tokenInput;
+var groupIdInput;
+var groupTypeInput;
+var contentInput;
+var msgTypeInput;
 var Name;
 
 function setConnected(connected) {
@@ -74,10 +78,10 @@ function sendMessage() {
 	console.log("Sending message");
 	if (client) {
 		const messageDto = {
-			groupId: "123", // Thay đổi theo nhóm của bạn
-			groupType: "PERSONAL", // Thay đổi nếu cần thiết
-			content: nameInput.value, // Nội dung tin nhắn
-			msgType: "MESSAGE" // Loại tin nhắn
+			groupId: groupIdInput.value,
+			groupType: groupTypeInput.value,
+			content: contentInput.value,
+			msgType: msgTypeInput.value
 		};
 
 		client.publish({
@@ -102,6 +106,10 @@ document.addEventListener("DOMContentLoaded", function() {
 	inputName = document.getElementById("inputName");
 	buttonSendName = document.getElementById("sendName");
 	tokenInput = document.getElementById("device");
+	groupIdInput = document.getElementById("groupId");
+	groupTypeInput = document.getElementById("groupType");
+	contentInput = document.getElementById("content");
+	msgTypeInput = document.getElementById("msgType");
 
 	buttonConnect.addEventListener("click", (e) => {
 		connect();
@@ -122,4 +130,3 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	setConnected(false);
 });
-

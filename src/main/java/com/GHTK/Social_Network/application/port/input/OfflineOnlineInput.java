@@ -7,5 +7,5 @@ public interface OfflineOnlineInput {
 
   void removeOnlineUser(User user, String sessionId);
 
-  boolean isUserOnline(User user);
+  boolean isUserOnline(Long userId);
 }

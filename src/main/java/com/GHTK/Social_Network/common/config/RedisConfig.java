@@ -1,7 +1,6 @@
 package com.GHTK.Social_Network.common.config;
 
 import com.GHTK.Social_Network.infrastructure.payload.dto.AccessTokenDto;
-import com.GHTK.Social_Network.infrastructure.payload.dto.SessionWsDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.redis.AuthRedisDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,11 +63,11 @@ public class RedisConfig {
   }
 
   @Bean
-  public RedisTemplate<String, SessionWsDto> sessionWsTemplate(RedisConnectionFactory redisConnectionFactory) {
-    RedisTemplate<String, SessionWsDto> template = new RedisTemplate<>();
+  public RedisTemplate<String, String> sessionWsTemplate(RedisConnectionFactory redisConnectionFactory) {
+    RedisTemplate<String, String> template = new RedisTemplate<>();
     template.setConnectionFactory(redisConnectionFactory);
     template.setKeySerializer(new StringRedisSerializer());
-    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(SessionWsDto.class));
+    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(String.class));
     return template;
   }
 

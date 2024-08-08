@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.Instant;
 import java.util.LinkedList;
 
 @Document
@@ -21,6 +22,8 @@ public class UserCollection {
     private Long userId;
 
     private boolean isDelete;
+
+//    private Instant lastActive;
 
     private LinkedList<Long> listFriendId;
 

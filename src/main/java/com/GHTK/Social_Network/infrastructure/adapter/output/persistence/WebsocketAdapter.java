@@ -25,13 +25,13 @@ public class WebsocketAdapter implements WebsocketPort {
 
   @Override
   public void sendAndNotSave(ChatMessageResponse message, Long receiverId) {
-    String destination = String.format("/channel/%s", receiverId);
+    String destination = String.format("/app/%s", receiverId);
     messagingTemplate.convertAndSend(destination, message);
   }
 
   @Override
   public void sendAndSave(EGroupType groupType, Message message, Long sendId, Long receiverId) {
-    String destination = String.format("/channel/%s", receiverId);
+    String destination = String.format("/app/%s", receiverId);
 
     MessageCollection messageCollection = chatMapperETD.messageToMessageCollection(message);
     messageRepository.save(messageCollection);

@@ -52,7 +52,7 @@ public class ChatService implements ChatPortInput {
   private Member userToMember(User member, String role) {
     return new Member(
             member.getUserId(),
-            member.getFirstName() + " " + member.getLastName(), // default nickname
+            null, // default nickname
             null,
             role
     );

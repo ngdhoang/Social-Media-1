@@ -79,17 +79,14 @@ public class WebSecurityConfig {
     return http.build();
   }
 
-  @Bean
-  public WebMvcConfigurer corsConfigurer() {
-    return new WebMvcConfigurer() {
-      @Override
-      public void addCorsMappings(@NonNull CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOriginPatterns("http://127.0.0.1:5500", "http://localhost:*")
-                .allowedMethods("*")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-      }
-    };
+  @Configuration
+  public class CorsConfig implements WebMvcConfigurer {
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+      registry.addMapping("/api/**")
+              .allowedOrigins("http://localhost:5500/", "http://localhost:3000/")
+              .allowedMethods("GET", "POST", "PUT", "DELETE")
+              .allowedHeaders("*");
+    }
   }
 }

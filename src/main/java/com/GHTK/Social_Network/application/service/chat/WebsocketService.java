@@ -24,7 +24,7 @@ public class WebsocketService implements WebsocketPortInput {
 
   @Override
   public void handleIncomingMessage(MessageDto message) {
-    UserBasicDto currentUser = WebsocketContextHolder.getContext().getUser();
+    UserBasicDto currentUser = WebsocketContextHolder.getContext();
 
     Group currentGroup = chatPort.getGroup(message.getGroupId());
     boolean isGroup = message.getGroupType().equals(EGroupType.GROUP);
