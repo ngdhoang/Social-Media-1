@@ -53,6 +53,12 @@ public class GlobalExceptionHandler {
   public ResponseEntity<Object> handleHttpMessageNotReadableException(Exception ex) {
     return ResponseHandler.generateErrorResponse("Invalid request", HttpStatus.BAD_REQUEST);
   }
+
+  @ExceptionHandler({MultipartException.class})
+  public ResponseEntity<Object> handleMultipartException(Exception ex) {
+    return ResponseHandler.generateErrorResponse("Invalid file", HttpStatus.BAD_REQUEST);
+  }
+
   @ExceptionHandler(Exception.class)
   public ResponseEntity<Object> handleGeneralException(Exception ex) {
     log.error(ex.getMessage(), ex);

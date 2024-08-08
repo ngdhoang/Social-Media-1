@@ -118,7 +118,7 @@ public class PostService implements PostPortInput {
     portPost.savePost(post);
 
     imagePostPort.deleteAllImageRedisByTail(ImagePostInput.POST_TAIL + currentUser.getUserEmail());
-    List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getTagUserId())).toList();
+    List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getUserId())).toList();
     return postMapper.postToPostResponse(newPost, imagePostEntities, userTagList);
   }
 
@@ -137,7 +137,7 @@ public class PostService implements PostPortInput {
     List<ImagePost> imagePostList = updateImagePosts(postRequest, newPost);
     portPost.savePost(newPost);
 
-    imagePostPort.deleteAllImageRedisByTail("_" + currentUser.getUserEmail());
+    imagePostPort.deleteAllImageRedisByTail(ImagePostInput.POST_TAIL + currentUser.getUserEmail());
     List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getTagUserId())).toList();
     return postMapper.postToPostResponse(newPost, imagePostList, userTagList);
   }
@@ -231,7 +231,7 @@ public class PostService implements PostPortInput {
     if (user == null) {
       throw new CustomException("User not found", HttpStatus.NOT_FOUND);
     }
-    if (friendShipPort.isBlock(userId, currentUserId) || !user.getIsProfilePublic()) {
+    if (friendShipPort.isBlock(userId, currentUserId) || (!user.getIsProfilePublic() && !Objects.equals(userId, currentUserId))) {
       throw new CustomException("You do not have permission to view", HttpStatus.FORBIDDEN);
     }
   }
@@ -329,7 +329,7 @@ public class PostService implements PostPortInput {
   private List<ImagePost> updateImagePosts(PostRequest postRequest, Post post) {
     List<Long> imageIds = postRequest.getImageIds();
     List<String> publicIds = postRequest.getPublicIds();
-    String tail = ImagePostInput.POST_TAIL + "_" + authPort.getUserAuth().getUserEmail();
+    String tail = ImagePostInput.POST_TAIL + authPort.getUserAuth().getUserEmail();
 
     long cntZero = imageIds.stream().filter(id -> id == 0).count();
     if (cntZero != publicIds.size()) {
@@ -404,7 +404,7 @@ public class PostService implements PostPortInput {
     List<ImagePost> imagePostList = portPost.getListImageByPostId(p.getPostId());
     List<Long> blockIds = friendShipPort.getListBlockBoth(p.getUserId());
     List<TagUser> tagUserList = portPost.getListTagUserByPostId(p.getPostId(), blockIds);
-    List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getTagUserId())).toList();
+    List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getUserId())).toList();
     return postMapper.postToPostResponse(p, imagePostList, userTagList);
   }
 

@@ -49,7 +49,6 @@ public interface PostMapper {
 
   @Named("mapTagUsers")
   default List<UserBasicDto> mapTagUsers(List<?> tagUsers) {
-    System.out.println(tagUsers);
     if (tagUsers == null) {
       return null;
     }
