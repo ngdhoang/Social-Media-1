@@ -2,10 +2,13 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.redis;
 
 import com.GHTK.Social_Network.application.port.output.RedisProfilePort;
 
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.FieldVisibilityDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor

@@ -10,6 +10,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
@@ -59,8 +60,12 @@ public interface UserMapper {
   UserDto userAndProfileToUserDto(User user, Profile profile);
 
   @Named("mapDob")
-  default FieldVisibilityDto<LocalDate> mapDob(Profile profile) {
-    return new FieldVisibilityDto<>(profile.getDob(), profile.getIsDobPublic());
+  default FieldVisibilityDto<String> mapDob(Profile profile) {
+    if(profile.getDob() == null) {
+      return new FieldVisibilityDto<>(null, false);
+    }
+    DateTimeFormatter formatter= DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    return new FieldVisibilityDto<>(profile.getDob().format(formatter), profile.getIsDobPublic());
   }
 
   @Named("mapPhoneNumber")

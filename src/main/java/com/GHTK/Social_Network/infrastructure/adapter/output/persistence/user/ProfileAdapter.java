@@ -4,6 +4,7 @@ import com.GHTK.Social_Network.application.port.output.ProfilePort;
 
 import com.GHTK.Social_Network.domain.model.user.Profile;
 import com.GHTK.Social_Network.domain.model.user.User;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.EGenderEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.ProfileEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.HometownNode;
@@ -51,12 +52,12 @@ public class ProfileAdapter implements ProfilePort {
     savedUserEntity.setFirstName(updateProfileRequest.getFirstName());
     savedUserEntity.setLastName(updateProfileRequest.getLastName());
     savedUserEntity.setIsProfilePublic(updateProfileRequest.getIsProfilePublic());
-
     saveProfileEntity.setDob(updateProfileRequest.getDob());
     saveProfileEntity.setPhoneNumber(updateProfileRequest.getPhoneNumber());
     saveProfileEntity.setHomeTown(updateProfileRequest.getHomeTown());
     saveProfileEntity.setSchoolName(updateProfileRequest.getSchoolName());
     saveProfileEntity.setWorkPlace(updateProfileRequest.getWorkPlace());
+    saveProfileEntity.setGender(updateProfileRequest.getGender() != null ? EGenderEntity.valueOf(updateProfileRequest.getGender().toUpperCase()) : null);
 
     userRepository.save(savedUserEntity);
 
