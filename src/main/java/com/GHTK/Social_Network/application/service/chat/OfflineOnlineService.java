@@ -25,6 +25,10 @@ public class OfflineOnlineService implements OfflineOnlineInput {
             fingerprinting,
             sessionId
     );
+    System.out.println("===========");
+    System.out.println(userWsDetails);
+    System.out.println("===========");
+    WebsocketContextHolder.setContext(userWsDetails);
     offlineOnlinePort.updateOrCreateSessionInRedis(user.getUserId(), userWsDetails);
   }
 
