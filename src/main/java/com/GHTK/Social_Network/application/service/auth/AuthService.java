@@ -115,7 +115,6 @@ public class AuthService implements AuthPortInput {
     UserDetailsImpl userDetails = authPort.getUserDetails(userSave);
     String jwtToken = jwtUtils.generateToken(userDetails, fingerprinting);
     saveUserToken(userDetails, jwtToken, fingerprinting);
-    System.out.println(userSave);
 
     // save new device default
     Device newDevice = new Device

@@ -1,68 +1,161 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Spring Boot Tutorial - WebSocket</title>
+    <meta charset="UTF-8">
+    <title>WebSocket Client</title>
     <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
-    <script src="/app.js"></script>
-    <link rel="stylesheet" href="main.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.3/axios.min.js" integrity="sha512-zJXKBryKlsiDaWcWQ9fuvy50SG03/Qc5SqfLXxHmk9XiUUbcD9lXYjHDBxLFOuZSU6ULXaJ69bd7blSMEgxXNQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="./app.js"></script>
+    <link rel="stylesheet" href="light.css">
+    <link rel="stylesheet" href="dark.css">
+    <style>
+        #rotatingImage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100px;
+            height: auto;
+            animation: spin 5s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-<div>
-    <div>
-        <h1>Websocket UI Test</h1>
-        <div class="row">
-            <form id="form">
-                <div class="row">
-                    <label for="connect">WebSocket connection:</label>
-                    <button id="connect" type="submit">Connect</button>
-                    <button id="disconnect" type="submit" disabled="disabled">Disconnect</button>
-                </div>
-            </form>
-        </div>
-        <div class="row">
-            <label for="device">Enter your token:</label>
-            <input type="text" id="device" placeholder="JWT Token here...">
-        </div>
-        <div class="row">
-            <label for="inputName">Name:</label>
-            <input type="text" id="inputName" placeholder="Name....">
-            <button id="sendName" type="button">Send</button>
-        </div>
-        <div class="row">
-            <label for="groupId">Group ID:</label>
-            <input type="text" id="groupId" placeholder="Group ID">
-        </div>
-        <div class="row">
-            <label for="groupType">Group Type:</label>
-            <input type="text" id="groupType" placeholder="Group Type">
-        </div>
-        <div class="row">
-            <label for="content">Message Content:</label>
-            <input type="text" id="content" placeholder="Message Content">
-        </div>
-        <div class="row">
-            <label for="msgType">Message Type:</label>
-            <input type="text" id="msgType" placeholder="Message Type">
-        </div>
-        <div class="row">
-            <label for="name">Message ?</label>
-            <input type="text" id="name" placeholder="Your name here...">
-            <button id="send" type="button">Send</button>
-        </div>
+<h1>Configurable WebSocket Client</h1>
 
+<!-- Dark Mode Toggle Button -->
+<button id="darkModeToggle" style="margin-bottom: 15px">Dark Mode</button>
+
+<img id="rotatingImage" src="huong.png" alt="Rotating Image">
+
+<div class="container">
+    <h2>WebSocket Configuration</h2>
+    <div class="row">
+        <label for="wsUrl">WebSocket URL:</label>
+        <input type="text" id="wsUrl" placeholder="ws://localhost:8080/ws">
     </div>
-    <div>
-        <div id="conversation">
-            <table>
-                <thead>
-                <tr>
-                    <th>Messages:</th>
-                </tr>
-                </thead>
-                <tbody id="greetings"></tbody>
-            </table>
-        </div>
+    <div class="row">
+        <label for="topic">Topic:</label>
+        <input type="text" id="topic" placeholder="/topic/public">
     </div>
+    <div class="row">
+        <label for="appDestination">App Destination:</label>
+        <input type="text" id="appDestination" placeholder="/app/channel">
+    </div>
+    <button id="updateConfig">Update Configuration</button>
+
 </div>
+
+<div class="container">
+    <h2>Đăng ký</h2>
+    <div class="row">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" placeholder="firstName">
+    </div>
+    <div class="row">
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" placeholder="lastName">
+    </div>
+    <div class="row">
+        <label for="userEmail">User Email:</label>
+        <input type="email" id="userEmail" placeholder="userEmail">
+    </div>
+    <div class="row">
+        <label for="userPassword">Password:</label>
+        <input type="password" id="userPassword" placeholder="userPassword">
+    </div>
+    <button id="register">Đăng ký</button>
+</div>
+
+<div class="container">
+    <h2>Xác nhận đăng ký</h2>
+    <div class="row">
+        <label for="otp">Otp:</label>
+        <input type="text" id="otp" placeholder="otp">
+    </div>
+    <button id="registerOtp">Xác nhận đăng ký</button>
+</div>
+
+<div class="container">
+    <h2>Đăng nhập</h2>
+    <div class="row">
+        <label for="email">Email:</label>
+        <input type="email" id="email" placeholder="example@example.com">
+    </div>
+    <div class="row">
+        <label for="password">Password:</label>
+        <input type="password" id="password" placeholder="password">
+    </div>
+    <button id="login">Đăng nhập</button>
+</div>
+
+<div class="container">
+    <h2>Connection</h2>
+    <div class="row">
+        <label for="token">JWT Token:</label>
+        <input type="text" id="token" placeholder="Enter your JWT token">
+    </div>
+    <button id="connect">Connect</button>
+    <button id="disconnect" disabled>Disconnect</button>
+</div>
+
+<div class="container">
+    <h2>Send Message</h2>
+    <div class="row">
+        <label for="groupId">Group ID:</label>
+        <input type="text" id="groupId" placeholder="Enter group ID">
+    </div>
+    <div class="row">
+        <label for="groupType">Group Type:</label>
+        <select id="groupType">
+            <option value="">Select Group Type</option>
+            <option value="GROUP">GROUP</option>
+            <option value="PERSONAL">PERSONAL</option>
+        </select>
+    </div>
+    <div class="row">
+        <label for="content">Message Content:</label>
+        <input type="text" id="content" placeholder="Enter your message">
+    </div>
+    <div class="row">
+        <label for="msgType">Message Type:</label>
+        <select id="msgType">
+            <option value="">Select Message Type</option>
+            <option value="ADD_GROUP">ADD_GROUP</option>
+            <option value="LEAVE_GROUP">LEAVE_GROUP</option>
+            <option value="KICK_GROUP">KICK_GROUP</option>
+            <option value="MESSAGE">MESSAGE</option>
+            <option value="RECALL">RECALL</option>
+            <option value="DELETE">DELETE</option>
+            <option value="EMOJI">EMOJI</option>
+            <option value="IMAGE">IMAGE</option>
+            <option value="ERROR">ERROR</option>
+        </select>
+    </div>
+    <button id="send">Send Message</button>
+</div>
+
+<div id="conversation" class="container">
+    <h2>Messages</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Message</th>
+        </tr>
+        </thead>
+        <tbody id="greetings"></tbody>
+    </table>
+</div>
+
+<script>
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    darkModeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+    });
+</script>
 </body>
 </html>

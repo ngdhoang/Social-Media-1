@@ -5,6 +5,7 @@ import com.GHTK.Social_Network.infrastructure.payload.dto.MessageDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -13,14 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class WebsocketController {
   private final WebsocketPortInput websocketPortInput;
 
-  @GetMapping
-  public String hello() {
-    return "Hello World";
-  }
-
   @MessageMapping("/channel")
   public void addUserToChanel(@Payload MessageDto message) {
-    System.out.println(message);
     websocketPortInput.handleIncomingMessage(message);
   }
 }

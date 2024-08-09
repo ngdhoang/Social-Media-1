@@ -37,6 +37,7 @@ public class AuthController {
 
   @PostMapping("/authentication")
   public ResponseEntity<Object> logIn(HttpServletRequest request, @RequestBody @Valid AuthRequest authRequest) {
+    System.out.println(extractDeviceInfo(request));
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, authService.authenticate(authRequest, extractDeviceInfo(request).getLeft(), extractDeviceInfo(request).getRight()));
   }
 

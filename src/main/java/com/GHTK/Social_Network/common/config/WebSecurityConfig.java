@@ -3,7 +3,6 @@ package com.GHTK.Social_Network.common.config;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt.AuthEntryPointJwt;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt.AuthJwtFilter;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsServiceImpl;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

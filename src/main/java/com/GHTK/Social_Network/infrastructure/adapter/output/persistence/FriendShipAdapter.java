@@ -391,6 +391,7 @@ public class FriendShipAdapter implements FriendShipPort {
 
   @Override
   public boolean isDeleteUser(Long userId) {
-    return friendCollectionRepository.findByUserId(userId).isDelete();
+    return false;
+//    return friendCollectionRepository.findByUserId(userId).isDelete();
   }
 }

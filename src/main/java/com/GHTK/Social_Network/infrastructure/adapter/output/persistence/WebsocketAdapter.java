@@ -4,11 +4,13 @@ import com.GHTK.Social_Network.application.port.output.WebsocketPort;
 import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
 import com.GHTK.Social_Network.domain.collection.chat.EMessageType;
 import com.GHTK.Social_Network.domain.collection.chat.Message;
+import com.GHTK.Social_Network.infrastructure.adapter.input.websocket.WebsocketContextHolder;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat.MessageCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.MessageRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.ChatMapperETD;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ChatMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.MessageDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ChatMessageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
@@ -25,13 +27,13 @@ public class WebsocketAdapter implements WebsocketPort {
 
   @Override
   public void sendAndNotSave(ChatMessageResponse message, Long receiverId) {
-    String destination = String.format("/app/%s", receiverId);
+    String destination = String.format("/app/channel/%s", receiverId);
     messagingTemplate.convertAndSend(destination, message);
   }
 
   @Override
   public void sendAndSave(EGroupType groupType, Message message, Long sendId, Long receiverId) {
-    String destination = String.format("/app/%s", receiverId);
+    String destination = String.format("/app/channel/%s", receiverId);
 
     MessageCollection messageCollection = chatMapperETD.messageToMessageCollection(message);
     messageRepository.save(messageCollection);
@@ -52,5 +54,10 @@ public class WebsocketAdapter implements WebsocketPort {
             .message(messageErrorDto)
             .build();
     sendAndNotSave(messageError, userReceiveId);
+  }
+
+  @Override
+  public UserBasicDto getUserAuth() {
+    return WebsocketContextHolder.getContext();
   }
 }

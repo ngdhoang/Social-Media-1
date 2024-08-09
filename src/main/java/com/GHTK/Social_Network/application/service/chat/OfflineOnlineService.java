@@ -22,7 +22,6 @@ public class OfflineOnlineService implements OfflineOnlineInput {
   @Override
   public void removeOnlineUser(User user, String sessionId) {
     if (user == null) return;
-    log.info("{} is offline", user.getUserEmail());
     offlineOnlinePort.removeSessionInRedis(sessionId);
   }
 

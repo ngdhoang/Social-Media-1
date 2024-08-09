@@ -28,7 +28,6 @@ public class WebsocketEventListener {
   public void handleWebSocketConnectListener(SessionConnectedEvent event) {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
     String sessionId = accessor.getSessionId();
-    System.out.println("Session Listener Id: " + sessionId);
     log.info("New WebSocket connection, sessionId: {}", sessionId);
 
     org.springframework.messaging.Message<?> connectMessage = (org.springframework.messaging.Message<?>) accessor.getHeader(SimpMessageHeaderAccessor.CONNECT_MESSAGE_HEADER);
@@ -52,7 +51,6 @@ public class WebsocketEventListener {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
     String sessionId = accessor.getSessionId();
 
-    // Get simpConnectMessage from disconnect event
     org.springframework.messaging.Message<?> connectMessage = (org.springframework.messaging.Message<?>) accessor.getHeader(SimpMessageHeaderAccessor.CONNECT_MESSAGE_HEADER);
     if (connectMessage != null) {
       StompHeaderAccessor connectHeaders = StompHeaderAccessor.wrap(connectMessage);
@@ -67,8 +65,6 @@ public class WebsocketEventListener {
     } else {
       log.warn("Connect message is null for disconnect event, sessionId: {}", sessionId);
     }
-
-    WebsocketContextHolder.clearContext();
   }
 
   private <T> T getObjectFromAccessor(StompHeaderAccessor accessor, String key, Class<T> clazz) {

@@ -26,19 +26,17 @@ public class WebsocketFilter implements ChannelInterceptor {
   public Message<?> preSend(Message<?> message, MessageChannel channel) {
     StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
     String sessionId = accessor.getSessionId();
-    System.out.println("Session Id: " + sessionId);
     if (StompCommand.SEND == accessor.getCommand()) {
       String key = redisSessionWsPort.getKeyByHeaderKey(sessionId);
-      System.out.println("Key: " + key);
 
       String[] parts = key.split(RedisSessionWsPort.WS);
       String userId = parts.length > 0 ? parts[parts.length - 1] : null;
 
-      System.out.println("User Id: " + userId);
       User user = authPort.getUserById(Long.valueOf(userId));
 
       WebsocketContextHolder.setContext(userMapper.userToUserBasicDto(user));
     }
     return message;
   }
+
 }

@@ -1,16 +1,16 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.chat;
 
 import com.GHTK.Social_Network.application.port.output.ChatPort;
-import com.GHTK.Social_Network.common.customException.CustomException;
+import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
 import com.GHTK.Social_Network.domain.collection.chat.Group;
+import com.GHTK.Social_Network.domain.collection.chat.Member;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat.GroupCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.GroupRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.GroupMapperETD;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,11 +22,6 @@ public class ChatAdapter implements ChatPort {
   private final GroupMapperETD groupMapperETD;
 
   @Override
-  public List<String> getUserIdsFromChannel(String channelId) {
-    return new ArrayList<>(1);
-  }
-
-  @Override
   public Group createGroup(Group newGroup) {
     GroupCollection newGroupCollection = groupMapperETD.toEntity(newGroup);
     GroupCollection savedGroupCollection = groupRepository.save(newGroupCollection);
@@ -34,21 +29,37 @@ public class ChatAdapter implements ChatPort {
   }
 
   @Override
-  public Group getGroup(String groupId) {
-    Optional<GroupCollection> optionalGroup = groupRepository.findById(groupId);
-    if (optionalGroup.isPresent()) {
-      return groupMapperETD.toDomain(optionalGroup.get());
-    } else {
-      throw new CustomException("Group don't exist", HttpStatus.NOT_FOUND);
-    }
-  }
-  @Override
-  public boolean isUserInGroup(Long userId) {
-    return false;
+  public Group createGroupPersonal(Long userSendId, Long userReceiveId) {
+    String groupName = String.format("%d_%d", userSendId, userReceiveId);
+
+    List<Member> members = Arrays.asList(
+            Member.builder().userId(userSendId).build(),
+            Member.builder().userId(userReceiveId).build()
+    );
+
+    Group newGroup = Group.builder()
+            .groupName(groupName)
+            .groupType(EGroupType.PERSONAL)
+            .members(members)
+            .build();
+
+    return createGroup(newGroup);
   }
 
   @Override
-  public boolean isExistGroup(String groupId) {
-    return groupRepository.existsById(groupId);
+  public Group getGroup(String groupId) {
+    Optional<GroupCollection> optionalGroup = groupRepository.findById(groupId);
+    return optionalGroup.map(groupMapperETD::toDomain).orElse(null);
+  }
+
+  @Override
+  public boolean isUserInGroup(Long userId, String groupId) {
+    Group group = getGroup(groupId);
+    if (group == null) {
+      return false;
+    }
+
+    return group.getMembers().stream()
+            .anyMatch(m -> m.getUserId().equals(userId));
   }
 }
