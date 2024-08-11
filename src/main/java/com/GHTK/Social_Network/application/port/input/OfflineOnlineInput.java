@@ -5,7 +5,7 @@ import com.GHTK.Social_Network.domain.model.user.User;
 public interface OfflineOnlineInput {
   void addOnlineUser(User user, String fingerprinting, String sessionId);
 
-  void removeOnlineUser(User user, String sessionId);
+  void removeOnlineUser(String sessionId);
 
   boolean isUserOnline(Long userId);
 }

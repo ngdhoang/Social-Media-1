@@ -3,17 +3,14 @@ package com.GHTK.Social_Network.application.service.chat;
 import com.GHTK.Social_Network.application.port.input.WebsocketPortInput;
 import com.GHTK.Social_Network.application.port.output.ChatPort;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
-import com.GHTK.Social_Network.application.port.output.WebsocketPort;
-import com.GHTK.Social_Network.common.customException.CustomException;
+import com.GHTK.Social_Network.application.port.output.WebsocketClientPort;
 import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
 import com.GHTK.Social_Network.domain.collection.chat.Group;
 import com.GHTK.Social_Network.domain.collection.chat.Member;
-import com.GHTK.Social_Network.infrastructure.adapter.input.websocket.WebsocketContextHolder;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ChatMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.MessageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -30,13 +27,13 @@ public class WebsocketService implements WebsocketPortInput {
   private static final String ERROR_USER_NOT_FRIEND = "User is not a friend";
 
   private final FriendShipPort friendShipPort;
-  private final WebsocketPort webSocketPort;
+  private final WebsocketClientPort webSocketClientPort;
   private final ChatPort chatPort;
   private final ChatMapper chatMapper;
 
   @Override
   public void handleIncomingMessage(MessageDto message) {
-    UserBasicDto currentUser = webSocketPort.getUserAuth();
+    UserBasicDto currentUser = webSocketClientPort.getUserAuth();
     boolean isGroup = message.getGroupType().equals(EGroupType.GROUP);
 
     Optional<Group> currentGroup = getOrCreateGroup(message, isGroup);
@@ -63,6 +60,8 @@ public class WebsocketService implements WebsocketPortInput {
     }
   }
 
+  // if group exist -> send to user
+  // else -> send error to user
   private void handleGroupMessage(MessageDto message, UserBasicDto currentUser, Optional<Group> currentGroup) {
     currentGroup.ifPresentOrElse(
             group -> {
@@ -76,17 +75,40 @@ public class WebsocketService implements WebsocketPortInput {
     );
   }
 
+  // if group personal exist -> send to user
+  // else -> create group -> send to user
   private void handlePersonalMessage(MessageDto message, UserBasicDto currentUser, Optional<Group> currentGroup) {
     currentGroup.ifPresentOrElse(
-            group -> {
-              Long userReceiveId = getUserReceiveId(currentUser.getUserId(), group.getMembers());
-              if (validateFriendship(currentUser.getUserId(), userReceiveId)) {
-                sendToUser(message, currentUser.getUserId(), userReceiveId);
-              }
-            },
-            () -> sendError(ERROR_GROUP_NOT_EXISTS, currentUser.getUserId())
+            group -> handleExistingPersonalGroup(message, currentUser, group),
+            () -> handleNewPersonalGroup(message, currentUser)
     );
   }
+
+  private void handleExistingPersonalGroup(MessageDto message, UserBasicDto currentUser, Group group) {
+    Long userReceiveId = getUserReceiveId(
+            currentUser.getUserId(),
+            group.getMembers().stream().map(Member::getUserId).toList()
+    );
+
+    if (userReceiveId == null) {
+      sendError(ERROR_USER_NOT_EXISTS, currentUser.getUserId());
+    } else if (validateFriendship(currentUser.getUserId(), userReceiveId)) {
+      sendToUser(message, currentUser.getUserId(), userReceiveId);
+    }
+  }
+
+  private void handleNewPersonalGroup(MessageDto message, UserBasicDto currentUser) {
+    Long userReceiveId = getUserReceiveId(
+            currentUser.getUserId(),
+            parseGroupId(message.getGroupId())
+    );
+
+    if (userReceiveId != null && validateFriendship(currentUser.getUserId(), userReceiveId)) {
+      chatPort.createGroupPersonal(currentUser.getUserId(), userReceiveId);
+      sendToUser(message, currentUser.getUserId(), userReceiveId);
+    }
+  }
+
 
   private boolean validateFriendship(Long currentId, Long userId) {
     if (friendShipPort.isDeleteUser(userId)) {
@@ -107,12 +129,11 @@ public class WebsocketService implements WebsocketPortInput {
     return true;
   }
 
-  private Long getUserReceiveId(Long currentUserId, List<Member> members) {
-    return members.stream()
-            .map(Member::getUserId)
+  private Long getUserReceiveId(Long currentUserId, List<Long> memberIds) {
+    return memberIds.stream()
             .filter(id -> !id.equals(currentUserId))
             .findFirst()
-            .orElseThrow(() -> new CustomException("No receiver found in the group", HttpStatus.NOT_FOUND));
+            .orElse(null);
   }
 
   private List<Long> parseGroupId(String groupId) {
@@ -128,7 +149,8 @@ public class WebsocketService implements WebsocketPortInput {
   }
 
   private void sendToUser(MessageDto msg, Long userIdSend, Long userReceiveId) {
-    webSocketPort.sendAndSave(msg.getGroupType(), chatMapper.messageDtoToMessage(msg), userIdSend, userReceiveId);
+    System.out.println(userIdSend + " <=> " + userReceiveId);
+    webSocketClientPort.sendAndSave(msg.getGroupType(), chatMapper.messageDtoToMessage(msg), userIdSend, userReceiveId);
   }
 
   private void sendToGroup(MessageDto msg, Long userIdSend, String groupId) {
@@ -138,6 +160,6 @@ public class WebsocketService implements WebsocketPortInput {
   }
 
   private void sendError(String error, Long userReceiveId) {
-    webSocketPort.sendErrorForMe(error, userReceiveId);
+    webSocketClientPort.sendErrorForMe(error, userReceiveId);
   }
 }

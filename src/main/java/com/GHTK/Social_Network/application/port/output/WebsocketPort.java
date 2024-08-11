@@ -1,16 +1,17 @@
 package com.GHTK.Social_Network.application.port.output;
 
-import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
-import com.GHTK.Social_Network.domain.collection.chat.Message;
-import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
-import com.GHTK.Social_Network.infrastructure.payload.responses.ChatMessageResponse;
+import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsImpl;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+
+import java.util.Map;
 
 public interface WebsocketPort {
-  void sendAndNotSave(ChatMessageResponse message, Long receiverId);
+  UserDetailsImpl extractUserDetails(StompHeaderAccessor accessor);
 
-  void sendAndSave(EGroupType groupType, Message message, Long sendId, Long receiverId);
+  UserDetailsImpl extractUserDetails(Message<?> message);
 
-  void sendErrorForMe(String error, Long userReceiveId);
+  Object extractByKey(String key, StompHeaderAccessor accessor);
 
-  UserBasicDto getUserAuth();
+  Map<String, Object> extractAll(StompHeaderAccessor accessor);
 }

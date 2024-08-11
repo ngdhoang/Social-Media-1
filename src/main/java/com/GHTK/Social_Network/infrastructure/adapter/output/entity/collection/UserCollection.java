@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 import java.util.LinkedList;
+import java.util.List;
 
 @Document
 @Builder
@@ -23,7 +24,9 @@ public class UserCollection {
 
     private boolean isDelete;
 
-//    private Instant lastActive;
+    private Instant lastActive;
+
+    private List<UserGroupInfo> userGroupInfoList;
 
     private LinkedList<Long> listFriendId;
 
