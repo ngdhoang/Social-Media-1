@@ -1,12 +1,13 @@
 package com.GHTK.Social_Network.application.service.chat;
 
-import com.GHTK.Social_Network.application.port.input.WebsocketPortInput;
-import com.GHTK.Social_Network.application.port.output.ChatPort;
+import com.GHTK.Social_Network.application.port.input.chat.WebsocketPortInput;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
-import com.GHTK.Social_Network.application.port.output.WebsocketClientPort;
+import com.GHTK.Social_Network.application.port.output.chat.GroupPort;
+import com.GHTK.Social_Network.application.port.output.chat.WebsocketClientPort;
 import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
 import com.GHTK.Social_Network.domain.collection.chat.Group;
 import com.GHTK.Social_Network.domain.collection.chat.Member;
+import com.GHTK.Social_Network.domain.collection.chat.Message;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ChatMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.MessageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
@@ -28,7 +29,7 @@ public class WebsocketService implements WebsocketPortInput {
 
   private final FriendShipPort friendShipPort;
   private final WebsocketClientPort webSocketClientPort;
-  private final ChatPort chatPort;
+  private final GroupPort groupPort;
   private final ChatMapper chatMapper;
 
   @Override
@@ -47,14 +48,14 @@ public class WebsocketService implements WebsocketPortInput {
 
   private Optional<Group> getOrCreateGroup(MessageDto message, boolean isGroup) {
     if (isGroup) {
-      return Optional.ofNullable(chatPort.getGroup(message.getGroupId()));
+      return Optional.ofNullable(groupPort.getGroup(message.getGroupId()));
     } else {
       String groupId = generatePersonalGroupId(message.getGroupId());
-      Group group = chatPort.getGroup(groupId);
+      Group group = groupPort.getGroup(groupId);
       if (group == null) {
         List<Long> userIds = parseGroupId(message.getGroupId());
-        chatPort.createGroupPersonal(userIds.get(0), userIds.get(1));
-        group = chatPort.getGroup(groupId);
+        groupPort.createGroupPersonal(userIds.get(0), userIds.get(1));
+        group = groupPort.getGroup(groupId);
       }
       return Optional.ofNullable(group);
     }
@@ -65,7 +66,7 @@ public class WebsocketService implements WebsocketPortInput {
   private void handleGroupMessage(MessageDto message, UserBasicDto currentUser, Optional<Group> currentGroup) {
     currentGroup.ifPresentOrElse(
             group -> {
-              if (chatPort.isUserInGroup(currentUser.getUserId(), group.getGroupId())) {
+              if (groupPort.isUserInGroup(currentUser.getUserId(), group.getGroupId())) {
                 sendToGroup(message, currentUser.getUserId(), group.getGroupId());
               } else {
                 sendError(ERROR_GROUP_NOT_EXISTS, currentUser.getUserId());
@@ -104,7 +105,7 @@ public class WebsocketService implements WebsocketPortInput {
     );
 
     if (userReceiveId != null && validateFriendship(currentUser.getUserId(), userReceiveId)) {
-      chatPort.createGroupPersonal(currentUser.getUserId(), userReceiveId);
+      groupPort.createGroupPersonal(currentUser.getUserId(), userReceiveId);
       sendToUser(message, currentUser.getUserId(), userReceiveId);
     }
   }
@@ -149,17 +150,18 @@ public class WebsocketService implements WebsocketPortInput {
   }
 
   private void sendToUser(MessageDto msg, Long userIdSend, Long userReceiveId) {
-    System.out.println(userIdSend + " <=> " + userReceiveId);
-    webSocketClientPort.sendAndSave(msg.getGroupType(), chatMapper.messageDtoToMessage(msg), userIdSend, userReceiveId);
+    Message message = chatMapper.messageDtoToMessage(msg);
+    message.setUserAuthId(userIdSend);
+    webSocketClientPort.sendUserAndSave(EGroupType.PERSONAL, message, "/channel/app" + userReceiveId);
   }
 
   private void sendToGroup(MessageDto msg, Long userIdSend, String groupId) {
-    chatPort.getGroup(groupId).getMembers().forEach(member ->
-            sendToUser(msg, userIdSend, member.getUserId())
-    );
+    Message message = chatMapper.messageDtoToMessage(msg);
+    message.setUserAuthId(userIdSend);
+    webSocketClientPort.sendListUserAndSave(message, groupPort.getGroup(groupId).getMembers().stream().map(Member::getUserId).toList());
   }
 
   private void sendError(String error, Long userReceiveId) {
-    webSocketClientPort.sendErrorForMe(error, userReceiveId);
+    webSocketClientPort.sendUserError(error, userReceiveId);
   }
 }

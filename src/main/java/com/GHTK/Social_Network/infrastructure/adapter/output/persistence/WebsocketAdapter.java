@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
-import com.GHTK.Social_Network.application.port.output.WebsocketPort;
+import com.GHTK.Social_Network.application.port.output.chat.WebsocketPort;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsImpl;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;

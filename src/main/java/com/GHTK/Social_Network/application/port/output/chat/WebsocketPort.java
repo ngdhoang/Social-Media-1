@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.application.port.output;
+package com.GHTK.Social_Network.application.port.output.chat;
 
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsImpl;
 import org.springframework.messaging.Message;

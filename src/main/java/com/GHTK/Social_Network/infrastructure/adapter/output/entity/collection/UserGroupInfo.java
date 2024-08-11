@@ -12,5 +12,5 @@ public class UserGroupInfo {
 
   private String lastMsgId;
 
-  private EStateUserGroup state;
+  private EStateUserGroupCollection state;
 }

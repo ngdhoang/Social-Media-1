@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
+package com.GHTK.Social_Network.infrastructure.adapter.output.repository.collection;
 
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.ImageSequenceCollection;
 import org.springframework.data.mongodb.repository.Query;

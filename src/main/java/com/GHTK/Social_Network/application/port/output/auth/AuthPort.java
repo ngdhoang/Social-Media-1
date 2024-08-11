@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.application.port.output.auth;
 
+import com.GHTK.Social_Network.domain.collection.UserCollectionDomain;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsImpl;
 import com.GHTK.Social_Network.infrastructure.payload.dto.AccessTokenDto;
@@ -42,4 +43,6 @@ public interface AuthPort {
   void saveAllAccessTokenInRedis(String userEmail, Set<Map<String, AccessTokenDto>> tokenEntities);
 
   void saveAllAccessTokenInRedis(UserDetailsImpl userDetails, Set<Map<String, AccessTokenDto>> tokenEntities);
+
+  UserCollectionDomain getUserCollectionById(Long userId);
 }

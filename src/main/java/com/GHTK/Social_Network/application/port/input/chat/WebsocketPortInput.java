@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.application.port.input;
+package com.GHTK.Social_Network.application.port.input.chat;
 
 import com.GHTK.Social_Network.infrastructure.payload.dto.MessageDto;
 

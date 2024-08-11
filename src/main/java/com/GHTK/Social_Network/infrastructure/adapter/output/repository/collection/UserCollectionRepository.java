@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.infrastructure.adapter.output.repository;
+package com.GHTK.Social_Network.infrastructure.adapter.output.repository.collection;
 
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.UserCollection;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -9,7 +9,7 @@ import java.util.LinkedList;
 
 
 @Repository
-public interface FriendCollectionRepository extends MongoRepository<UserCollection, String> {
+public interface UserCollectionRepository extends MongoRepository<UserCollection, String> {
   @Query(
           """
                           {

@@ -4,7 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
@@ -33,5 +35,5 @@ public class Message {
 
   private Long reactionQuantity;
 
-  private Date createAt;
+  private Instant createAt;
 }

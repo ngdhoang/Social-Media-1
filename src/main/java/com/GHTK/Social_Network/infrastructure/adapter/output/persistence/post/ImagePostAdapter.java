@@ -10,7 +10,7 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.I
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ImagePostRepository;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ImageSequenceRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.collection.ImageSequenceRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.PostRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.ImagePostMapperETD;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.application.service.chat;
 
-import com.GHTK.Social_Network.application.port.input.ChatPortInput;
-import com.GHTK.Social_Network.application.port.output.ChatPort;
+import com.GHTK.Social_Network.application.port.input.chat.GroupPortInput;
+import com.GHTK.Social_Network.application.port.output.chat.GroupPort;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
@@ -20,9 +20,9 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ChatService implements ChatPortInput {
+public class GroupService implements GroupPortInput {
   private final FriendShipPort friendShipPort;
-  private final ChatPort chatPort;
+  private final GroupPort groupPort;
   private final AuthPort authPort;
 
   private final GroupMapper groupMapper;
@@ -35,7 +35,7 @@ public class ChatService implements ChatPortInput {
             createGroupRequest,
             getMembersWithAdminByListId(createGroupRequest.getMembers(), currentUser)
     );
-    return groupMapper.groupToResponse(chatPort.createGroup(newGroup));
+    return groupMapper.groupToResponse(groupPort.createGroup(newGroup));
   }
 
   private void validateFriendship(Long currentId, List<Long> userIds) {

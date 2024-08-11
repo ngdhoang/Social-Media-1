@@ -1,8 +1,8 @@
-package com.GHTK.Social_Network.application.port.output;
+package com.GHTK.Social_Network.application.port.output.chat;
 
 import com.GHTK.Social_Network.domain.collection.chat.Group;
 
-public interface ChatPort {
+public interface GroupPort {
   Group createGroup(Group newGroup);
 
   Group createGroupPersonal(Long userSendId, Long userReceiveId);

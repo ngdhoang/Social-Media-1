@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.chat;
 
-import com.GHTK.Social_Network.application.port.output.ChatPort;
+import com.GHTK.Social_Network.application.port.output.chat.GroupPort;
 import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
 import com.GHTK.Social_Network.domain.collection.chat.Group;
 import com.GHTK.Social_Network.domain.collection.chat.Member;
@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class ChatAdapter implements ChatPort {
+public class GroupAdapter implements GroupPort {
   private final GroupRepository groupRepository;
 
   private final GroupMapperETD groupMapperETD;

@@ -9,7 +9,7 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.c
 import org.mapstruct.*;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface ChatMapperETD {
+public interface MessageMapperETD {
 
   @Mapping(target = "reactionMsgs", ignore = true)
   MessageCollection messageToMessageCollection(Message message);

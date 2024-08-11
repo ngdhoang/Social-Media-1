@@ -4,12 +4,16 @@ import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.auth.JwtPort;
 import com.GHTK.Social_Network.application.port.output.auth.RedisAccessTokenPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
+import com.GHTK.Social_Network.domain.collection.UserCollectionDomain;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsImpl;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.UserNode;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.collection.UserCollectionRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.UserNodeRepository;
+import com.GHTK.Social_Network.infrastructure.mapper.MessageMapperETD;
+import com.GHTK.Social_Network.infrastructure.mapper.UserCollectionMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.UserMapperETD;
 import com.GHTK.Social_Network.infrastructure.payload.dto.AccessTokenDto;
 import lombok.AllArgsConstructor;
@@ -30,8 +34,11 @@ import java.util.Set;
 public class AuthAdapter implements AuthPort {
   private final JwtPort jwtPort;
   private final UserRepository userRepository;
-  private final UserMapperETD userMapperETD;
   private final UserNodeRepository userNodeRepository;
+  private final UserCollectionRepository userCollectionRepository;
+
+  private final UserMapperETD userMapperETD;
+  private final UserCollectionMapperETD userCollectionMapperETD;
 
   private final RedisAccessTokenPort redisAccessTokenPort;
 
@@ -61,6 +68,11 @@ public class AuthAdapter implements AuthPort {
   @Override
   public void saveAllAccessTokenInRedis(UserDetailsImpl userDetails, Set<Map<String, AccessTokenDto>> tokenEntities) {
     saveAllAccessTokenInRedis(userDetails.getUserEntity().getUserEmail(), tokenEntities);
+  }
+
+  @Override
+  public UserCollectionDomain getUserCollectionById(Long userId) {
+    return userCollectionMapperETD.toDomain(userCollectionRepository.findByUserId(userId));
   }
 
   @Override

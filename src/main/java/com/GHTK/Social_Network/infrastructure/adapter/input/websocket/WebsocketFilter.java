@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.websocket;
 
 import com.GHTK.Social_Network.application.port.output.RedisSessionWsPort;
-import com.GHTK.Social_Network.application.port.output.WebsocketPort;
+import com.GHTK.Social_Network.application.port.output.chat.WebsocketPort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.model.user.User;
