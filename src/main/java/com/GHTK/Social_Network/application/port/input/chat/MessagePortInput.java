@@ -11,5 +11,7 @@ public interface MessagePortInput {
 
   ChatMessageResponse recallMessage(String messageId);
 
+  ChatMessageResponse reactionMessage(String messageId);
+
   MessageResponse sendListImage(List<MultipartFile> images, String groupId);
 }

@@ -12,9 +12,13 @@ public interface WebsocketClientPort {
 
   void sendUserAndSave(EGroupType groupType, Message message, String destination);
 
+  void sendRelyUserAndSave(EGroupType groupType, Message message, Message messageQuote, String destination);
+
   void sendUserError(String error, Long userReceiveId);
 
   void sendListUserAndSave(Message messages, List<Long> receiverIds);
+
+  void sendReplyListUserAndSave(Message messages, Message messageQuote, List<Long> receiverIds);
 
   void sendListUserAndNotSave(Message messages, List<Long> receiverIds);
 

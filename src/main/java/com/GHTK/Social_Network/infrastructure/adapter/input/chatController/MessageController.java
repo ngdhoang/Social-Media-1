@@ -4,7 +4,6 @@ import com.GHTK.Social_Network.application.port.input.chat.MessagePortInput;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,4 +39,8 @@ public class MessageController {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, messagePortInput.sendListImage(images, groupId));
   }
 
+  @PostMapping("/reaction/{msgId}")
+  public ResponseEntity<Object> reactionMessage(@PathVariable String msgId) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, messagePortInput.reactionMessage(msgId));
+  }
 }

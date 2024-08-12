@@ -1,6 +1,9 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -31,7 +34,7 @@ public class MessageCollection {
 
   private List<String> images;
 
-  private ReactionMessagesCollection reactionMsgs;
+  private List<ReactionMessagesCollection> reactionMsgs;
 
   private Long reactionQuantity;
 

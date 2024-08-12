@@ -1,18 +1,13 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat;
 
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EReactionTypeEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.List;
 
 @AllArgsConstructor
 @Getter
 public class ReactionMessagesCollection {
-  private List<Long> likeIds;
+  private EReactionTypeEntity reactionType;
 
-  private List<Long> smileIds;
-
-  private List<Long> argyIds;
-
-  private List<Long> loveIds;
+  private Long userId;
 }

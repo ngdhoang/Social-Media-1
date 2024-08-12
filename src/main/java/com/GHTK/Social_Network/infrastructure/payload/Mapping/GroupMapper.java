@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface GroupMapper {
-  @Mapping(target = "groupId", source = "groupId")
+  @Mapping(target = "groupId", source = "id")
   @Mapping(target = "groupType", source = "groupType", qualifiedByName = "mapGroupType")
   @Mapping(target = "msgPin", source = "msgPin", qualifiedByName = "mapMsgPin")
   @Mapping(target = "createAt", ignore = true)

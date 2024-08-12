@@ -29,5 +29,5 @@ public class MessageDto {
 
   private List<Long> tags = new ArrayList<>();
 
-  private Long replyMsgId;
+  private String replyMsgId;
 }

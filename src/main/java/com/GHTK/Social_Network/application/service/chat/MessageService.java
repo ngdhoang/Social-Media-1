@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -46,6 +47,20 @@ public class MessageService implements MessagePortInput {
   @Override
   public ChatMessageResponse recallMessage(String messageId) {
     return processMessageOperation(messageId, EMessageType.RECALL);
+  }
+
+  @Override
+  public ChatMessageResponse reactionMessage(String messageId) {
+    User currentUser = authPort.getUserAuth();
+    Message message = getValidatedMessage(messageId);
+    Group group = validateOperationMessage(currentUser, message, false);
+
+    List<Long> reactionList = message.getReaction() == null ? new ArrayList<>() : message.getReaction();
+    reactionList.add(currentUser.getUserId());
+    message.setReaction(reactionList);
+
+    websocketClientPort.sendListUserAndSave(message, group.getMembers().stream().map(Member::getUserId).toList());
+    return chatMapper.messageToMessageResponse(message, group.getGroupType());
   }
 
   @Override
@@ -89,7 +104,7 @@ public class MessageService implements MessagePortInput {
   private ChatMessageResponse processMessageOperation(String messageId, EMessageType operationType) {
     User currentUser = authPort.getUserAuth();
     Message message = getValidatedMessage(messageId);
-    Group group = validateOperationMessage(currentUser, message);
+    Group group = validateOperationMessage(currentUser, message, true);
 
     EMessageType newMessageType = determineNewMessageType(message, operationType);
     updateMessage(message, newMessageType);
@@ -132,14 +147,14 @@ public class MessageService implements MessagePortInput {
     websocketClientPort.sendListUserAndNotSave(message, memberIds);
   }
 
-  private Group validateOperationMessage(User currentUser, Message message) {
+  private Group validateOperationMessage(User currentUser, Message message, boolean mine) {
     Group group = getGroup(message.getGroupId());
     boolean isMessageAuthor = message.getUserAuthId().equals(currentUser.getUserId());
     boolean isGroupMember = group.getMembers().stream()
             .map(Member::getUserId)
             .anyMatch(id -> id.equals(currentUser.getUserId()));
 
-    if (!isMessageAuthor || !isGroupMember) {
+    if (!(mine == isMessageAuthor) || !isGroupMember ) {
       throw new CustomException("You are not allowed to modify this message", HttpStatus.FORBIDDEN);
     }
 
@@ -151,10 +166,7 @@ public class MessageService implements MessagePortInput {
   }
 
   private Group getGroup(String groupId) {
-    return isGroupPersonal(groupId) ? groupPort.getGroupForPersonal(groupId) : groupPort.getGroupForGroup(groupId);
-  }
-
-  private boolean isGroupPersonal(String groupId) {
-    return groupId.contains("_");
+    boolean isGroupPersonal = groupId.contains("_");
+    return isGroupPersonal ? groupPort.getGroupForPersonal(groupId) : groupPort.getGroupForGroup(groupId);
   }
 }

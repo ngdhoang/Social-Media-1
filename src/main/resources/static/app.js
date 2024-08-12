@@ -162,10 +162,10 @@ function showMessage(message) {
     const messageHtml = `
         <tr style="${messageStyle}">
             <td>
-                <strong>User ID:</strong> ${message.userId || "N/A"}<br>
+                <strong>User ID:</strong> ${message.userAuthId || "N/A"}<br>
                 <strong>Message ID:</strong> ${message.msgId || "N/A"}<br>
                 <strong>Message Content:</strong> ${message.message?.content || "N/A"}<br>
-                <strong>Message Type:</strong> ${message.message?.msgType || "N/A"}<br>
+                <strong>Message Type:</strong> ${message.msgType || "N/A"}<br>
                 <strong>Reaction Quantity:</strong> ${message.reactionQuantity || 0}<br>
                 <strong>Images:</strong> ${images.length > 0 ? images.map(img => `<img src="${img}" alt="image" style="width:50px;height:auto;">`).join(' ') : "No images"}
             </td>

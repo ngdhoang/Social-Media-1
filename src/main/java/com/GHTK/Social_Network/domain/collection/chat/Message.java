@@ -4,10 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
 
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 
 @Builder
@@ -21,7 +19,7 @@ public class Message {
 
   private Long userAuthId;
 
-  private Long replyMsgId;
+  private String replyMsgId;
 
   private EMessageType msgType;
 

@@ -21,11 +21,12 @@ public interface ChatMapper {
             .build();
 
     ChatMessageResponse messageResponse = ChatMessageResponse.builder()
+            .msgId(message.getMsgId())
             .userId(message.getUserAuthId())
             .msgId(message.getMsgId())
             .message(messageDto)
             .reactionQuantity(message.getReactionQuantity())
-            .images(null)
+            .images(message.getImages())
             .build();
     return messageResponse;
   }

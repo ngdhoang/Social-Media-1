@@ -15,6 +15,7 @@ public interface MessageMapperETD {
   MessageCollection messageToMessageCollection(Message message);
 
   @Mapping(target = "reactionMsgs", ignore = true)
+  @Mapping(target = "images", source = "images")
   Message messageCollectionToMessage(MessageCollection messageCollection);
 
   ReactionMessagesCollection mapReactionMessages(ReactionMessages reactionMessages);

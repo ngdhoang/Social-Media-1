@@ -10,6 +10,7 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.repository.MessageR
 import com.GHTK.Social_Network.infrastructure.mapper.MessageMapperETD;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ChatMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
+import com.GHTK.Social_Network.infrastructure.payload.responses.ChatMessageReplyResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ChatMessageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
@@ -37,8 +38,13 @@ public class WebsocketClientAdapter implements WebsocketClientPort {
     message = saveMessage(message);
 
     ChatMessageResponse messageSend = chatMapper.messageToMessageResponse(message, groupType);
-    System.out.println(messageSend);
     messagingTemplate.convertAndSend(destination, messageSend);
+  }
+
+  @Override
+  public void sendRelyUserAndSave(EGroupType groupType, Message message, Message messageQuote, String destination) {
+    message = saveMessage(message);
+    messagingTemplate.convertAndSend(destination, messageToChatMessageReplyResponse(message, messageQuote, groupType));
   }
 
   @Override
@@ -55,8 +61,19 @@ public class WebsocketClientAdapter implements WebsocketClientPort {
 
   @Override
   public void sendListUserAndSave(Message messages, List<Long> receiverIds) {
+    messages = saveMessage(messages);
     sendListUserAndNotSave(messages, receiverIds);
-    saveMessage(messages);
+  }
+
+  @Override
+  public void sendReplyListUserAndSave(Message message, Message messageQuote, List<Long> receiverIds) {
+    message = saveMessage(message);
+
+    for (Long receiverId : receiverIds) {
+      String destination = "/channel/app/" + receiverId;
+      ChatMessageReplyResponse chatMessageReplyResponse = messageToChatMessageReplyResponse(message, messageQuote, EGroupType.PERSONAL);
+      messagingTemplate.convertAndSend(destination, chatMessageReplyResponse);
+    }
   }
 
   @Override
@@ -80,5 +97,11 @@ public class WebsocketClientAdapter implements WebsocketClientPort {
   private Message saveMessage(Message message) {
     MessageCollection messageCollection = messageMapperETD.messageToMessageCollection(message);
     return messageMapperETD.messageCollectionToMessage(messageRepository.save(messageCollection));
+  }
+
+  private ChatMessageReplyResponse messageToChatMessageReplyResponse(Message message, Message messageQuote, EGroupType groupType) {
+    ChatMessageResponse chatMessageQuote = chatMapper.messageToMessageResponse(messageQuote, groupType);
+    ChatMessageResponse chatMessageSend = chatMapper.messageToMessageResponse(message, groupType);
+    return new ChatMessageReplyResponse(chatMessageQuote, chatMessageSend);
   }
 }
