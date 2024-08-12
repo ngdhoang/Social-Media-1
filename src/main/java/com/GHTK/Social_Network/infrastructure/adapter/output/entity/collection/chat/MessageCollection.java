@@ -29,6 +29,8 @@ public class MessageCollection {
 
   private List<Long> tags;
 
+  private List<String> images;
+
   private ReactionMessagesCollection reactionMsgs;
 
   private Long reactionQuantity;

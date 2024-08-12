@@ -34,9 +34,10 @@ public class WebsocketClientAdapter implements WebsocketClientPort {
 
   @Override
   public void sendUserAndSave(EGroupType groupType, Message message, String destination) {
-    saveMessage(message);
+    message = saveMessage(message);
 
     ChatMessageResponse messageSend = chatMapper.messageToMessageResponse(message, groupType);
+    System.out.println(messageSend);
     messagingTemplate.convertAndSend(destination, messageSend);
   }
 
@@ -76,8 +77,8 @@ public class WebsocketClientAdapter implements WebsocketClientPort {
     return WebsocketContextHolder.getContext();
   }
 
-  private void saveMessage(Message message) {
+  private Message saveMessage(Message message) {
     MessageCollection messageCollection = messageMapperETD.messageToMessageCollection(message);
-    messageRepository.save(messageCollection);
+    return messageMapperETD.messageCollectionToMessage(messageRepository.save(messageCollection));
   }
 }

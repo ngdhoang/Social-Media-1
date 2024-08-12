@@ -7,7 +7,9 @@ public interface GroupPort {
 
   Group createGroupPersonal(Long userSendId, Long userReceiveId);
 
-  Group getGroup(String groupId);
+  Group getGroupForPersonal(String groupName);
+
+  Group getGroupForGroup(String groupId);
 
   boolean isUserInGroup(Long userId, String groupId);
 }

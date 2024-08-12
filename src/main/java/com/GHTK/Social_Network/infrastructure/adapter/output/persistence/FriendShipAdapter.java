@@ -9,9 +9,9 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.frien
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.FriendSuggestion;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.RelationshipScores;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.UserNode;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.collection.UserCollectionRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendShipRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.collection.UserCollectionRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.UserNodeRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.EFriendShipStatusMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.FriendShipMapperETD;
@@ -155,24 +155,20 @@ public class FriendShipAdapter implements FriendShipPort {
         friendshipCollection.getListBlockId().add(friendShipEntity.getUserReceiveId());
         friendshipCollection.getListFriendId().remove(friendShipEntity.getUserReceiveId());
         userCollectionRepository.save(friendshipCollection);
-        System.out.println("block1");
       } else {
         UserCollection newUserCollection = new UserCollection(friendShipEntity.getUserInitiatorId());
         newUserCollection.addBlock(friendShipEntity.getUserReceiveId());
         userCollectionRepository.save(newUserCollection);
-        System.out.println("block2");
       }
 
       if (friendshipCollectionReceive != null) {
         friendshipCollectionReceive.getListBlockedId().add(friendShipEntity.getUserInitiatorId());
         friendshipCollectionReceive.getListFriendId().remove(friendShipEntity.getUserInitiatorId());
         userCollectionRepository.save(friendshipCollectionReceive);
-        System.out.println("block3");
       } else {
         UserCollection newUserCollectionReceive = new UserCollection(friendShipEntity.getUserReceiveId());
         newUserCollectionReceive.addBlocked(friendShipEntity.getUserInitiatorId());
         userCollectionRepository.save(newUserCollectionReceive);
-        System.out.println("block4");
       }
 
       userNodeRepository.createBlockUser(friendShipEntity.getUserInitiatorId(), friendShipEntity.getUserReceiveId());
@@ -183,36 +179,28 @@ public class FriendShipAdapter implements FriendShipPort {
           friendshipCollection.getListFriendId().add(friendShipEntity.getUserReceiveId());
           userCollectionRepository.save(friendshipCollection);
 
-          System.out.println("add1");
         }
       } else {
         UserCollection newUserCollection = new UserCollection(friendShipEntity.getUserInitiatorId());
         newUserCollection.addFriend(friendShipEntity.getUserReceiveId());
         userCollectionRepository.save(newUserCollection);
 
-        System.out.println("add2");
       }
       if (friendshipCollectionReceive != null) {
         if (prevStatus.equals((EFriendshipStatusEntity.PENDING))) {
           friendshipCollectionReceive.getListFriendId().add(friendShipEntity.getUserInitiatorId());
           userCollectionRepository.save(friendshipCollectionReceive);
 
-          System.out.println("add3");
         }
       } else {
         UserCollection newUserCollectionReceive = new UserCollection(friendShipEntity.getUserReceiveId());
         newUserCollectionReceive.addFriend(friendShipEntity.getUserInitiatorId());
         userCollectionRepository.save(newUserCollectionReceive);
 
-        System.out.println("add4");
       }
 
-      System.out.println("add5");
-      System.out.println("type:" + status.getClass());
-      System.out.println(eFriendShipStatusMapperETD.toEntity(status));
       EFriendshipStatusEntity statusEntity = status == null ? EFriendshipStatusEntity.CLOSE_FRIEND : eFriendShipStatusMapperETD.toEntity(status);
       userNodeRepository.createOrUpdateFriend(friendShipEntity.getUserInitiatorId(), friendShipEntity.getUserReceiveId(), statusEntity);
-
     }
     return true;
   }

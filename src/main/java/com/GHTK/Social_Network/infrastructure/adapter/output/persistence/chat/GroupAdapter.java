@@ -30,7 +30,9 @@ public class GroupAdapter implements GroupPort {
 
   @Override
   public Group createGroupPersonal(Long userSendId, Long userReceiveId) {
-    String groupName = String.format("%d_%d", userSendId, userReceiveId);
+    String groupName = userSendId < userReceiveId
+            ? String.format("%d_%d", userSendId, userReceiveId)
+            : String.format("%d_%d", userReceiveId, userSendId);
 
     List<Member> members = Arrays.asList(
             Member.builder().userId(userSendId).build(),
@@ -47,14 +49,20 @@ public class GroupAdapter implements GroupPort {
   }
 
   @Override
-  public Group getGroup(String groupId) {
+  public Group getGroupForPersonal(String groupName) {
+    Optional<GroupCollection> optionalGroup = groupRepository.findByGroupName(groupName);
+    return optionalGroup.map(groupMapperETD::toDomain).orElse(null);
+  }
+
+  @Override
+  public Group getGroupForGroup(String groupId) {
     Optional<GroupCollection> optionalGroup = groupRepository.findById(groupId);
     return optionalGroup.map(groupMapperETD::toDomain).orElse(null);
   }
 
   @Override
   public boolean isUserInGroup(Long userId, String groupId) {
-    Group group = getGroup(groupId);
+    Group group = getGroupForPersonal(groupId);
     if (group == null) {
       return false;
     }

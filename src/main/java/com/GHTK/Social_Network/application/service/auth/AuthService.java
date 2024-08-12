@@ -290,7 +290,6 @@ public class AuthService implements AuthPortInput {
             .expired(false)
             .revoked(false)
             .build();
-    System.out.println(token);
     authPort.saveAccessTokenInRedis(jwtToken, token);
   }
 

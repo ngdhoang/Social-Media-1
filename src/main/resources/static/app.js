@@ -200,7 +200,7 @@ document.addEventListener("DOMContentLoaded", function () {
     elements.wsUrlInput = document.getElementById("wsUrl");
     elements.topicInput = document.getElementById("topic");
     elements.appDestinationInput = document.getElementById("appDestination");
-    elements.updateConfigButton = document.getElementById("updateConfig");
+    // elements.updateConfigButton = document.getElementById("updateConfig");
     elements.loginButton = document.getElementById("login");
     elements.emailInput = document.getElementById("email");
     elements.passwordInput = document.getElementById("password");
@@ -218,7 +218,7 @@ document.addEventListener("DOMContentLoaded", function () {
     elements.connectButton.addEventListener("click", connect);
     elements.disconnectButton.addEventListener("click", disconnect);
     elements.sendButton.addEventListener("click", sendMessage);
-    elements.updateConfigButton.addEventListener("click", updateConfig);
+    // elements.updateConfigButton.addEventListener("click", updateConfig);
 
     elements.loginButton.addEventListener("click", function () {
         axios.post('http://localhost:8080/api/v1/auth/authentication', {

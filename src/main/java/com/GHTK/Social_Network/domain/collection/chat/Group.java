@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class Group {
-  private String groupId;
+  private String id;
 
   private String groupBackground;
 

@@ -37,27 +37,12 @@ public class WebsocketService implements WebsocketPortInput {
     UserBasicDto currentUser = webSocketClientPort.getUserAuth();
     boolean isGroup = message.getGroupType().equals(EGroupType.GROUP);
 
-    Optional<Group> currentGroup = getOrCreateGroup(message, isGroup);
-
     if (isGroup) {
+      Optional<Group> currentGroup = Optional.ofNullable(groupPort.getGroupForGroup(message.getGroupId()));
       handleGroupMessage(message, currentUser, currentGroup);
     } else {
+      Optional<Group> currentGroup = Optional.ofNullable(groupPort.getGroupForPersonal(message.getGroupId()));
       handlePersonalMessage(message, currentUser, currentGroup);
-    }
-  }
-
-  private Optional<Group> getOrCreateGroup(MessageDto message, boolean isGroup) {
-    if (isGroup) {
-      return Optional.ofNullable(groupPort.getGroup(message.getGroupId()));
-    } else {
-      String groupId = generatePersonalGroupId(message.getGroupId());
-      Group group = groupPort.getGroup(groupId);
-      if (group == null) {
-        List<Long> userIds = parseGroupId(message.getGroupId());
-        groupPort.createGroupPersonal(userIds.get(0), userIds.get(1));
-        group = groupPort.getGroup(groupId);
-      }
-      return Optional.ofNullable(group);
     }
   }
 
@@ -66,8 +51,8 @@ public class WebsocketService implements WebsocketPortInput {
   private void handleGroupMessage(MessageDto message, UserBasicDto currentUser, Optional<Group> currentGroup) {
     currentGroup.ifPresentOrElse(
             group -> {
-              if (groupPort.isUserInGroup(currentUser.getUserId(), group.getGroupId())) {
-                sendToGroup(message, currentUser.getUserId(), group.getGroupId());
+              if (groupPort.isUserInGroup(currentUser.getUserId(), group.getId())) {
+                sendToGroup(message, currentUser.getUserId(), group.getId());
               } else {
                 sendError(ERROR_GROUP_NOT_EXISTS, currentUser.getUserId());
               }
@@ -144,21 +129,16 @@ public class WebsocketService implements WebsocketPortInput {
             .toList();
   }
 
-  private String generatePersonalGroupId(String groupId) {
-    List<Long> sortedIds = parseGroupId(groupId);
-    return String.format("%d%s%d", sortedIds.get(0), GROUP_ID_SEPARATOR, sortedIds.get(1));
-  }
-
   private void sendToUser(MessageDto msg, Long userIdSend, Long userReceiveId) {
     Message message = chatMapper.messageDtoToMessage(msg);
     message.setUserAuthId(userIdSend);
-    webSocketClientPort.sendUserAndSave(EGroupType.PERSONAL, message, "/channel/app" + userReceiveId);
+    webSocketClientPort.sendUserAndSave(EGroupType.PERSONAL, message, "/channel/app/" + userReceiveId);
   }
 
   private void sendToGroup(MessageDto msg, Long userIdSend, String groupId) {
     Message message = chatMapper.messageDtoToMessage(msg);
     message.setUserAuthId(userIdSend);
-    webSocketClientPort.sendListUserAndSave(message, groupPort.getGroup(groupId).getMembers().stream().map(Member::getUserId).toList());
+    webSocketClientPort.sendListUserAndSave(message, groupPort.getGroupForPersonal(groupId).getMembers().stream().map(Member::getUserId).toList());
   }
 
   private void sendError(String error, Long userReceiveId) {
