@@ -89,7 +89,6 @@ public class ReactionCommentAdapter implements ReactionCommentPort {
               }
       ).collect(Collectors.toSet());
       result.add(Map.of(reactionType, reactionCommentSet));
-
     }
     return result;
   }
@@ -131,7 +130,7 @@ public class ReactionCommentAdapter implements ReactionCommentPort {
     Pageable pageable = getReactionCommentRequest.toPageable();
     EReactionType reactionType = getReactionCommentRequest.getReactionType() == null ? null : EReactionType.valueOf(getReactionCommentRequest.getReactionType());
     if (reactionType == null) {
-      return reactionCommentRepository.getByCommentId(commentId,listBlock, pageable).stream().map(reactionCommentMapperETD::toDomain).toList();
+      return reactionCommentRepository.getByCommentId(commentId, listBlock, pageable).stream().map(reactionCommentMapperETD::toDomain).toList();
     }
     return reactionCommentRepository.getByCommentIdAndType(commentId, reactionTypeMapperETD.toEntity(reactionType), listBlock, pageable).stream().map(reactionCommentMapperETD::toDomain).toList();
   }

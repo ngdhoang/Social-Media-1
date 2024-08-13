@@ -47,5 +47,4 @@ public class ReactionPostController {
   public ResponseEntity<Object> getReactionPostHandler(@Valid @ModelAttribute GetPostRequest getPostRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, reactionPostInput.getListReactionInteractions(getPostRequest));
   }
-
 }

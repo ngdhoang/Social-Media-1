@@ -36,263 +36,268 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CommentService implements CommentPostInput {
-    private final PostPort postPort;
-    private final AuthPort authPort;
-    private final CommentPostPort commentPostPort;
-    private final FriendShipPort friendShipPort;
-    private final RedisImageTemplatePort redisImageTemplatePort;
-    private final ImagePostPort imagePostPort;
+  private final PostPort postPort;
+  private final AuthPort authPort;
+  private final CommentPostPort commentPostPort;
+  private final FriendShipPort friendShipPort;
+  private final RedisImageTemplatePort redisImageTemplatePort;
+  private final ImagePostPort imagePostPort;
 
-    private final CommentMapper commentMapper;
-    private final UserMapper userMapper;
-    private final PostMapper postMapper;
+  private final CommentMapper commentMapper;
+  private final UserMapper userMapper;
 
-    private User getUserAuth() {
-        User user = authPort.getUserAuth();
-        return user == null ? User.builder().userId(0L).build() : user;
+  private final PostMapper postMapper;
+
+  private User getUserAuth() {
+    User user = authPort.getUserAuth();
+    return user == null ? User.builder().userId(0L).build() : user;
+  }
+
+  private void checkCommentValid(Post post, User u) {
+    if (post == null) {
+      throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
     }
 
-    private void checkCommentValid(Post post, User u) {
-        if (post == null) {
-            throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
-        }
+    Long postOwnerId = post.getUserId();
 
-        Long postOwnerId = post.getUserId();
-
-        if (u.getUserId().equals(postOwnerId)){
-            return;
-        }
-
-        if (friendShipPort.isBlock(u.getUserId(), postOwnerId)
-                || (!authPort.getUserById(postOwnerId).getIsProfilePublic())
-                || post.getPostStatus().equals(EPostStatus.PRIVATE)
-                || (post.getPostStatus().equals(EPostStatus.FRIEND) && (u.getUserId().equals(0) || !friendShipPort.isFriend(u.getUserId(), postOwnerId)))
-        ) {
-            throw new CustomException("Not allow", HttpStatus.FORBIDDEN);
-        }
+    if (u.getUserId().equals(postOwnerId)) {
+      return;
     }
 
-    @Override
-    public CommentResponse createCommentRoot(CommentRequest comment) {
-        Post post = postPort.findPostByPostId(comment.getPostId());
-        User user = getUserAuth();
-        checkCommentValid(post, user);
+    if (friendShipPort.isBlock(u.getUserId(), postOwnerId)
+            || (!authPort.getUserById(postOwnerId).getIsProfilePublic())
+            || post.getPostStatus().equals(EPostStatus.PRIVATE)
+            || (post.getPostStatus().equals(EPostStatus.FRIEND) && (u.getUserId().equals(0) || !friendShipPort.isFriend(u.getUserId(), postOwnerId)))
+    ) {
+      throw new CustomException("Not allow", HttpStatus.FORBIDDEN);
+    }
+  }
 
-        String imageCommentUrl = getImageUrlCommentInRedis(comment.getPublicId(), getUserAuth());
-        Comment newComment = new Comment(
-                LocalDate.now(),
-                comment.getContent(),
-                user.getUserId(),
-                post.getPostId(),
-                imageCommentUrl
-        );
-        Comment saveComment = commentPostPort.saveComment(newComment);
-        postPort.incrementCommentQuantity(post.getPostId());
-        UserBasicDto userBasicDto = userMapper.userToUserBasicDto(user);
+  @Override
+  public CommentResponse createCommentRoot(CommentRequest comment) {
+    Post post = postPort.findPostByPostId(comment.getPostId());
+    User user = getUserAuth();
+    checkCommentValid(post, user);
 
-        return commentMapper.commentToCommentResponse(saveComment, userBasicDto);
+    String imageCommentUrl = getImageUrlCommentInRedis(comment.getPublicId(), getUserAuth());
+    Comment newComment = new Comment(
+            LocalDate.now(),
+            comment.getContent(),
+            user.getUserId(),
+            post.getPostId(),
+            imageCommentUrl
+    );
+    Comment saveComment = commentPostPort.saveComment(newComment);
+    postPort.incrementCommentQuantity(post.getPostId());
+    UserBasicDto userBasicDto = userMapper.userToUserBasicDto(user);
+
+    return commentMapper.commentToCommentResponse(saveComment, userBasicDto);
+  }
+
+
+  @Override
+  public CommentResponse createCommentChild(Long commentIdSrc, CommentRequest comment) {
+    Post post = postPort.findPostByPostId(comment.getPostId());
+    User user = this.getUserAuth();
+    checkCommentValid(post, user);
+    Comment parentComment = commentPostPort.findCommentById(commentIdSrc);
+    if (parentComment == null) {
+      throw new CustomException("Parent comment not found", HttpStatus.NOT_FOUND);
     }
 
 
-    @Override
-    public CommentResponse createCommentChild(Long commentIdSrc, CommentRequest comment) {
-        Post post = postPort.findPostByPostId(comment.getPostId());
-        User user = this.getUserAuth();
-        checkCommentValid(post, user);
-        Comment parentComment = commentPostPort.findCommentById(commentIdSrc);
-        if (parentComment == null) {
-            throw new CustomException("Parent comment not found", HttpStatus.NOT_FOUND);
-        }
-
-        if (friendShipPort.isBlock(user.getUserId(), parentComment.getUserId()) || friendShipPort.isBlock(parentComment.getUserId(), post.getUserId())) {
-            throw new CustomException("Not allow comment", HttpStatus.FORBIDDEN);
-        }
-
-        String imageComment = getImageUrlCommentInRedis(comment.getPublicId(), this.getUserAuth());
-        Comment newComment = new Comment(
-                LocalDate.now(),
-                comment.getContent(),
-                user.getUserId(),
-                post.getPostId(),
-                imageComment
-        );
-        commentPostPort.setParentComment(commentIdSrc, newComment);
-        newComment = commentPostPort.saveComment(newComment);
-        postPort.incrementCommentQuantity(post.getPostId());
-        Long commentParentId = parentComment.getCommentId();
-        commentPostPort.increaseCommentCount(commentParentId);
-        UserBasicDto userBasicDto = userMapper.userToUserBasicDto(user);
-
-        return commentMapper.commentToCommentResponse(newComment, userBasicDto);
+    if (friendShipPort.isBlock(user.getUserId(), parentComment.getUserId()) || friendShipPort.isBlock(parentComment.getUserId(), post.getUserId())) {
+      throw new CustomException("Not allow comment", HttpStatus.FORBIDDEN);
     }
 
-    @Override
-    public List<CommentResponse> getCommentsByPostId(Long postId, GetCommentRequest getCommentRequest) {
-        Post post = postPort.findPostByPostId(postId);
-        User user = authPort.getUserAuthOrDefaultVirtual();
-        checkCommentValid(post, user);
-        List<Comment> listComment = commentPostPort.getListCommentByPostId(postId, friendShipPort.getListBlockBoth(getUserAuth().getUserId()), getCommentRequest);
-        return listComment.stream()
-                .filter(comment -> comment.getParentCommentId() == null)
-                .map(rootComment ->
-                        processCommentWithChildren(rootComment, listComment)
-                )
-                .collect(Collectors.toList());
+    String imageComment = getImageUrlCommentInRedis(comment.getPublicId(), this.getUserAuth());
+    Comment newComment = new Comment(
+            LocalDate.now(),
+            comment.getContent(),
+            user.getUserId(),
+            post.getPostId(),
+            imageComment
+    );
+    commentPostPort.setParentComment(commentIdSrc, newComment);
+    newComment = commentPostPort.saveComment(newComment);
+    postPort.incrementCommentQuantity(post.getPostId());
+    Long commentParentId = parentComment.getCommentId();
+    commentPostPort.increaseCommentCount(commentParentId);
+    UserBasicDto userBasicDto = userMapper.userToUserBasicDto(user);
+
+    return commentMapper.commentToCommentResponse(newComment, userBasicDto);
+  }
+
+  @Override
+  public List<CommentResponse> getCommentsByPostId(Long postId, GetCommentRequest getCommentRequest) {
+    Post post = postPort.findPostByPostId(postId);
+    User user = authPort.getUserAuthOrDefaultVirtual();
+    checkCommentValid(post, user);
+    List<Comment> listComment = commentPostPort.getListCommentByPostId(postId, friendShipPort.getListBlockBoth(getUserAuth().getUserId()), getCommentRequest);
+    return listComment.stream()
+            .filter(comment -> comment.getParentCommentId() == null)
+            .map(rootComment ->
+                    processCommentWithChildren(rootComment, listComment)
+            )
+            .collect(Collectors.toList());
+  }
+
+
+  @Override
+  public List<ActivityInteractionResponse> getListCommentInteractions(GetCommentRequest getCommentRequest) {
+    User user = authPort.getUserAuthOrDefaultVirtual();
+    if (user.getUserId().equals(0L)) {
+      throw new CustomException("Not authorized", HttpStatus.UNAUTHORIZED);
     }
+    List<Comment> listComment = commentPostPort.getListCommentByUserId(user.getUserId(), getCommentRequest);
 
-    @Override
-    public List<ActivityInteractionResponse> getListCommentInteractions(GetCommentRequest getCommentRequest) {
-        User user = authPort.getUserAuthOrDefaultVirtual();
-        if (user.getUserId().equals(0L)) {
-            throw new CustomException("Not authorized", HttpStatus.UNAUTHORIZED);
-        }
-        List<Comment> listComment = commentPostPort.getListCommentByUserId(user.getUserId(), getCommentRequest);
-
-        return listComment.stream().map(
-                comment -> {
-                    Post post = postPort.findPostByPostId(comment.getPostId());
-                    if (post == null) {
-                        return null;
-                    }
-                    if (comment.getParentCommentId() != null){
-                        Comment parentComment = commentPostPort.findCommentById(comment.getParentCommentId());
-                        User userParentComment = authPort.getUserById(parentComment.getUserId());
-                        if (parentComment == null) {
-                            return null;
-                        }
-                        if (friendShipPort.isBlock(user.getUserId(), post.getUserId())
-                                || post.getPostStatus().equals(EPostStatus.PRIVATE)
-                                || (post.getPostStatus().equals(EPostStatus.FRIEND) && !friendShipPort.isFriend(user.getUserId(), post.getUserId()))) {
-                            return ActivityInteractionResponse.builder()
-                                    .owner(post.getUserId().equals(parentComment.getUserId())
-                                            ? UserBasicDto.builder()
-                                                    .userId(userParentComment.getUserId())
-                                                    .firstName(userParentComment.getFirstName())
-                                                    .lastName(userParentComment.getLastName())
-                                                    .build()
-                                            : userMapper.userToUserBasicDto(userParentComment)
-                                            )
-                                    .role("comment")
-                                    .createAt(comment.getCreateAt())
-                                    .build();
-
-                        }
-                        if (friendShipPort.isBlock(user.getUserId(), userParentComment.getUserId())) {
-                            return ActivityInteractionResponse.builder()
-                                    .owner(UserBasicDto.builder()
-                                            .userId(userParentComment.getUserId())
-                                            .firstName(userParentComment.getFirstName())
-                                            .lastName(userParentComment.getLastName())
-                                            .build())
-                                    .roleId(comment.getCommentId())
-                                    .role("comment")
-                                    .createAt(comment.getCreateAt())
-                                    .build();
-                        }
-                        return commentMapper.commentToCommentActivityResponse(comment, userParentComment, post, "comment");
-                    }
-                    User ownerPost = authPort.getUserById(post.getUserId());
-                    if (friendShipPort.isBlock(user.getUserId(), post.getUserId())
-                            || post.getPostStatus().equals(EPostStatus.PRIVATE)
-                            || (post.getPostStatus().equals(EPostStatus.FRIEND) && !friendShipPort.isFriend(user.getUserId(), post.getUserId()))) {
-                        return ActivityInteractionResponse.builder()
-                                .owner(UserBasicDto.builder()
-                                        .userId(ownerPost.getUserId())
-                                        .firstName(ownerPost.getFirstName())
-                                        .lastName(ownerPost.getLastName())
-                                        .build())
-                                .role("post")
-                                .createAt(comment.getCreateAt())
-                                .build();
-                    }
-                    return commentMapper.commentToCommentActivityResponse(comment, ownerPost, post, "post");
+    return listComment.stream().map(
+            comment -> {
+              Post post = postPort.findPostByPostId(comment.getPostId());
+              if (post == null) {
+                return null;
+              }
+              if (comment.getParentCommentId() != null) {
+                Comment parentComment = commentPostPort.findCommentById(comment.getParentCommentId());
+                User userParentComment = authPort.getUserById(parentComment.getUserId());
+                if (parentComment == null) {
+                  return null;
                 }
-        ).filter(Objects::nonNull).collect(Collectors.toList());
-    }
-    private CommentResponse processCommentWithChildren(Comment comment, List<Comment> listComment) {
-        User authComment = authPort.getUserById(comment.getUserId());
-        CommentResponse response = commentMapper.commentToCommentResponse(comment, userMapper.userToUserBasicDto(authComment));
-        if (comment.getCommentId() == null) {
-            throw new CustomException("Comment is not found", HttpStatus.NOT_FOUND);
-        }
+                if (friendShipPort.isBlock(user.getUserId(), post.getUserId())
+                        || post.getPostStatus().equals(EPostStatus.PRIVATE)
+                        || (post.getPostStatus().equals(EPostStatus.FRIEND) && !friendShipPort.isFriend(user.getUserId(), post.getUserId()))) {
+                  return ActivityInteractionResponse.builder()
+                          .owner(post.getUserId().equals(parentComment.getUserId())
+                                  ? UserBasicDto.builder()
+                                  .userId(userParentComment.getUserId())
+                                  .firstName(userParentComment.getFirstName())
+                                  .lastName(userParentComment.getLastName())
+                                  .build()
+                                  : userMapper.userToUserBasicDto(userParentComment)
+                          )
+                          .role("comment")
+                          .createAt(comment.getCreateAt())
+                          .build();
 
-        return response;
-    }
-
-    @Override
-    public CommentResponse getCommentById(Long commentId ){
-        Comment comment = commentPostPort.findCommentById(commentId);
-        if (comment == null) {
-            throw new CustomException("Comment not found", HttpStatus.NOT_FOUND);
-        }
-        Post post = postPort.findPostByPostId(comment.getPostId());
-        checkCommentValid(post, getUserAuth());
-        UserBasicDto userBasicDto = userMapper.userToUserBasicDto(authPort.getUserById(comment.getUserId()));
-
-        return commentMapper.commentToCommentResponse(comment, userBasicDto);
-    }
-
-    @Override
-    public List<CommentResponse> getCommentChildByParentId(Long id, GetCommentRequest getCommentRequest) {
-        Comment commentParent = commentPostPort.findCommentById(id);
-        if (commentParent == null) {
-            throw new CustomException("Comment not found", HttpStatus.NOT_FOUND);
-        }
-        Post post = postPort.findPostByPostId(commentParent.getPostId());
-        User user = authPort.getUserAuthOrDefaultVirtual();
-        checkCommentValid(post, user);
-        if (friendShipPort.isBlock(user.getUserId(), commentParent.getUserId())) {
-            throw new CustomException("Not allow comment", HttpStatus.FORBIDDEN);
-        }
-
-        List<Long> blockIds = friendShipPort.getListBlockBoth(user.getUserId());
-        return commentPostPort.getListCommentByParentId(id, blockIds, getCommentRequest).stream().map(
-                comment -> {
-                    User userAuth = authPort.getUserById(comment.getUserId());
-                    return commentMapper.commentToCommentResponse(comment, userMapper.userToUserBasicDto(userAuth));
                 }
-        ).toList();
-    }
-
-    @Override
-    public MessageResponse deleteComment(Long commentId) {
-        Comment commentEntity = commentPostPort.findCommentById(commentId);
-        Post post = postPort.findPostByPostId(commentEntity.getPostId());
-        checkCommentValid(post, getUserAuth());
-        if (commentEntity == null || !Objects.equals(commentEntity.getUserId(), this.getUserAuth().getUserId())) {
-            throw new CustomException("Comment not found", HttpStatus.NOT_FOUND);
-        }
-        try {
-            Long commentParentId = commentEntity.getParentCommentId();
-            commentPostPort.deleteCommentById(commentId);
-            if (commentParentId != null) {
-                commentPostPort.decreaseCommentCount(commentParentId, 1L);
+                if (friendShipPort.isBlock(user.getUserId(), userParentComment.getUserId())) {
+                  return ActivityInteractionResponse.builder()
+                          .owner(UserBasicDto.builder()
+                                  .userId(userParentComment.getUserId())
+                                  .firstName(userParentComment.getFirstName())
+                                  .lastName(userParentComment.getLastName())
+                                  .build())
+                          .roleId(comment.getCommentId())
+                          .role("comment")
+                          .createAt(comment.getCreateAt())
+                          .build();
+                }
+                return commentMapper.commentToCommentActivityResponse(comment, userParentComment, post, "comment");
+              }
+              User ownerPost = authPort.getUserById(post.getUserId());
+              if (friendShipPort.isBlock(user.getUserId(), post.getUserId())
+                      || post.getPostStatus().equals(EPostStatus.PRIVATE)
+                      || (post.getPostStatus().equals(EPostStatus.FRIEND) && !friendShipPort.isFriend(user.getUserId(), post.getUserId()))) {
+                return ActivityInteractionResponse.builder()
+                        .owner(UserBasicDto.builder()
+                                .userId(ownerPost.getUserId())
+                                .firstName(ownerPost.getFirstName())
+                                .lastName(ownerPost.getLastName())
+                                .build())
+                        .role("post")
+                        .createAt(comment.getCreateAt())
+                        .build();
+              }
+              return commentMapper.commentToCommentActivityResponse(comment, ownerPost, post, "post");
             }
-            postPort.decrementCommentQuantity(commentEntity.getPostId(), commentEntity.getRepliesQuantity() + 1);
-            return new MessageResponse("Comment deleted successfully");
-        } catch (CustomException e) {
-            throw new CustomException("Failed to delete comment", HttpStatus.NOT_FOUND);
-        }
+    ).filter(Objects::nonNull).collect(Collectors.toList());
+  }
+
+  private CommentResponse processCommentWithChildren(Comment comment, List<Comment> listComment) {
+    User authComment = authPort.getUserById(comment.getUserId());
+    CommentResponse response = commentMapper.commentToCommentResponse(comment, userMapper.userToUserBasicDto(authComment));
+    if (comment.getCommentId() == null) {
+      throw new CustomException("Comment is not found", HttpStatus.NOT_FOUND);
     }
 
-    @Override
-    public CommentResponse updateComment(Long commentId, CommentRequest comment) {
-        Post post = postPort.findPostByPostId(comment.getPostId());
-        User user = this.getUserAuth();
-        checkCommentValid(post, user);
+    return response;
+  }
 
-        Comment updatedComment = commentPostPort.findCommentById(commentId);
-        String imageComment = getImageUrlCommentInRedis(comment.getPublicId(), this.getUserAuth());
-        if (imageComment != null) {
-            updatedComment.setImageUrl(imageComment);
-        }
-
-        updatedComment.setContent(comment.getContent());
-        UserBasicDto userBasicDto = userMapper.userToUserBasicDto(user);
-
-        commentPostPort.saveComment(updatedComment);
-        return commentMapper.commentToCommentResponse(updatedComment, userBasicDto);
+  @Override
+  public CommentResponse getCommentById(Long commentId) {
+    Comment comment = commentPostPort.findCommentById(commentId);
+    if (comment == null) {
+      throw new CustomException("Comment not found", HttpStatus.NOT_FOUND);
     }
+    Post post = postPort.findPostByPostId(comment.getPostId());
+    checkCommentValid(post, getUserAuth());
+    UserBasicDto userBasicDto = userMapper.userToUserBasicDto(authPort.getUserById(comment.getUserId()));
+
+    return commentMapper.commentToCommentResponse(comment, userBasicDto);
+  }
+
+  @Override
+  public List<CommentResponse> getCommentChildByParentId(Long id, GetCommentRequest getCommentRequest) {
+    Comment commentParent = commentPostPort.findCommentById(id);
+    if (commentParent == null) {
+      throw new CustomException("Comment not found", HttpStatus.NOT_FOUND);
+    }
+    Post post = postPort.findPostByPostId(commentParent.getPostId());
+    User user = authPort.getUserAuthOrDefaultVirtual();
+    checkCommentValid(post, user);
+    if (friendShipPort.isBlock(user.getUserId(), commentParent.getUserId())) {
+      throw new CustomException("Not allow comment", HttpStatus.FORBIDDEN);
+    }
+
+    List<Long> blockIds = friendShipPort.getListBlockBoth(user.getUserId());
+    return commentPostPort.getListCommentByParentId(id, blockIds, getCommentRequest).stream().map(
+            comment -> {
+              User userAuth = authPort.getUserById(comment.getUserId());
+              return commentMapper.commentToCommentResponse(comment, userMapper.userToUserBasicDto(userAuth));
+            }
+    ).toList();
+  }
+
+  @Override
+  public MessageResponse deleteComment(Long commentId) {
+    Comment commentEntity = commentPostPort.findCommentById(commentId);
+    Post post = postPort.findPostByPostId(commentEntity.getPostId());
+    checkCommentValid(post, getUserAuth());
+    if (commentEntity == null || !Objects.equals(commentEntity.getUserId(), this.getUserAuth().getUserId())) {
+      throw new CustomException("Comment not found", HttpStatus.NOT_FOUND);
+    }
+    try {
+      Long commentParentId = commentEntity.getParentCommentId();
+      commentPostPort.deleteCommentById(commentId);
+      if (commentParentId != null) {
+        commentPostPort.decreaseCommentCount(commentParentId, 1L);
+      }
+      postPort.decrementCommentQuantity(commentEntity.getPostId(), commentEntity.getRepliesQuantity() + 1);
+      return new MessageResponse("Comment deleted successfully");
+    } catch (CustomException e) {
+      throw new CustomException("Failed to delete comment", HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @Override
+  public CommentResponse updateComment(Long commentId, CommentRequest comment) {
+    Post post = postPort.findPostByPostId(comment.getPostId());
+    User user = this.getUserAuth();
+    checkCommentValid(post, user);
+
+    Comment updatedComment = commentPostPort.findCommentById(commentId);
+    String imageComment = getImageUrlCommentInRedis(comment.getPublicId(), this.getUserAuth());
+    if (imageComment != null) {
+      updatedComment.setImageUrl(imageComment);
+    }
+
+    updatedComment.setContent(comment.getContent());
+    UserBasicDto userBasicDto = userMapper.userToUserBasicDto(user);
+
+    commentPostPort.saveComment(updatedComment);
+    return commentMapper.commentToCommentResponse(updatedComment, userBasicDto);
+  }
+
 
   @Override
   public List<InteractionResponse> getCommentsByInteractions(GetCommentRequest getCommentRequest) {
@@ -316,12 +321,14 @@ public class CommentService implements CommentPostInput {
 //                      ).getReactionType())
 //                      .content(content)
 //                      .image(imageUrl)
+
 //                      .createAt(c.getCreateAt())
 //                      .updateAt(null)
 //                      .build();
 //              interactionResponseList.add(interactionResponse);
 //            }
 //    );
+
     return interactionResponseList;
   }
 //
@@ -360,22 +367,22 @@ public class CommentService implements CommentPostInput {
 //  }
 //
 
-    private String getImageUrlCommentInRedis(String publicId, User userSave) {
-        String tail =  ImagePostInput.COMMENT_TAIL + userSave.getUserEmail();
-        publicId += tail;
-        if (redisImageTemplatePort.existsByKey(publicId)) {
-            String value = redisImageTemplatePort.findByKey(publicId);
-            if (value.equals(ImagePostInput.VALUE_LOADING)) {
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-            imagePostPort.deleteAllImageRedisByTail(tail);
-            return value.equals(ImagePostInput.VALUE_LOADING) ? null : value;
+  private String getImageUrlCommentInRedis(String publicId, User userSave) {
+    String tail = ImagePostInput.COMMENT_TAIL + userSave.getUserEmail();
+    publicId += tail;
+    if (redisImageTemplatePort.existsByKey(publicId)) {
+      String value = redisImageTemplatePort.findByKey(publicId);
+      if (value.equals(ImagePostInput.VALUE_LOADING)) {
+        try {
+          Thread.sleep(5000);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
         }
-        return null;
+      }
+      imagePostPort.deleteAllImageRedisByTail(tail);
+      return value.equals(ImagePostInput.VALUE_LOADING) ? null : value;
     }
+    return null;
+  }
 
 }

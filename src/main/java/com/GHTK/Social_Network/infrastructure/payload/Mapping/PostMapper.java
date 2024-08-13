@@ -1,9 +1,9 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
-import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.domain.model.post.EPostStatus;
 import com.GHTK.Social_Network.domain.model.post.ImagePost;
 import com.GHTK.Social_Network.domain.model.post.Post;
+import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.post.PostBasicDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
@@ -72,5 +72,4 @@ public interface PostMapper {
 
   @Mapping(source = "postId", target = "postId")
   PostBasicDto postToPostBasicDto(Post post);
-
 }

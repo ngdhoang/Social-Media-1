@@ -114,16 +114,16 @@ public class ProfileService implements ProfilePortInput {
     Long userId = currentUser.getUserId();
 
     String url = (String) cloudPort.uploadPictureByFile(file, ImageHandlerPortInput.MAX_SIZE_AVATAR).get("url");
-    String avatarOld = profilePort.saveAvatar(url, currentUser.getUserId());
+    String avatarOld = currentUser.getAvatar();
     if (avatarOld != null) {
-      Profile profile = profilePort.takeProfileById(userId);
-      UserDto userDto = userMapper.userAndProfileToUserDto(currentUser, profile);
-      userDto.setAvatar(url);
-      redisProfilePort.createOrUpdate(String.valueOf(userDto.getUserId()), userDto);
       cloudPort.deletePictureByUrl(avatarOld);
-      return toResponse(userId, userId, userDto);
     }
-    throw new CustomException("Error updating avatar", HttpStatus.INTERNAL_SERVER_ERROR);
+
+    Profile profile = profilePort.takeProfileById(userId);
+    UserDto userDto = userMapper.userAndProfileToUserDto(currentUser, profile);
+    userDto.setAvatar(url);
+    redisProfilePort.createOrUpdate(String.valueOf(userDto.getUserId()), userDto);
+    return toResponse(userId, userId, userDto);
   }
 
   @Override
@@ -132,17 +132,16 @@ public class ProfileService implements ProfilePortInput {
     Long userId = currentUser.getUserId();
 
     String url = (String) cloudPort.uploadPictureByFile(background, ImageHandlerPortInput.MAX_SIZE_AVATAR).get("url");
-    String backgroundOld = profilePort.saveBackground(url, currentUser.getUserId());
+    String backgroundOld = currentUser.getBackground();
     if (backgroundOld != null) {
-      Profile profile = profilePort.takeProfileById(userId);
-      UserDto userDto = userMapper.userAndProfileToUserDto(currentUser, profile);
-      userDto.setBackground(url);
-      redisProfilePort.createOrUpdate(String.valueOf(userDto.getUserId()), userDto);
       cloudPort.deletePictureByUrl(backgroundOld);
-      return toResponse(userId, userId, userDto);
-    } else {
-      throw new CustomException("Error updating avatar", HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    Profile profile = profilePort.takeProfileById(userId);
+    UserDto userDto = userMapper.userAndProfileToUserDto(currentUser, profile);
+    userDto.setBackground(url);
+    redisProfilePort.createOrUpdate(String.valueOf(userDto.getUserId()), userDto);
+    return toResponse(userId, userId, userDto);
   }
 
   private UserDto toResponse(Long currentUserId, Long profileId, UserDto userDto) {

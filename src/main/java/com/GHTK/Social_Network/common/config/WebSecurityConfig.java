@@ -19,6 +19,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebSecurity
@@ -26,9 +28,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class WebSecurityConfig {
   private final AuthEntryPointJwt unAuthorizationHandler;
-
   private final UserDetailsServiceImpl userDetailsService;
-
   private final AuthJwtFilter authJwtFilter;
 
   @Bean
@@ -57,24 +57,15 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(request -> request
                     .requestMatchers("/api/v1/auth/**", "/api/v1/search").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/profiles/{id}").permitAll()
-//                    .requestMatchers(HttpMethod.GET, "/api/v1/posts/{postId}/comments",
-//                            "/api/v1/posts/comments/{commentId}",
-//                            "/api/v1/posts/comments/{commentId}/replies",
-//                            "/api/v1/post")
-//                    .permitAll()
-//                    .requestMatchers(HttpMethod.GET, "/api/v1/post/{p}/reaction").permitAll()
-                    .requestMatchers(HttpMethod.GET,  "/api/v1/posts/{postId}").permitAll()
-//                    .requestMatchers(HttpMethod.GET, "/api/v1/post/{id}/comment").permitAll()
-//                    .requestMatchers(HttpMethod.GET, "/api/v1/post/{id}/comment").permitAll()
-//                    .requestMatchers(HttpMethod.GET, "api/v1/reaction_post/{p}").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/v1/posts/user/{userId}").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/v1/posts/{postId}/comments").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/v1/posts/comments/{commentId}").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/v1/posts/comments/{commentId}/replies").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/v1/reaction/post/{p}").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/v1/reaction/comment/{p}").permitAll()
-
-//                    .requestMatchers("/api/v1/posts//images").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/posts/{postId}").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/posts/user/{userId}").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/posts/{postId}/comments").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/posts/comments/{commentId}").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/posts/comments/{commentId}/replies").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/reaction/post/{p}").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/reaction/comment/{p}").permitAll()
+                    .requestMatchers("/ws").permitAll()
+                    .requestMatchers("/**").permitAll()
                     .anyRequest().authenticated()
             )
             .authenticationProvider(daoAuthenticationProvider())
@@ -85,5 +76,16 @@ public class WebSecurityConfig {
 //														.failureUrl("/authentication?error=true")
 //						);
     return http.build();
+  }
+
+  @Configuration
+  public class CorsConfig implements WebMvcConfigurer {
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+      registry.addMapping("/api/**")
+              .allowedOrigins("http://localhost:5500/", "http://localhost:3000/")
+              .allowedMethods("GET", "POST", "PUT", "DELETE")
+              .allowedHeaders("*");
+    }
   }
 }

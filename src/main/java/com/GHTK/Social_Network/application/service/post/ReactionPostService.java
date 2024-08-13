@@ -36,196 +36,196 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class ReactionPostService implements ReactionPostInput {
-    private final ReactionPostPort reactionPostPort;
-    private final PostPort postPort;
-    private final AuthPort authPort;
-    private final FriendShipPort friendShipPort;
-    private final CommentPostPort commentPostPort;
+  private final ReactionPostPort reactionPostPort;
+  private final PostPort postPort;
+  private final AuthPort authPort;
+  private final FriendShipPort friendShipPort;
+  private final CommentPostPort commentPostPort;
 
-    private final ReactionPostMapper reactionPostMapper;
-    private final ReactionInfoMapper reactionInfoMapper;
-    private final ReactionPostResponseMapper reactionPostResponseMapper;
-    private final CommentMapper commentMapper;
-    private final UserMapper userMapper;
+  private final ReactionPostMapper reactionPostMapper;
+  private final ReactionInfoMapper reactionInfoMapper;
+  private final ReactionPostResponseMapper reactionPostResponseMapper;
+  private final CommentMapper commentMapper;
+  private final UserMapper userMapper;
 
-    private void validatePostAccess(Post post, User user) {
-        if (post == null) {
-            throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
-        }
-
-        Long postOwnerId = post.getUserId();
-        User postOwner = authPort.getUserById(postOwnerId);
-        Long currentUserId = user.getUserId();
-
-        if (currentUserId.equals(postOwnerId)) {
-            return;
-        }
-
-        if (!postOwner.getIsProfilePublic()
-                || post.getPostStatus() == EPostStatus.PRIVATE
-                || (post.getPostStatus() == EPostStatus.FRIEND && (currentUserId.equals(0) || !friendShipPort.isFriend(postOwnerId, currentUserId)))
-                || friendShipPort.isBlock(postOwnerId, currentUserId)) {
-            throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
-        }
+  private void validatePostAccess(Post post, User user) {
+    if (post == null) {
+      throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
     }
 
-    @Override
-    public ReactionResponse handleReactionPost(Long postId, ReactionRequest reactionPostRequest) {
-        User user = authPort.getUserAuthOrDefaultVirtual();
+    Long postOwnerId = post.getUserId();
+    User postOwner = authPort.getUserById(postOwnerId);
+    Long currentUserId = user.getUserId();
 
-        Post post = postPort.findPostByPostId(postId);
-        validatePostAccess(post, user);
+    if (currentUserId.equals(postOwnerId)) {
+      return;
+    }
 
-        EReactionType newReactionType;
-        try {
-            newReactionType = reactionPostRequest.getReactionType() == null ? null : EReactionType.valueOf(reactionPostRequest.getReactionType());
-        } catch (IllegalArgumentException e) {
-            throw new CustomException("Invalid reaction type", HttpStatus.BAD_REQUEST);
-        }
-        ReactionPost reactionPost;
+    if (!postOwner.getIsProfilePublic()
+            || post.getPostStatus() == EPostStatus.PRIVATE
+            || (post.getPostStatus() == EPostStatus.FRIEND && (currentUserId.equals(0) || !friendShipPort.isFriend(postOwnerId, currentUserId)))
+            || friendShipPort.isBlock(postOwnerId, currentUserId)) {
+      throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
+    }
+  }
 
-        reactionPost = reactionPostPort.findByPostIdAndUserID(postId, user.getUserId());
+  @Override
+  public ReactionResponse handleReactionPost(Long postId, ReactionRequest reactionPostRequest) {
+    User user = authPort.getUserAuthOrDefaultVirtual();
 
-        if (reactionPost == null) {
-            ReactionPost newReactionPost = ReactionPost.builder()
-                    .postId(postId)
-                    .userId(user.getUserId())
-                    .reactionType(newReactionType)
-                    .build();
-            ReactionPost savedReactionPost = reactionPostPort.saveReaction(newReactionPost);
+    Post post = postPort.findPostByPostId(postId);
+    validatePostAccess(post, user);
 
-            postPort.incrementReactionQuantity(postId);
-            return reactionPostMapper.postToResponse(savedReactionPost);
-        } else {
-            if (reactionPost.getReactionType().equals(newReactionType) || newReactionType == null) {
-                reactionPostPort.deleteReaction(reactionPost);
-                postPort.decrementReactionQuantity(postId);
+    EReactionType newReactionType;
+    try {
+      newReactionType = reactionPostRequest.getReactionType() == null ? null : EReactionType.valueOf(reactionPostRequest.getReactionType());
+    } catch (IllegalArgumentException e) {
+      throw new CustomException("Invalid reaction type", HttpStatus.BAD_REQUEST);
+    }
+    ReactionPost reactionPost;
 
-                return null;
-            } else {
-                reactionPost.setReactionType(newReactionType);
-                return reactionPostMapper.postToResponse(reactionPostPort.saveReaction(reactionPost));
+    reactionPost = reactionPostPort.findByPostIdAndUserID(postId, user.getUserId());
+
+    if (reactionPost == null) {
+      ReactionPost newReactionPost = ReactionPost.builder()
+              .postId(postId)
+              .userId(user.getUserId())
+              .reactionType(newReactionType)
+              .build();
+      ReactionPost savedReactionPost = reactionPostPort.saveReaction(newReactionPost);
+
+      postPort.incrementReactionQuantity(postId);
+      return reactionPostMapper.postToResponse(savedReactionPost);
+    } else {
+      if (reactionPost.getReactionType().equals(newReactionType) || newReactionType == null) {
+        reactionPostPort.deleteReaction(reactionPost);
+        postPort.decrementReactionQuantity(postId);
+
+        return null;
+      } else {
+        reactionPost.setReactionType(newReactionType);
+        return reactionPostMapper.postToResponse(reactionPostPort.saveReaction(reactionPost));
+      }
+    }
+  }
+
+  @Override
+  public List<ReactionResponse> getAllReactionInPost(Long postId) {
+    return reactionPostPort.findByPostId(postId).stream().map(
+            reactionPostMapper::postToResponse
+    ).toList();
+  }
+
+  @Override
+  public ReactionPostResponse getListReactionInPost(Long postId, GetReactionPostRequest getReactionPostRequest) {
+    Post post = postPort.findPostByPostId(postId);
+    User user = authPort.getUserAuthOrDefaultVirtual();
+    validatePostAccess(post, user);
+
+    List<Map<EReactionType, Set<ReactionPost>>> reactionGroup = reactionPostPort.getReactionGroupByPostId(postId);
+    List<Long> blockIds = friendShipPort.getListBlockBoth(user.getUserId());
+
+    List<ReactionPost> reactionPosts = reactionPostPort.getListReactionByPostIdAndListBlock(postId, getReactionPostRequest, blockIds);
+    List<ReactionUserDto> reactionUserDtos = reactionPosts.stream().map(
+            reactionPost -> {
+              User userReact = authPort.getUserById(reactionPost.getUserId());
+              EReactionType reactionType = reactionPost.getReactionType();
+              return reactionInfoMapper.toReactionInfoResponse(userReact, reactionType);
             }
-        }
-    }
+    ).toList();
 
-    @Override
-    public List<ReactionResponse> getAllReactionInPost(Long postId) {
-        return reactionPostPort.findByPostId(postId).stream().map(
-                reactionPostMapper::postToResponse
-        ).toList();
-    }
+    return reactionPostResponseMapper.toReactionPostResponse(postId, reactionUserDtos,
+            reactionGroup.stream().map(
+                    entry -> ReactionCountDto.builder()
+                            .type(entry.keySet().stream().findFirst().orElse(null))
+                            .quantity((long) entry.values().stream().findFirst().orElse(null).size())
+                            .build()
+            ).toList()
+    );
+  }
 
-    @Override
-    public ReactionPostResponse getListReactionInPost(Long postId, GetReactionPostRequest getReactionPostRequest) {
-        Post post = postPort.findPostByPostId(postId);
-        User user = authPort.getUserAuthOrDefaultVirtual();
-        validatePostAccess(post, user);
-
-        List<Map<EReactionType, Set<ReactionPost>>> reactionGroup = reactionPostPort.getReactionGroupByPostId(postId);
-        List<Long> blockIds = friendShipPort.getListBlockBoth(user.getUserId());
-
-        List<ReactionPost> reactionPosts = reactionPostPort.getListReactionByPostIdAndListBlock(postId, getReactionPostRequest, blockIds);
-        List<ReactionUserDto> reactionUserDtos = reactionPosts.stream().map(
-                reactionPost -> {
-                    User userReact = authPort.getUserById(reactionPost.getUserId());
-                    EReactionType reactionType = reactionPost.getReactionType();
-                    return reactionInfoMapper.toReactionInfoResponse(userReact, reactionType);
+  @Override
+  public List<ActivityInteractionResponse> getListReactionInteractions(GetPostRequest getPostRequest) {
+    User user = authPort.getUserAuthOrDefaultVirtual();
+    List<Object[]> reactionInteractions = reactionPostPort.getListReactionInteractions(user.getUserId(), getPostRequest);
+    if (reactionInteractions != null) {
+      return reactionInteractions.stream().map(
+              reactionInteraction -> {
+                Long roleId = (Long) reactionInteraction[0];
+                EReactionType reactionType = EReactionType.valueOf((String) reactionInteraction[1]);
+                Long targetId = (Long) reactionInteraction[2];
+                Date createAtDate = (Date) reactionInteraction[3];
+                LocalDate createAt = createAtDate.toLocalDate();
+                String role = (String) reactionInteraction[4];
+                if (role.equals("post")) {
+                  Post post = postPort.findPostByPostId(targetId);
+                  User owner = authPort.getUserById(post.getUserId());
+                  if (friendShipPort.isBlock(user.getUserId(), post.getUserId())
+                          || post.getPostStatus().equals(EPostStatus.PRIVATE)
+                          || (post.getPostStatus().equals(EPostStatus.FRIEND) && !friendShipPort.isFriend(user.getUserId(), post.getUserId()))) {
+                    return ActivityInteractionResponse.builder()
+                            .owner(UserBasicDto.builder()
+                                    .userId(owner.getUserId())
+                                    .firstName(owner.getFirstName())
+                                    .lastName(owner.getLastName())
+                                    .build())
+                            .role(role)
+                            .createAt(createAt)
+                            .build();
+                  }
+                  if (friendShipPort.isBlock(user.getUserId(), owner.getUserId())) {
+                    return ActivityInteractionResponse.builder()
+                            .owner(UserBasicDto.builder()
+                                    .userId(owner.getUserId())
+                                    .firstName(owner.getFirstName())
+                                    .lastName(owner.getLastName())
+                                    .build())
+                            .roleId(roleId)
+                            .role(role)
+                            .createAt(createAt)
+                            .build();
+                  }
+                  return reactionPostMapper.reactionToReactionActivityResponse(roleId, reactionType, null, createAt, null, owner, post, role);
                 }
-        ).toList();
+                Comment comment = commentPostPort.findCommentById(targetId);
+                if (comment != null) {
+                  User owner = authPort.getUserById(comment.getUserId());
+                  Post post = postPort.findPostByPostId(comment.getPostId());
+                  if (friendShipPort.isBlock(user.getUserId(), post.getUserId())
+                          || post.getPostStatus().equals(EPostStatus.PRIVATE)
+                          || (post.getPostStatus().equals(EPostStatus.FRIEND) && !friendShipPort.isFriend(user.getUserId(), post.getUserId()))) {
+                    return ActivityInteractionResponse.builder()
+                            .owner(post.getUserId().equals(owner.getUserId())
+                                    ? UserBasicDto.builder()
+                                    .userId(owner.getUserId())
+                                    .firstName(owner.getFirstName())
+                                    .lastName(owner.getLastName())
+                                    .build()
+                                    : userMapper.userToUserBasicDto(owner))
+                            .role(role)
+                            .createAt(createAt)
+                            .build();
+                  }
+                  if (friendShipPort.isBlock(user.getUserId(), owner.getUserId())) {
+                    return ActivityInteractionResponse.builder()
+                            .owner(UserBasicDto.builder()
+                                    .userId(owner.getUserId())
+                                    .firstName(owner.getFirstName())
+                                    .lastName(owner.getLastName())
+                                    .build())
+                            .roleId(roleId)
+                            .role(role)
+                            .createAt(createAt)
+                            .build();
+                  }
+                  return reactionPostMapper.reactionToReactionActivityResponse(roleId, reactionType, comment.getImageUrl(), createAt, comment.getParentCommentId(), owner, post, role);
 
-        return reactionPostResponseMapper.toReactionPostResponse(postId, reactionUserDtos,
-                reactionGroup.stream().map(
-                        entry -> ReactionCountDto.builder()
-                                .type(entry.keySet().stream().findFirst().orElse(null))
-                                .quantity((long) entry.values().stream().findFirst().orElse(null).size())
-                                .build()
-                ).toList()
-        );
+                }
+                return null;
+
+              }
+      ).toList();
     }
-
-    @Override
-    public List<ActivityInteractionResponse> getListReactionInteractions(GetPostRequest getPostRequest) {
-        User user = authPort.getUserAuthOrDefaultVirtual();
-        List<Object[]> reactionInteractions = reactionPostPort.getListReactionInteractions(user.getUserId(), getPostRequest);
-        if (reactionInteractions != null) {
-            return reactionInteractions.stream().map(
-                    reactionInteraction -> {
-                        Long roleId = (Long) reactionInteraction[0];
-                        EReactionType reactionType = EReactionType.valueOf((String) reactionInteraction[1]);
-                        Long targetId = (Long) reactionInteraction[2];
-                        Date createAtDate = (Date) reactionInteraction[3];
-                        LocalDate createAt = createAtDate.toLocalDate();
-                        String role = (String) reactionInteraction[4];
-                        if (role.equals("post")) {
-                            Post post = postPort.findPostByPostId(targetId);
-                            User owner = authPort.getUserById(post.getUserId());
-                            if (friendShipPort.isBlock(user.getUserId(), post.getUserId())
-                                    || post.getPostStatus().equals(EPostStatus.PRIVATE)
-                                    || (post.getPostStatus().equals(EPostStatus.FRIEND) && !friendShipPort.isFriend(user.getUserId(), post.getUserId()))) {
-                                return ActivityInteractionResponse.builder()
-                                        .owner(UserBasicDto.builder()
-                                                .userId(owner.getUserId())
-                                                .firstName(owner.getFirstName())
-                                                .lastName(owner.getLastName())
-                                                .build())
-                                        .role(role)
-                                        .createAt(createAt)
-                                        .build();
-                            }
-                            if (friendShipPort.isBlock(user.getUserId(), owner.getUserId())) {
-                                return ActivityInteractionResponse.builder()
-                                        .owner(UserBasicDto.builder()
-                                                .userId(owner.getUserId())
-                                                .firstName(owner.getFirstName())
-                                                .lastName(owner.getLastName())
-                                                .build())
-                                        .roleId(roleId)
-                                        .role(role)
-                                        .createAt(createAt)
-                                        .build();
-                            }
-                            return reactionPostMapper.reactionToReactionActivityResponse(roleId, reactionType, null, createAt, null, owner, post, role);
-                        }
-                        Comment comment = commentPostPort.findCommentById(targetId);
-                        if (comment != null) {
-                            User owner = authPort.getUserById(comment.getUserId());
-                            Post post = postPort.findPostByPostId(comment.getPostId());
-                            if (friendShipPort.isBlock(user.getUserId(), post.getUserId())
-                                    || post.getPostStatus().equals(EPostStatus.PRIVATE)
-                                    || (post.getPostStatus().equals(EPostStatus.FRIEND) && !friendShipPort.isFriend(user.getUserId(), post.getUserId()))) {
-                                return ActivityInteractionResponse.builder()
-                                        .owner(post.getUserId().equals(owner.getUserId())
-                                                ? UserBasicDto.builder()
-                                                .userId(owner.getUserId())
-                                                .firstName(owner.getFirstName())
-                                                .lastName(owner.getLastName())
-                                                .build()
-                                                : userMapper.userToUserBasicDto(owner))
-                                        .role(role)
-                                        .createAt(createAt)
-                                        .build();
-                            }
-                            if (friendShipPort.isBlock(user.getUserId(), owner.getUserId())) {
-                                return ActivityInteractionResponse.builder()
-                                        .owner(UserBasicDto.builder()
-                                                .userId(owner.getUserId())
-                                                .firstName(owner.getFirstName())
-                                                .lastName(owner.getLastName())
-                                                .build())
-                                        .roleId(roleId)
-                                        .role(role)
-                                        .createAt(createAt)
-                                        .build();
-                            }
-                            return reactionPostMapper.reactionToReactionActivityResponse(roleId, reactionType, comment.getImageUrl(), createAt, comment.getParentCommentId(), owner, post, role);
-
-                        }
-                        return null;
-
-                    }
-            ).toList();
-        }
-        return List.of();
-    }
+    return List.of();
+  }
 }

@@ -1,23 +1,17 @@
 package com.GHTK.Social_Network.application.port.output.auth;
 
-import com.GHTK.Social_Network.domain.model.user.Token;
+import com.GHTK.Social_Network.domain.collection.UserCollectionDomain;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsImpl;
+import com.GHTK.Social_Network.infrastructure.payload.dto.AccessTokenDto;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
-
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public interface AuthPort {
-  List<Token> findAllValidTokenByUser(Long id);
-
-  List<Token> findAllValidTokenByUser(UserDetailsImpl id);
-
-  Token saveToken(Token tokenEntity);
-
-  List<Token> saveAllToken(List<Token> tokenEntities);
-
   Optional<User> findByEmail(String input);
 
   User saveUser(User userEntity);
@@ -26,7 +20,7 @@ public interface AuthPort {
 
   void changePassword(String newPassword, Long id);
 
-  Token findByToken(String jwt);
+  AccessTokenDto findByToken(String jwt, String email);
 
   void deleteUserByEmail(String email);
 
@@ -38,5 +32,17 @@ public interface AuthPort {
 
   UserDetailsImpl getUserDetails(User user);
 
-  Pair<UserDetailsImpl, String> refreshToken(String refreshToken);
+  Pair<UserDetailsImpl, String> refreshToken(String refreshToken, String fingerprinting);
+
+  Set<Map<String, AccessTokenDto>> findAllValidTokenByUser(String userEmail);
+
+  Set<Map<String, AccessTokenDto>>  findAllValidTokenByUser(UserDetailsImpl id);
+
+  void saveAccessTokenInRedis(String token, AccessTokenDto accessTokenDto);
+
+  void saveAllAccessTokenInRedis(String userEmail, Set<Map<String, AccessTokenDto>> tokenEntities);
+
+  void saveAllAccessTokenInRedis(UserDetailsImpl userDetails, Set<Map<String, AccessTokenDto>> tokenEntities);
+
+  UserCollectionDomain getUserCollectionById(Long userId);
 }

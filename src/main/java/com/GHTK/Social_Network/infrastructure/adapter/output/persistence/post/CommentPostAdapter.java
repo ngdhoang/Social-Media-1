@@ -101,7 +101,7 @@ public class CommentPostAdapter implements CommentPostPort {
 
   @Override
   public void decreaseCommentCount(Long commentId, Long quantity) {
-        commentRepository.decreaseCommentCount(commentId, quantity);
+    commentRepository.decreaseCommentCount(commentId, quantity);
   }
 
 

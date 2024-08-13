@@ -22,8 +22,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -71,6 +74,32 @@ public class FriendShipService implements FriendShipPortInput {
     Long count = friendShipPort.countByUserReceiveIdAndFriendshipStatus(getFriendShipRequest);
     return new FriendShipResponse(friendShipUsersDto, count);
   }
+
+  @Override
+  public List<FriendShipUserDto> getListSuggestFriend() {
+    User user = getUserAuth();
+    List<Long> friendShips = friendShipPort.getListSuggestFriend(user.getUserId());
+    return getProfileDtos(friendShips, user);
+  }
+
+  private List<FriendShipUserDto> getProfileDtos(List<Long> friendShips, User user) {
+      Map<Long, User> profileUsersMap = friendShips.stream()
+              .map(profilePort::takeUserById)
+              .filter(Optional::isPresent)
+              .map(Optional::get)
+              .collect(Collectors.toMap(User::getUserId, Function.identity()));
+
+      return friendShips.stream()
+              .map(friendShipId -> {
+                User profileUser = profileUsersMap.get(friendShipId);
+                FriendShip friendship = friendShipPort.getFriendShip(user.getUserId(), friendShipId);
+                EFriendshipStatus status = friendship != null ? friendship.getFriendshipStatus() : null;
+                long mutualFriends = friendShipPort.getMutualFriendNeo(user.getUserId(), friendShipId);
+                return friendShipMapper.toFriendShipUserDto(profileUser, status, mutualFriends);
+              })
+              .toList();
+  }
+
 
   private List<FriendShipUserDto> getProfileDtos(User user, List<FriendShip> friendShips) {
     List<User> profileUsers = friendShips.stream()

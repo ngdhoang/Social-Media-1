@@ -20,8 +20,8 @@ public interface TagUserRepository extends JpaRepository<TagUserEntity, Long> {
           """)
   List<TagUserEntity> getListByPostId(Long postId, List<Long> blockIds);
 
-    @Query("""
-            select t.userEntity.userId from TagUserEntity t where t.postEntity.postId = ?1 and t.userEntity.userId not in ?2
-            """)
+  @Query("""
+          select t.userEntity.userId from TagUserEntity t where t.postEntity.postId = ?1 and t.userEntity.userId not in ?2
+          """)
   List<Long> getListUserIdByPostId(Long postId, List<Long> blockIds);
 }

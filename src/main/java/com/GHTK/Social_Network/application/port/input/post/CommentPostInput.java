@@ -16,9 +16,9 @@ public interface CommentPostInput {
 
   List<CommentResponse> getCommentsByPostId(Long postId, GetCommentRequest getCommentRequest);
 
-    List<ActivityInteractionResponse> getListCommentInteractions(GetCommentRequest getCommentRequest);
+  List<ActivityInteractionResponse> getListCommentInteractions(GetCommentRequest getCommentRequest);
 
-    CommentResponse getCommentById(Long commentId);
+  CommentResponse getCommentById(Long commentId);
 
   List<CommentResponse> getCommentChildByParentId(Long id, GetCommentRequest getCommentRequest);
 
@@ -26,7 +26,7 @@ public interface CommentPostInput {
 
   CommentResponse updateComment(Long commentId, CommentRequest comment);
 
-    List<InteractionResponse> getCommentsByInteractions(GetCommentRequest getCommentRequest);
+  List<InteractionResponse> getCommentsByInteractions(GetCommentRequest getCommentRequest);
 
 //  List<InteractionResponse> getCommentsByInteractions();
 }

@@ -6,6 +6,7 @@ import com.GHTK.Social_Network.domain.model.user.EGender;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.ProfileEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.EGenderEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.UserNode;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -24,6 +25,16 @@ public interface UserMapperETD {
 
   @Mapping(source = "gender", target = "gender", qualifiedByName = "mapGenderToEntity")
   ProfileEntity toEntity(Profile profile);
+
+  @Mapping(source = "userId", target = "userId")
+  UserNode userNodeToEntity(UserEntity user);
+
+  @Mapping(source = "userId", target = "userId")
+  @Mapping(source = "userEmail", target = "email")
+  UserNode userDomainToNode(User user);
+
+  @Mapping(source = "userId", target = "userId")
+  User userNodeToDomain(UserNode userNode);
 
   @Named("mapGenderToDomain")
   @ValueMappings({

@@ -20,7 +20,7 @@ public class UpdateProfileRequest {
 
     private LocalDate dob;
 
-    private String homeTown;
+    private Integer homeTown;
 
     private String schoolName;
 

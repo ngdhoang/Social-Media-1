@@ -26,6 +26,11 @@ public class FriendShipController {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, friendShipService.getListFriend(getFriendShipRequest));
   }
 
+  @GetMapping("/suggest")
+  public ResponseEntity<Object> getListSuggestFriend() {
+        return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, friendShipService.getListSuggestFriend());
+    }
+
   @PostMapping("")
   public ResponseEntity<Object> createRequestFriend(@RequestBody @Valid SetRequestFriendRequest setRequestFriendRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, friendShipService.createRequestFriend(setRequestFriendRequest));
