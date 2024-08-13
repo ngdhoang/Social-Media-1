@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.payload.responses.post;
 
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
-import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import lombok.Data;
 
 import java.util.Date;
@@ -13,11 +13,17 @@ public class PostResponse {
 
   private String content;
 
-  private Date createdAt;
+  private Date createAt;
 
   private Date updateAt;
 
+  private String status;
+
+  private List<UserBasicDto> tagUsers;
+
   private List<ImageDto> imagePosts;
 
-  private List<ProfileDto> tagUsers;
+  private Long reactionsQuantity;
+
+  private Long commentQuantity;
 }

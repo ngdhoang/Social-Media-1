@@ -1,40 +1,42 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
-import com.GHTK.Social_Network.domain.entity.post.comment.Comment;
+import com.GHTK.Social_Network.domain.model.post.Post;
+import com.GHTK.Social_Network.domain.model.post.comment.Comment;
+import com.GHTK.Social_Network.domain.model.user.User;
+import com.GHTK.Social_Network.infrastructure.payload.dto.post.CommentBasicDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
+import com.GHTK.Social_Network.infrastructure.payload.responses.ActivityInteractionResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.CommentResponse;
 import org.mapstruct.*;
-import org.mapstruct.factory.Mappers;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring")
 public interface CommentMapper {
-  CommentMapper INSTANCE = Mappers.getMapper(CommentMapper.class);
+  @Mapping(target = "user", source = "userBasicDto")
+  CommentResponse commentToCommentResponse(Comment comment, UserBasicDto userBasicDto);
 
-  @Mapping(source = "user.userId", target = "userId")
-  @Mapping(source = "post.postId", target = "postId")
-  @Mapping(source = "parentComment.commentId", target = "parentCommentId")
-  @Mapping(target = "childComments", expression = "java(mapChildComments(comment.getChildComments()))")
-  @Mapping(target = "image", expression = "java(getFirstImageUrl(comment))")
-  CommentResponse commentToCommentResponse(Comment comment);
+  Comment commentResponseToComment(CommentResponse commentResponse);
 
-  List<CommentResponse> mapChildComments(List<Comment> childComments);
+  @Mapping(target = "user", ignore = true)
+  @Mapping(target = "repliesQuantity", expression = "java(Long.valueOf(childComments.size()))")
+  CommentResponse commentToCommentResponse(Comment commentParent, List<Comment> childComments);
 
-  default String getFirstImageUrl(Comment comment) {
-    return Optional.ofNullable(comment.getImageComments())
-            .orElse(Collections.emptyList())
-            .stream()
-            .findFirst()
-            .map(imageComment -> imageComment.getImageUrl())
-            .orElse(null);
-  }
+  List<CommentResponse> commentListToCommentResponseList(List<Comment> comments);
 
-  @AfterMapping
-  default void setAdditionalFields(Comment comment, @MappingTarget CommentResponse commentResponse) {
-    if (comment.getImageComments() != null && !comment.getImageComments().isEmpty()) {
-      commentResponse.setImage(comment.getImageComments().get(0).getImageUrl());
-    }
-  }
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  void updateCommentFromCommentResponse(CommentResponse commentResponse, @MappingTarget Comment comment);
+
+  @Mapping(target = "owner", source = "user")
+  @Mapping(target = "roleId", source = "comment.commentId")
+  @Mapping(target = "post", source = "post")
+  @Mapping(target = "role", source = "role")
+  @Mapping(target = "createAt", source = "comment.createAt")
+  @Mapping(target = "content", source = "comment.content")
+  @Mapping(target = "parentCommentId", source = "comment.parentCommentId")
+  @Mapping(target = "imageUrl", source = "comment.imageUrl")
+  ActivityInteractionResponse commentToCommentActivityResponse(Comment comment, User user, Post post, String role);
+
+  @Mapping(target = "commentId", source = "commentId")
+  CommentBasicDto commentToCommentBasicDto(Comment comment);
 }

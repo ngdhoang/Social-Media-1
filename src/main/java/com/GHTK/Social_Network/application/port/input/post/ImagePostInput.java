@@ -1,27 +1,20 @@
 package com.GHTK.Social_Network.application.port.input.post;
 
-import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
+import com.GHTK.Social_Network.domain.model.post.ImagePost;
 import com.GHTK.Social_Network.infrastructure.payload.dto.post.ImagePostDto;
-import com.GHTK.Social_Network.infrastructure.payload.dto.post.UpdateImagePostDto;
-import com.GHTK.Social_Network.infrastructure.payload.requests.post.CreateImageRequest;
-import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
-import com.GHTK.Social_Network.infrastructure.payload.responses.post.ImageResponse;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 public interface ImagePostInput {
-  ImagePostDto createImage(CreateImageRequest request) ;
+  String POST_TAIL = "_POST_";
+  String COMMENT_TAIL = "_COMMENT_";
+  String VALUE_LOADING = "_LOADING_";
+  int MAX_LENGTH_GENERATE = 8;
 
-  ImagePostDto updateImage(UpdateImagePostDto imagePostDto);
-
-  MessageResponse deleteImage(Long id);
+  ImagePostDto createImage(MultipartFile image, String tail);
 
   @Async
-  MessageResponse deleteImageInRedis(String public_id);
-
-  ImageResponse getImageById(Long id);
-
-  List<ImageDto> getImageByPostId(Long id);
+  void deleteImagePost(List<ImagePost> imagePost);
 }

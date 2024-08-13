@@ -2,52 +2,66 @@ package com.GHTK.Social_Network.infrastructure.adapter.input;
 
 import com.GHTK.Social_Network.application.port.input.post.CommentPostInput;
 import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
+import com.GHTK.Social_Network.infrastructure.payload.requests.GetCommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.CommentRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.post.CreateImageRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/post")
+@RequestMapping("/api/v1/posts")
 @RequiredArgsConstructor
 public class CommentController {
   private final CommentPostInput commentPostInput;
-
   private final ImagePostInput imagePostInput;
 
-  @PostMapping("/comment")
-  public ResponseEntity<Object> postComment(@RequestBody @Valid CommentRequest commentRequest) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentSrc(commentRequest));
+  @PostMapping("/comments")
+  public ResponseEntity<Object> createRootComment(@RequestBody @Valid CommentRequest commentRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentRoot(commentRequest));
   }
 
-  @PostMapping("/comment/{u}")
-  public ResponseEntity<Object> postCommentChild(@PathVariable Long u, @RequestBody @Valid CommentRequest commentRequest) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentChild(u, commentRequest));
+  @PostMapping("/comments/{parentCommentId}")
+  public ResponseEntity<Object> createChildComment(@PathVariable Long parentCommentId, @RequestBody @Valid CommentRequest commentRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentChild(parentCommentId, commentRequest));
   }
 
-  @GetMapping("{id}/comment")
-  public ResponseEntity<Object> getCommentPost(@PathVariable Long id) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByPostId(id));
+  @GetMapping("/{postId}/comments")
+  public ResponseEntity<Object> getListCommentForPost(@PathVariable Long postId, @Valid @ModelAttribute GetCommentRequest getCommentRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentsByPostId(postId, getCommentRequest));
   }
 
-  @DeleteMapping("/comment/{id}/delete")
-  public ResponseEntity<Object> deleteComment(@PathVariable Long id) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.deleteComment(id));
+  @GetMapping("/comments/{commentId}")
+  public ResponseEntity<Object> getCommentById(@PathVariable Long commentId) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentById(commentId));
   }
 
-  @PutMapping("/comment/{u}/update")
-  public ResponseEntity<Object> updateComment(@PathVariable Long u, @RequestBody @Valid CommentRequest commentRequest) {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.updateComment(u, commentRequest));
+  @GetMapping("/comments")
+  public ResponseEntity<Object> getCommentsByInteractions(@Valid @ModelAttribute GetCommentRequest getCommentRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getListCommentInteractions(getCommentRequest));
   }
 
-  @PutMapping("/comment/up-image")
-  public ResponseEntity<Object> upImageComment(@ModelAttribute @Valid CreateImageRequest request) throws IOException {
-    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, imagePostInput.createImage(request));
+  @GetMapping("/comments/{commentId}/replies")
+  public ResponseEntity<Object> getListCommentChildByCommentParentId(@PathVariable Long commentId, @Valid @ModelAttribute GetCommentRequest getCommentRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.getCommentChildByParentId(commentId, getCommentRequest));
+  }
+
+  @DeleteMapping("/comments/{commentId}")
+  public ResponseEntity<Object> deleteComment(@PathVariable Long commentId) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.deleteComment(commentId));
+  }
+
+  @PutMapping("/comments/{commentId}")
+  public ResponseEntity<Object> updateComment(@PathVariable Long commentId, @RequestBody @Valid CommentRequest commentRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.updateComment(commentId, commentRequest));
+  }
+
+  @PostMapping("/comments/images")
+  public ResponseEntity<Object> addImageToComment(@RequestParam MultipartFile image) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, imagePostInput.createImage(image, ImagePostInput.COMMENT_TAIL));
   }
 }
+

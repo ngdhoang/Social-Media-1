@@ -13,6 +13,4 @@ public class CommentRequest {
   private String content;
 
   private String publicId;
-
-  private Long imageDbId;
 }

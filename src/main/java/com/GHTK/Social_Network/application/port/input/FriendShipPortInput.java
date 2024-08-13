@@ -1,20 +1,27 @@
 package com.GHTK.Social_Network.application.port.input;
 
-import com.GHTK.Social_Network.infrastructure.payload.dto.ProfileDto;
-import com.GHTK.Social_Network.infrastructure.payload.requests.AcceptFriendRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetFriendShipRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.SetRequestFriendRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.UnFriendShipRequest;
+import com.GHTK.Social_Network.infrastructure.payload.dto.FriendShipUserDto;
+import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.AcceptFriendRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.GetFriendShipRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.SetRequestFriendRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.UnFriendShipRequest;
+import com.GHTK.Social_Network.infrastructure.payload.responses.FriendShipResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 
 import java.util.List;
 
 public interface FriendShipPortInput {
-  List<ProfileDto> getFriendShip(GetFriendShipRequest getFriendShipRequest);
 
-  MessageResponse setRequestFriendShip(SetRequestFriendRequest setRequestFriendRequest);
+  FriendShipResponse getListFriend(GetFriendShipRequest getFriendShipRequest);
 
-  MessageResponse acceptRequestFriendShip(AcceptFriendRequest acceptFriendRequest);
+  List<FriendShipUserDto> getListSuggestFriend();
 
-  MessageResponse unFriendShip(UnFriendShipRequest unFriendShipRequest);
+  MessageResponse createRequestFriend(SetRequestFriendRequest setRequestFriendRequest);
+
+  MessageResponse updateStateFriend(SetRequestFriendRequest setRequestFriendRequest);
+
+  MessageResponse acceptFriendRequest(AcceptFriendRequest acceptFriendRequest);
+
+  MessageResponse unFriendRequest(UnFriendShipRequest unFriendShipRequest);
+
 }
