@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.LinkedList;
 import java.util.List;
 
 @Builder
@@ -29,9 +30,7 @@ public class Message {
 
   private List<Long> tags;
 
-  private List<Long> reaction;
-
-  private ReactionMessages reactionMsgs;
+  private List<ReactionMessages> reactionMsgs;
 
   private Long reactionQuantity;
 

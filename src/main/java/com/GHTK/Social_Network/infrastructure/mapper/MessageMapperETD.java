@@ -8,6 +8,8 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.c
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat.ReactionMessagesCollection;
 import org.mapstruct.*;
 
+import java.util.LinkedList;
+
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface MessageMapperETD {
 
@@ -16,6 +18,7 @@ public interface MessageMapperETD {
 
   @Mapping(target = "reactionMsgs", ignore = true)
   @Mapping(target = "images", source = "images")
+  @Mapping(target = "createAt", source = "createAt")
   Message messageCollectionToMessage(MessageCollection messageCollection);
 
   ReactionMessagesCollection mapReactionMessages(ReactionMessages reactionMessages);
@@ -29,14 +32,22 @@ public interface MessageMapperETD {
   @AfterMapping
   default void setReactionMessagesCollection(@MappingTarget MessageCollection target, Message source) {
     if (source.getReactionMsgs() != null) {
-      target.setReactionMsgs(mapReactionMessages(source.getReactionMsgs()));
+      target.setReactionMsgs(
+              source.getReactionMsgs().stream().map(
+                      this::mapReactionMessages
+              ).toList()
+      );
     }
   }
 
   @AfterMapping
   default void setReactionMessages(@MappingTarget Message target, MessageCollection source) {
     if (source.getReactionMsgs() != null) {
-      target.setReactionMsgs(mapReactionMessagesCollection(source.getReactionMsgs()));
+      target.setReactionMsgs(
+              source.getReactionMsgs().stream().map(
+                      this::mapReactionMessagesCollection
+              ).toList()
+      );
     }
   }
 }

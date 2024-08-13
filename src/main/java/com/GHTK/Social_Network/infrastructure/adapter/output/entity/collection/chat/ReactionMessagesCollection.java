@@ -2,10 +2,10 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.
 
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EReactionTypeEntity;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 
 @AllArgsConstructor
-@Getter
+@Data
 public class ReactionMessagesCollection {
   private EReactionTypeEntity reactionType;
 

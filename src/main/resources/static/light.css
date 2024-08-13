@@ -109,3 +109,43 @@ body.dark-mode table th {
 body.dark-mode table td {
 	border-color: #444;
 }
+
+#greetingsBody {
+	width: 100%;
+	max-width: 800px;
+	margin: 0 auto;
+	border-collapse: collapse;
+}
+
+.chat-message-row {
+	margin: 10px 0;
+	display: flex;
+	justify-content: flex-start; /* Bên trái mặc định */
+}
+
+.chat-message-row[style*="text-align: right;"] {
+	justify-content: flex-end; /* Bên phải nếu là ng gửi */
+}
+
+.chat-message {
+	background-color: #f1f1f1;
+	border-radius: 10px;
+	padding: 10px;
+	max-width: 60%;
+	display: inline-block;
+}
+
+.message-content p {
+	margin: 5px 0;
+}
+
+.message-images {
+	margin-top: 10px;
+}
+
+.chat-image {
+	width: 50px;
+	height: auto;
+	margin-right: 5px;
+	border-radius: 5px;
+}

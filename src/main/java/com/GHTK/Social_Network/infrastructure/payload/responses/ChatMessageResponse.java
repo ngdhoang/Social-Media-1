@@ -1,6 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.payload.responses;
 
 import com.GHTK.Social_Network.infrastructure.payload.dto.MessageDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ChatMessageResponse {
-  private Long userId;
+  private UserBasicDto user;
 
   private String msgId;
 

@@ -8,12 +8,12 @@ import com.GHTK.Social_Network.application.port.output.chat.GroupPort;
 import com.GHTK.Social_Network.application.port.output.chat.MessagePort;
 import com.GHTK.Social_Network.application.port.output.chat.WebsocketClientPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
-import com.GHTK.Social_Network.domain.collection.chat.EMessageType;
-import com.GHTK.Social_Network.domain.collection.chat.Group;
-import com.GHTK.Social_Network.domain.collection.chat.Member;
-import com.GHTK.Social_Network.domain.collection.chat.Message;
+import com.GHTK.Social_Network.domain.collection.chat.*;
+import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ChatMapper;
+import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
+import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ChatMessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -38,6 +37,7 @@ public class MessageService implements MessagePortInput {
   private final WebsocketClientPort websocketClientPort;
 
   private final ChatMapper chatMapper;
+  private final UserMapper userMapper;
 
   @Override
   public ChatMessageResponse deleteMessage(String messageId) {
@@ -50,17 +50,24 @@ public class MessageService implements MessagePortInput {
   }
 
   @Override
-  public ChatMessageResponse reactionMessage(String messageId) {
+  public ChatMessageResponse reactionMessage(String messageId, ReactionRequest reactionRequest) {
     User currentUser = authPort.getUserAuth();
     Message message = getValidatedMessage(messageId);
     Group group = validateOperationMessage(currentUser, message, false);
 
-    List<Long> reactionList = message.getReaction() == null ? new ArrayList<>() : message.getReaction();
-    reactionList.add(currentUser.getUserId());
-    message.setReaction(reactionList);
+    ReactionMessages reactionMessages = messagePort.getReactionByUserIdAndMsgId(messageId, currentUser.getUserId());
+    if (reactionMessages != null) {
+      if (reactionMessages.getReactionType().toString().equals(reactionRequest.getReactionType().toUpperCase())) {
+        handlerDeleteReaction(messageId, currentUser.getUserId());
+      } else {
+        handlerExistReaction(messageId, currentUser.getUserId(), reactionRequest.getReactionType());
+      }
+    } else {
+      handlerNotExistReaction(messageId, currentUser.getUserId(), reactionRequest.getReactionType());
+    }
 
     websocketClientPort.sendListUserAndSave(message, group.getMembers().stream().map(Member::getUserId).toList());
-    return chatMapper.messageToMessageResponse(message, group.getGroupType());
+    return chatMapper.messageToMessageResponse(message, userMapper.userToUserBasicDto(currentUser), group.getGroupType());
   }
 
   @Override
@@ -111,7 +118,7 @@ public class MessageService implements MessagePortInput {
 
     notifyGroupMembers(message, group);
 
-    return chatMapper.messageToMessageResponse(message, group.getGroupType());
+    return chatMapper.messageToMessageResponse(message, userMapper.userToUserBasicDto(currentUser), group.getGroupType());
   }
 
   private Message getValidatedMessage(String messageId) {
@@ -147,6 +154,19 @@ public class MessageService implements MessagePortInput {
     websocketClientPort.sendListUserAndNotSave(message, memberIds);
   }
 
+
+  private void handlerNotExistReaction(String messageId, Long userId, String reactionType) {
+    messagePort.saveOrChangeReactionMessage(messageId, userId, stringToReactionType(reactionType));
+  }
+
+  private void handlerExistReaction(String messageId, Long userId, String reactionType) {
+    messagePort.saveOrChangeReactionMessage(messageId, userId, stringToReactionType(reactionType));
+  }
+
+  private void handlerDeleteReaction(String messageId, Long userId) {
+    messagePort.deleteReactionMessage(messageId, userId);
+  }
+
   private Group validateOperationMessage(User currentUser, Message message, boolean mine) {
     Group group = getGroup(message.getGroupId());
     boolean isMessageAuthor = message.getUserAuthId().equals(currentUser.getUserId());
@@ -154,7 +174,7 @@ public class MessageService implements MessagePortInput {
             .map(Member::getUserId)
             .anyMatch(id -> id.equals(currentUser.getUserId()));
 
-    if (!(mine == isMessageAuthor) || !isGroupMember ) {
+    if (!(mine == isMessageAuthor) || !isGroupMember) {
       throw new CustomException("You are not allowed to modify this message", HttpStatus.FORBIDDEN);
     }
 
@@ -169,4 +189,13 @@ public class MessageService implements MessagePortInput {
     boolean isGroupPersonal = groupId.contains("_");
     return isGroupPersonal ? groupPort.getGroupForPersonal(groupId) : groupPort.getGroupForGroup(groupId);
   }
+
+  private EReactionType stringToReactionType(String reactionType) {
+    try {
+      return EReactionType.valueOf(reactionType.toUpperCase());
+    } catch (IllegalArgumentException | NullPointerException e) {
+      return EReactionType.LIKE;
+    }
+  }
+
 }

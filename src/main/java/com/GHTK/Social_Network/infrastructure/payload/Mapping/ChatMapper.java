@@ -3,6 +3,7 @@ package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
 import com.GHTK.Social_Network.domain.collection.chat.Message;
 import com.GHTK.Social_Network.infrastructure.payload.dto.MessageDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ChatMessageResponse;
 import org.mapstruct.Mapper;
 
@@ -10,7 +11,7 @@ import org.mapstruct.Mapper;
 public interface ChatMapper {
   Message messageDtoToMessage(MessageDto message);
 
-  default ChatMessageResponse messageToMessageResponse(Message message, EGroupType eGroupType) {
+  default ChatMessageResponse messageToMessageResponse(Message message, UserBasicDto userBasicDto, EGroupType eGroupType) {
     MessageDto messageDto = MessageDto.builder()
             .tags(message.getTags())
             .msgType(message.getMsgType())
@@ -18,11 +19,12 @@ public interface ChatMapper {
             .groupType(eGroupType)
             .groupId(message.getGroupId())
             .replyMsgId(message.getReplyMsgId())
+            .createAt(message.getCreateAt())
             .build();
 
     ChatMessageResponse messageResponse = ChatMessageResponse.builder()
             .msgId(message.getMsgId())
-            .userId(message.getUserAuthId())
+            .user(userBasicDto)
             .msgId(message.getMsgId())
             .message(messageDto)
             .reactionQuantity(message.getReactionQuantity())

@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,4 +31,6 @@ public class MessageDto {
   private List<Long> tags = new ArrayList<>();
 
   private String replyMsgId;
+
+  private Instant createAt;
 }

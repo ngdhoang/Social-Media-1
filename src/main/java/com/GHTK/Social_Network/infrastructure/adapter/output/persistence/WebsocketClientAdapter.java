@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
+import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.chat.WebsocketClientPort;
 import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
 import com.GHTK.Social_Network.domain.collection.chat.EMessageType;
@@ -9,6 +10,7 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.c
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.MessageRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.MessageMapperETD;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ChatMapper;
+import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ChatMessageReplyResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ChatMessageResponse;
@@ -17,6 +19,7 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.LinkedList;
 import java.util.List;
 
 @Service
@@ -24,8 +27,10 @@ import java.util.List;
 public class WebsocketClientAdapter implements WebsocketClientPort {
   private final SimpMessageSendingOperations messagingTemplate;
   private final MessageRepository messageRepository;
+  private final AuthPort authPort;
 
   private final MessageMapperETD messageMapperETD;
+  private final UserMapper userMapper;
   private final ChatMapper chatMapper;
 
   @Override
@@ -37,7 +42,7 @@ public class WebsocketClientAdapter implements WebsocketClientPort {
   public void sendUserAndSave(EGroupType groupType, Message message, String destination) {
     message = saveMessage(message);
 
-    ChatMessageResponse messageSend = chatMapper.messageToMessageResponse(message, groupType);
+    ChatMessageResponse messageSend = chatMapper.messageToMessageResponse(message, userMapper.userToUserBasicDto(authPort.getUserById(message.getUserAuthId())), groupType);
     messagingTemplate.convertAndSend(destination, messageSend);
   }
 
@@ -96,12 +101,14 @@ public class WebsocketClientAdapter implements WebsocketClientPort {
 
   private Message saveMessage(Message message) {
     MessageCollection messageCollection = messageMapperETD.messageToMessageCollection(message);
+//    messageCollection.setReactionMsgs(new LinkedList<>());
+    messageCollection.setCreateAt(Instant.now());
     return messageMapperETD.messageCollectionToMessage(messageRepository.save(messageCollection));
   }
 
   private ChatMessageReplyResponse messageToChatMessageReplyResponse(Message message, Message messageQuote, EGroupType groupType) {
-    ChatMessageResponse chatMessageQuote = chatMapper.messageToMessageResponse(messageQuote, groupType);
-    ChatMessageResponse chatMessageSend = chatMapper.messageToMessageResponse(message, groupType);
+    ChatMessageResponse chatMessageQuote = chatMapper.messageToMessageResponse(messageQuote, userMapper.userToUserBasicDto(authPort.getUserById(messageQuote.getUserAuthId())), groupType);
+    ChatMessageResponse chatMessageSend = chatMapper.messageToMessageResponse(message, userMapper.userToUserBasicDto(authPort.getUserById(message.getUserAuthId())), groupType);
     return new ChatMessageReplyResponse(chatMessageQuote, chatMessageSend);
   }
 }
