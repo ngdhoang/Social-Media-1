@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.util.LinkedList;
 import java.util.List;
 
 @Builder
@@ -14,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class Message {
-  private String msgId;
+  private String id;
 
   private String groupId;
 

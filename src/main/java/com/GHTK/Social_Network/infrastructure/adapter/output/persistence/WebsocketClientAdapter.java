@@ -19,7 +19,6 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.LinkedList;
 import java.util.List;
 
 @Service
@@ -101,7 +100,6 @@ public class WebsocketClientAdapter implements WebsocketClientPort {
 
   private Message saveMessage(Message message) {
     MessageCollection messageCollection = messageMapperETD.messageToMessageCollection(message);
-//    messageCollection.setReactionMsgs(new LinkedList<>());
     messageCollection.setCreateAt(Instant.now());
     return messageMapperETD.messageCollectionToMessage(messageRepository.save(messageCollection));
   }

@@ -8,22 +8,30 @@ import com.GHTK.Social_Network.application.port.output.chat.GroupPort;
 import com.GHTK.Social_Network.application.port.output.chat.MessagePort;
 import com.GHTK.Social_Network.application.port.output.chat.WebsocketClientPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
+import com.GHTK.Social_Network.domain.collection.UserCollectionDomain;
 import com.GHTK.Social_Network.domain.collection.chat.*;
 import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ChatMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
+import com.GHTK.Social_Network.infrastructure.payload.requests.PaginationRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionRequest;
+import com.GHTK.Social_Network.infrastructure.payload.responses.ChatMessageReplyResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ChatMessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.ReactionChatResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -55,18 +63,11 @@ public class MessageService implements MessagePortInput {
     Message message = getValidatedMessage(messageId);
     Group group = validateOperationMessage(currentUser, message, false);
 
-    ReactionMessages reactionMessages = messagePort.getReactionByUserIdAndMsgId(messageId, currentUser.getUserId());
-    if (reactionMessages != null) {
-      if (reactionMessages.getReactionType().toString().equals(reactionRequest.getReactionType().toUpperCase())) {
-        handlerDeleteReaction(messageId, currentUser.getUserId());
-      } else {
-        handlerExistReaction(messageId, currentUser.getUserId(), reactionRequest.getReactionType());
-      }
-    } else {
-      handlerNotExistReaction(messageId, currentUser.getUserId(), reactionRequest.getReactionType());
-    }
+    messagePort.saveOrChangeReactionMessage(messageId, currentUser.getUserId(), stringToReactionType(
+            reactionRequest.getReactionType()
+    ));
 
-    websocketClientPort.sendListUserAndSave(message, group.getMembers().stream().map(Member::getUserId).toList());
+    websocketClientPort.sendListUserAndNotSave(message, group.getMembers().stream().map(Member::getUserId).toList());
     return chatMapper.messageToMessageResponse(message, userMapper.userToUserBasicDto(currentUser), group.getGroupType());
   }
 
@@ -106,6 +107,141 @@ public class MessageService implements MessagePortInput {
     websocketClientPort.sendListUserAndSave(message, getGroupMemberIds(group.getMembers()));
 
     return new MessageResponse("Processing completed. Successfully uploaded " + successfulUploads.size() + " images.");
+  }
+
+  @Override
+  public ReactionChatResponse getReactionMessage(String messageId, String status) {
+    Message message = getValidatedMessage(messageId);
+    Group group = getGroup(message.getGroupId());
+    if (group == null) {
+      throw new CustomException("Message not found", HttpStatus.NOT_FOUND);
+    }
+
+    List<ReactionMessages> reactionMessagesList = message.getReactionMsgs();
+
+    ReactionChatResponse reactionChatResponse = new ReactionChatResponse();
+    List<UserBasicDto> userBasicDtoList = new ArrayList<>();
+    reactionMessagesList.forEach(
+            reactionMessage -> {
+              if (reactionMessage.getReactionType().toString().toLowerCase().equals(status)) {
+                UserBasicDto userBasicDto = userMapper.userToUserBasicDto(authPort.getUserById(reactionMessage.getUserId()));
+                userBasicDtoList.add(userBasicDto);
+              }
+
+              if (reactionMessage.getReactionType().equals(EReactionType.LIKE)) {
+                reactionChatResponse.setCountLike(reactionChatResponse.getCountLike() + 1);
+              } else if (reactionMessage.getReactionType().equals(EReactionType.ANGRY)) {
+                reactionChatResponse.setCountAngry(reactionChatResponse.getCountAngry() + 1);
+              } else if (reactionMessage.getReactionType().equals(EReactionType.LOVE)) {
+                reactionChatResponse.setCountLove(reactionChatResponse.getCountLove() + 1);
+              } else {
+                reactionChatResponse.setCountSmile(reactionChatResponse.getCountSmile() + 1);
+              }
+
+            }
+    );
+
+    reactionChatResponse.setUser(userBasicDtoList);
+    reactionChatResponse.setType(status);
+    return reactionChatResponse;
+  }
+
+  @Override
+  public List<ChatMessageReplyResponse> getMessages(String groupId, PaginationRequest paginationRequest) {
+    return messagePort.getMessagesByGroupId(groupId, paginationRequest).stream().map(
+            m -> {
+              Message messageChild = m.getRight();
+              Message messageParent = m.getLeft();
+
+              Group group = getGroup(messageChild.getGroupId());
+
+              ChatMessageResponse chatMessageResponseParent = null;
+              if (messageParent != null) {
+                chatMessageResponseParent = chatMapper.messageToMessageResponse(
+                        messageParent,
+                        userMapper.userToUserBasicDto(authPort.getUserById(messageParent.getUserAuthId())),
+                        group.getGroupType());
+              }
+              ChatMessageResponse chatMessageResponse = chatMapper.messageToMessageResponse(
+                      messageChild,
+                      userMapper.userToUserBasicDto(authPort.getUserById(messageChild.getUserAuthId())),
+                      group.getGroupType());
+
+              return new ChatMessageReplyResponse(
+                      chatMessageResponseParent,
+                      chatMessageResponse
+              );
+            }
+    ).toList();
+  }
+
+  @Override
+  public MessageResponse readMessages(String msgId) {
+    User currentUser = authPort.getUserAuth();
+    Message message = getValidatedMessage(msgId);
+    Group group = getValidatedGroup(message.getGroupId());
+
+    Member currentMember = findCurrentMember(group, currentUser.getUserId());
+    if (currentMember == null) {
+      throw new CustomException("User is not a member of this group", HttpStatus.FORBIDDEN);
+    }
+
+    if (shouldUpdateLastSeen(currentMember)) {
+      updateMemberLastSeen(currentMember, msgId);
+      updateGroupMember(group, currentMember);
+      if (group.getGroupType().equals(EGroupType.GROUP)) {
+        updateUserCollectionLastSeen(currentUser.getUserId(), group.getId(), msgId);
+      } else {
+        updateUserCollectionLastSeen(currentUser.getUserId(), group.getGroupName(), msgId);
+      }
+      return new MessageResponse("Message read successfully");
+    }
+
+    return new MessageResponse("No update required");
+  }
+
+  private Group getValidatedGroup(String groupId) {
+    Group group = getGroup(groupId);
+    if (group == null) {
+      throw new CustomException("Group not found", HttpStatus.NOT_FOUND);
+    }
+    return group;
+  }
+
+  private Member findCurrentMember(Group group, Long userId) {
+    return group.getMembers().stream()
+            .filter(member -> member.getUserId().equals(userId))
+            .findFirst()
+            .orElse(null);
+  }
+
+  private boolean shouldUpdateLastSeen(Member member) {
+    if (member.getLastTimeMsgSeen() == null) return true;
+    return Instant.now().isAfter(member.getLastTimeMsgSeen());
+  }
+
+  private void updateMemberLastSeen(Member member, String msgId) {
+    member.setLastTimeMsgSeen(Instant.now());
+    member.setLastMsgSeen(msgId);
+  }
+
+  private void updateGroupMember(Group group, Member updatedMember) {
+    List<Member> updatedMembers = group.getMembers().stream()
+            .map(member -> member.getUserId().equals(updatedMember.getUserId()) ? updatedMember : member)
+            .collect(Collectors.toList());
+    group.setMembers(updatedMembers);
+    groupPort.saveGroup(group);
+  }
+  private void updateUserCollectionLastSeen(Long userId, String groupId, String msgId) {
+    UserCollectionDomain userCollectionDomain = authPort.getUserCollectionById(userId);
+    userCollectionDomain.getUserGroupInfoList().stream()
+            .filter(userGroup -> userGroup.getGroupId().equals(groupId))
+            .findFirst()
+            .ifPresent(userGroup -> {
+              userGroup.setLastMsgId(msgId);
+              userGroup.setLastTimeMsgId(Instant.now());
+              groupPort.saveUser(userCollectionDomain);
+            });
   }
 
   private ChatMessageResponse processMessageOperation(String messageId, EMessageType operationType) {
@@ -152,19 +288,6 @@ public class MessageService implements MessagePortInput {
             .map(Member::getUserId)
             .toList();
     websocketClientPort.sendListUserAndNotSave(message, memberIds);
-  }
-
-
-  private void handlerNotExistReaction(String messageId, Long userId, String reactionType) {
-    messagePort.saveOrChangeReactionMessage(messageId, userId, stringToReactionType(reactionType));
-  }
-
-  private void handlerExistReaction(String messageId, Long userId, String reactionType) {
-    messagePort.saveOrChangeReactionMessage(messageId, userId, stringToReactionType(reactionType));
-  }
-
-  private void handlerDeleteReaction(String messageId, Long userId) {
-    messagePort.deleteReactionMessage(messageId, userId);
   }
 
   private Group validateOperationMessage(User currentUser, Message message, boolean mine) {

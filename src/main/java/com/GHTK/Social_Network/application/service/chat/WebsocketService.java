@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.application.service.chat;
 
+import com.GHTK.Social_Network.application.port.input.chat.GroupPortInput;
 import com.GHTK.Social_Network.application.port.input.chat.WebsocketPortInput;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.chat.GroupPort;
@@ -12,6 +13,7 @@ import com.GHTK.Social_Network.domain.collection.chat.Message;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ChatMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.MessageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
+import com.GHTK.Social_Network.infrastructure.payload.requests.CreateGroupRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,8 @@ public class WebsocketService implements WebsocketPortInput {
   private static final String ERROR_USER_NOT_EXISTS = "User does not exist";
   private static final String ERROR_USER_BLOCKED = "User is blocked";
   private static final String ERROR_USER_NOT_FRIEND = "User is not a friend";
+
+  private final GroupPortInput groupPortInput;
 
   private final FriendShipPort friendShipPort;
   private final WebsocketClientPort webSocketClientPort;
@@ -113,6 +117,7 @@ public class WebsocketService implements WebsocketPortInput {
     boolean checkTag = validateTagUsers(currentUser.getUserId(), message.getTags(), Collections.singletonList(userReceiveId));
     if (userReceiveId != null && validateFriendship(currentUser.getUserId(), userReceiveId) && checkTag) {
       groupPort.createGroupPersonal(currentUser.getUserId(), userReceiveId);
+
       sendToUser(message, currentUser.getUserId(), userReceiveId);
     } else {
       sendError(ERROR_USER_NOT_EXISTS, currentUser.getUserId());

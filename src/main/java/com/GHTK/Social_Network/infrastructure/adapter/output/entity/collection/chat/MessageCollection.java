@@ -4,11 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
-import java.util.LinkedList;
 import java.util.List;
 
 @Document
@@ -18,13 +18,13 @@ import java.util.List;
 @Data
 public class MessageCollection {
   @Id
-  private String msgId;
+  private ObjectId id;
 
   private String groupId;
 
   private Long userAuthId;
 
-  private Long replyMsgId;
+  private String replyMsgId;
 
   private EMessageTypeCollection msgType;
 

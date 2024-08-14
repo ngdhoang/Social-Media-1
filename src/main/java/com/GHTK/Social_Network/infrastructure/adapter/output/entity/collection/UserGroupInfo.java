@@ -13,4 +13,9 @@ public class UserGroupInfo {
   private String lastMsgId;
 
   private EStateUserGroupCollection state;
+
+  public UserGroupInfo(String groupId, EStateUserGroupCollection state) {
+    this.groupId = groupId;
+    this.state = state;
+  }
 }

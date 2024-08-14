@@ -1,15 +1,22 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.chat;
 
 import com.GHTK.Social_Network.application.port.output.chat.GroupPort;
+import com.GHTK.Social_Network.domain.collection.UserCollectionDomain;
 import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
 import com.GHTK.Social_Network.domain.collection.chat.Group;
 import com.GHTK.Social_Network.domain.collection.chat.Member;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.EStateUserGroupCollection;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.UserCollection;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.UserGroupInfo;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat.GroupCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.GroupRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.collection.UserCollectionRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.GroupMapperETD;
+import com.GHTK.Social_Network.infrastructure.mapper.UserCollectionMapperETD;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -18,11 +25,23 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class GroupAdapter implements GroupPort {
   private final GroupRepository groupRepository;
+  private final UserCollectionRepository userRepository;
 
   private final GroupMapperETD groupMapperETD;
+  private final UserCollectionMapperETD userCollectionMapperETD;
+  private final UserCollectionRepository userCollectionRepository;
 
   @Override
-  public Group createGroup(Group newGroup) {
+  public UserCollectionDomain saveUser(UserCollectionDomain user) {
+    UserCollection u = userRepository.findByUserId(user.getUserId());
+    user.setId(u.getId());
+    return userCollectionMapperETD.toDomain(
+            userRepository.save(userCollectionMapperETD.toEntity(user))
+    );
+  }
+
+  @Override
+  public Group saveGroup(Group newGroup) {
     GroupCollection newGroupCollection = groupMapperETD.toEntity(newGroup);
     GroupCollection savedGroupCollection = groupRepository.save(newGroupCollection);
     return groupMapperETD.toDomain(savedGroupCollection);
@@ -39,13 +58,16 @@ public class GroupAdapter implements GroupPort {
             Member.builder().userId(userReceiveId).build()
     );
 
+    setMemberInUser(userSendId, groupName);
+    setMemberInUser(userReceiveId, groupName);
+
     Group newGroup = Group.builder()
             .groupName(groupName)
             .groupType(EGroupType.PERSONAL)
             .members(members)
             .build();
 
-    return createGroup(newGroup);
+    return saveGroup(newGroup);
   }
 
   @Override
@@ -69,5 +91,16 @@ public class GroupAdapter implements GroupPort {
 
     return group.getMembers().stream()
             .anyMatch(m -> m.getUserId().equals(userId));
+  }
+
+  private void setMemberInUser(Long userReceiveId, String groupName) {
+    UserCollection userReceive = userCollectionRepository.findByUserId(userReceiveId);
+    if (userReceive.getUserGroupInfoList() == null) {
+      userReceive.setUserGroupInfoList(new ArrayList<>());
+    }
+    userReceive.getUserGroupInfoList().add(
+            new UserGroupInfo(groupName, EStateUserGroupCollection.PERSONAL)
+    );
+    userCollectionRepository.save(userReceive);
   }
 }

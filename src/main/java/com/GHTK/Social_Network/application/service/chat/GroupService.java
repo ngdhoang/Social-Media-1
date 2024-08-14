@@ -1,10 +1,13 @@
 package com.GHTK.Social_Network.application.service.chat;
 
 import com.GHTK.Social_Network.application.port.input.chat.GroupPortInput;
-import com.GHTK.Social_Network.application.port.output.chat.GroupPort;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
+import com.GHTK.Social_Network.application.port.output.chat.GroupPort;
+import com.GHTK.Social_Network.application.port.output.chat.WebsocketClientPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
+import com.GHTK.Social_Network.domain.collection.UserCollectionDomain;
+import com.GHTK.Social_Network.domain.collection.UserGroup;
 import com.GHTK.Social_Network.domain.collection.chat.Group;
 import com.GHTK.Social_Network.domain.collection.chat.Member;
 import com.GHTK.Social_Network.domain.model.user.User;
@@ -24,18 +27,23 @@ public class GroupService implements GroupPortInput {
   private final FriendShipPort friendShipPort;
   private final GroupPort groupPort;
   private final AuthPort authPort;
+  private final WebsocketClientPort websocketClientPort;
 
   private final GroupMapper groupMapper;
 
   @Override
   public GroupResponse createGroup(CreateGroupRequest createGroupRequest) {
     User currentUser = authPort.getUserAuth();
+
     validateFriendship(currentUser.getUserId(), createGroupRequest.getMembers());
+    List<Member> members = getMembersWithAdminByListId(createGroupRequest.getMembers(), currentUser);
     Group newGroup = groupMapper.createGroupToDomain(
-            createGroupRequest,
-            getMembersWithAdminByListId(createGroupRequest.getMembers(), currentUser)
+            createGroupRequest
     );
-    return groupMapper.groupToResponse(groupPort.createGroup(newGroup));
+    GroupResponse groupResponse = groupMapper.groupToResponse(groupPort.saveGroup(newGroup));
+
+    setMemberInGroup(members, groupResponse.getGroupId());
+    return groupResponse;
   }
 
   private void validateFriendship(Long currentId, List<Long> userIds) {
@@ -72,5 +80,18 @@ public class GroupService implements GroupPortInput {
     List<Member> members = new ArrayList<>(getMembersByListId(memberIds));
     members.add(adminMember);
     return members;
+  }
+
+  private void setMemberInGroup(List<Member> members, String groupId) {
+    members.stream().forEach(
+            member -> {
+              UserCollectionDomain userCollectionDomain = authPort.getUserCollectionById(member.getUserId());
+              userCollectionDomain.getUserGroupInfoList().add(new UserGroup(
+                      groupId,
+                      member.getRole()
+              ));
+              groupPort.saveUser(userCollectionDomain);
+            }
+    );
   }
 }

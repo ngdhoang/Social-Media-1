@@ -2,6 +2,7 @@ package com.GHTK.Social_Network.infrastructure.payload.dto;
 
 import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
 import com.GHTK.Social_Network.domain.collection.chat.EMessageType;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,7 @@ public class MessageDto {
 
   private List<Long> tags = new ArrayList<>();
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private String replyMsgId;
 
   private Instant createAt;

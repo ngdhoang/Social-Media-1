@@ -1,6 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.chatController;
 
 import com.GHTK.Social_Network.application.port.input.chat.MessagePortInput;
+import com.GHTK.Social_Network.infrastructure.payload.requests.PaginationRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.validation.Valid;
@@ -43,5 +44,20 @@ public class MessageController {
   @PostMapping("/reaction/{msgId}")
   public ResponseEntity<Object> reactionMessage(@PathVariable String msgId, @RequestBody ReactionRequest reactionRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, messagePortInput.reactionMessage(msgId, reactionRequest));
+  }
+
+  @GetMapping("/reaction/{msgId}")
+  public ResponseEntity<Object> getReactionMessage(@PathVariable String msgId, @RequestParam String status) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, messagePortInput.getReactionMessage(msgId, status));
+  }
+
+  @GetMapping("/messages/{groupId}")
+  public ResponseEntity<Object> getMessage(@PathVariable String groupId, @ModelAttribute @Valid PaginationRequest paginationRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, messagePortInput.getMessages(groupId, paginationRequest));
+  }
+
+  @PutMapping("/messages/read/{msgId}")
+  public ResponseEntity<Object> readMessage(@PathVariable String msgId) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, messagePortInput.readMessages(msgId));
   }
 }

@@ -9,7 +9,6 @@ import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring")
 public interface GroupMapperETD {
-
   @Mapping(target = "id", source = "id", qualifiedByName = "stringToObjectId")
   @Mapping(target = "createAt", ignore = true)
   GroupCollection toEntity(Group group);

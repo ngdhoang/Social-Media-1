@@ -23,9 +23,8 @@ public interface ChatMapper {
             .build();
 
     ChatMessageResponse messageResponse = ChatMessageResponse.builder()
-            .msgId(message.getMsgId())
+            .msgId(message.getId())
             .user(userBasicDto)
-            .msgId(message.getMsgId())
             .message(messageDto)
             .reactionQuantity(message.getReactionQuantity())
             .images(message.getImages())

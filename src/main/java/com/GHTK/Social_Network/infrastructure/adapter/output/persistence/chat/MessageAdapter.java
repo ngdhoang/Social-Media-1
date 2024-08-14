@@ -1,29 +1,30 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.chat;
 
-import com.GHTK.Social_Network.application.port.output.chat.CustomMessageRepository;
 import com.GHTK.Social_Network.application.port.output.chat.MessagePort;
 import com.GHTK.Social_Network.domain.collection.chat.Message;
-import com.GHTK.Social_Network.domain.collection.chat.ReactionMessages;
 import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat.MessageCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat.ReactionMessagesCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EReactionTypeEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.MessageRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.MessageMapperETD;
+import com.GHTK.Social_Network.infrastructure.mapper.ReactionTypeMapperETD;
+import com.GHTK.Social_Network.infrastructure.payload.requests.PaginationRequest;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class MessageAdapter implements MessagePort {
   private final MessageRepository messageRepository;
-  private final CustomMessageRepository customMessageRepository;
 
   private final MessageMapperETD messageMapperETD;
+  private final ReactionTypeMapperETD reactionTypeMapperETD;
 
   @Override
   public Message getMessageById(String messageId) {
@@ -42,54 +43,59 @@ public class MessageAdapter implements MessagePort {
   }
 
   @Override
-  public ReactionMessages getReactionByUserIdAndMsgId(String msgId, Long userId) {
-    Optional<MessageCollection> messageCollection = messageRepository.findReactionsById(msgId, userId);
-    return messageCollection.map(collection -> messageMapperETD.mapReactionMessagesCollection(collection.getReactionMsgs().get(0))).orElse(null);
-  }
-
-  @Override
   public void saveOrChangeReactionMessage(String msgId, Long userId, EReactionType reactionType) {
-    MessageCollection messageCollection = messageRepository.findById(msgId).orElse(null);
-    List<ReactionMessagesCollection> reactionMessagesCollections = messageCollection.getReactionMsgs();
-    if (reactionMessagesCollections == null) {
-      reactionMessagesCollections = new LinkedList<>();
-      ReactionMessagesCollection reactionMessagesCollection = new ReactionMessagesCollection(
-              EReactionTypeEntity.LIKE,
-              userId
-      );
-      reactionMessagesCollections.add(reactionMessagesCollection);
-      messageCollection.setReactionMsgs(reactionMessagesCollections);
-      messageRepository.save(messageCollection);
-      MessageCollection savedMessage = messageRepository.findById(messageCollection.getMsgId()).orElse(null);
-      System.out.println("Saved Message 1: " + savedMessage);
-      return;
+    MessageCollection messageCollection = messageRepository.findById(msgId).orElseThrow();
+    final EReactionTypeEntity reactionTypeEntity = reactionTypeMapperETD.toEntity(reactionType);
+
+    List<ReactionMessagesCollection> reactions = messageCollection.getReactionMsgs();
+    if (reactions == null) {
+      reactions = new ArrayList<>();
+      messageCollection.setReactionMsgs(reactions);
     }
 
-    for (int i = 0; i < reactionMessagesCollections.size(); i++) {
-      if (reactionMessagesCollections.get(i).getUserId().equals(userId)) {
-        reactionMessagesCollections.get(i).setReactionType(EReactionTypeEntity.LIKE);
-        messageCollection.setReactionMsgs(reactionMessagesCollections);
-        messageRepository.save(messageCollection);
-        MessageCollection savedMessage = messageRepository.findById(messageCollection.getMsgId()).orElse(null);
-        System.out.println("Saved Message 2: " + savedMessage);
-        return;
-      }
+    final List<ReactionMessagesCollection> finalReactions = reactions;
+
+    boolean[] reactionRemoved = {false};
+
+    finalReactions.stream()
+            .filter(r -> r.getUserId().equals(userId))
+            .findFirst()
+            .ifPresentOrElse(
+                    existingReaction -> {
+                      if (existingReaction.getReactionType().equals(reactionTypeEntity)) {
+                        finalReactions.remove(existingReaction);
+                        reactionRemoved[0] = true;
+                      } else {
+                        existingReaction.setReactionType(reactionTypeEntity);
+                      }
+                    },
+                    () -> finalReactions.add(new ReactionMessagesCollection(reactionTypeEntity, userId))
+            );
+
+    long reactionCount = finalReactions.size();
+    messageCollection.setReactionQuantity(reactionCount);
+
+    if (reactionCount == 0) {
+      messageCollection.setReactionMsgs(null);
     }
 
-    reactionMessagesCollections.add(new ReactionMessagesCollection(
-            EReactionTypeEntity.LIKE,
-            userId
-    ));
-    messageCollection.setReactionMsgs(reactionMessagesCollections);
-//    messageRepository.save(messageCollection);
     messageRepository.save(messageCollection);
-    MessageCollection savedMessage = messageRepository.findById(messageCollection.getMsgId()).orElse(null);
-    System.out.println("Saved Message 3: " + savedMessage);
-
   }
 
   @Override
-  public void deleteReactionMessage(String msgId, Long userId) {
-    customMessageRepository.deleteReactionMessageCustom(msgId, userId);
+  public List<Pair<Message, Message>> getMessagesByGroupId(String groupId, PaginationRequest paginationRequest) {
+    Pageable pageable = paginationRequest.toPageable();
+    return messageRepository.findAll(pageable).stream().map(
+            m -> {
+              Message messageParent = null;
+              if (m.getReplyMsgId() != null) {
+                messageParent = getMessageById(m.getReplyMsgId());
+              }
+              return Pair.of(
+                      messageParent,
+                      messageMapperETD.messageCollectionToMessage(m)
+              );
+            }
+    ).toList();
   }
 }

@@ -3,9 +3,11 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.EReactionTypeEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@AllArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ReactionMessagesCollection {
   private EReactionTypeEntity reactionType;
 
