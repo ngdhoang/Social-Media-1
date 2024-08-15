@@ -62,6 +62,7 @@ function connectWebSocket(token) {
     client.onConnect = (frame) => {
         setConnected(true);
         console.log('Connected: ' + frame);
+        startPingPong(); // Start ping-pong
         client.subscribe(wsConfig.topic, (message) => {
             console.log('Received message: ', message.body);
             showMessage(JSON.parse(message.body));
@@ -117,10 +118,12 @@ function updateUserInterface(userData) {
 function disconnect() {
     if (client) {
         client.deactivate();
+        stopPingPong(); // Stop ping-pong
         setConnected(false);
         console.log("Disconnected");
     }
 }
+
 
 function sendMessage() {
     if (client && client.connected) {
@@ -281,3 +284,33 @@ document.addEventListener("DOMContentLoaded", function () {
 
     setConnected(false);
 });
+
+//ping pong
+function sendPing() {
+    if (client && client.connected) {
+        client.publish({
+            destination: '/app/ping',
+            body: JSON.stringify({ message: 'ping' })
+        });
+        console.log('Sent ping message');
+    } else {
+        console.warn('Cannot send ping, client is not connected');
+    }
+}
+
+let pingInterval;
+
+function startPingPong() {
+    pingInterval = setInterval(sendPing, 30000); // 10,000 milliseconds = 10 seconds
+}
+
+function stopPingPong() {
+    if (pingInterval) {
+        clearInterval(pingInterval);
+        pingInterval = null;
+        console.log('Stopped ping-pong');
+    }
+}
+
+
+
