@@ -289,7 +289,7 @@ document.addEventListener("DOMContentLoaded", function () {
 function sendPing() {
     if (client && client.connected) {
         client.publish({
-            destination: '/app/ping',
+            destination: '/channel/ping',
             body: JSON.stringify({ message: 'ping' })
         });
         console.log('Sent ping message');

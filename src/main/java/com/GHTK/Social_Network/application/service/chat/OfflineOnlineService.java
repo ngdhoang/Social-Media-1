@@ -22,7 +22,7 @@ public class OfflineOnlineService implements OfflineOnlineInput {
 
   @Override
   public void removeOnlineUser(String sessionId) {
-    offlineOnlinePort.removeSessionInMongo(WebsocketContextHolder.getContext().getUserId());
+//    offlineOnlinePort.removeSessionInMongo(WebsocketContextHolder.getContext().getUserId());
     offlineOnlinePort.removeSessionInRedis(sessionId);
   }
 

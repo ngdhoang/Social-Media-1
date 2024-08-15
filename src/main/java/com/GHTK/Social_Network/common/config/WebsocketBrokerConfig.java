@@ -23,13 +23,12 @@ public class WebsocketBrokerConfig implements WebSocketMessageBrokerConfigurer {
 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry registry) {
-    registry.enableSimpleBroker("/topic", "/channel", "/queue")
-            .setHeartbeatValue(new long[]{30000, 30000})
-            .setTaskScheduler(taskScheduler());
+    registry.enableSimpleBroker("/topic", "/channel", "/queue");
+//            .setHeartbeatValue(new long[]{30000, 30000})
+//            .setTaskScheduler(taskScheduler());
     registry.setApplicationDestinationPrefixes("/app");
     registry.setUserDestinationPrefix("/user");
   }
-
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -44,11 +43,11 @@ public class WebsocketBrokerConfig implements WebSocketMessageBrokerConfigurer {
     registration.interceptors(websocketFilter);
   }
 
-  @Bean
-  public ThreadPoolTaskScheduler taskScheduler() {
-    ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-    taskScheduler.setPoolSize(1);
-    taskScheduler.setThreadNamePrefix("wss-heartbeat-thread-");
-    return taskScheduler;
-  }
+//  @Bean
+//  public ThreadPoolTaskScheduler taskScheduler() {
+//    ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+//    taskScheduler.setPoolSize(1);
+//    taskScheduler.setThreadNamePrefix("wss-heartbeat-thread-");
+//    return taskScheduler;
+//  }
 }
