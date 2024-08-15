@@ -12,6 +12,8 @@ public interface MessagePort {
 
   Message saveMessage(Message newMessage);
 
+  Message getLastMessageByGroupId(String groupId);
+
   void saveOrChangeReactionMessage(String msgId, Long userId, EReactionType reactionType);
 
   List<Pair<Message, Message>> getMessagesByGroupId(String groupId, PaginationRequest paginationRequest);

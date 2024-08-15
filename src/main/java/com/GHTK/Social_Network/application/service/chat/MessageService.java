@@ -9,6 +9,7 @@ import com.GHTK.Social_Network.application.port.output.chat.MessagePort;
 import com.GHTK.Social_Network.application.port.output.chat.WebsocketClientPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.collection.UserCollectionDomain;
+import com.GHTK.Social_Network.domain.collection.UserGroup;
 import com.GHTK.Social_Network.domain.collection.chat.*;
 import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import com.GHTK.Social_Network.domain.model.user.User;
@@ -17,10 +18,11 @@ import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.PaginationRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionRequest;
-import com.GHTK.Social_Network.infrastructure.payload.responses.ChatMessageReplyResponse;
-import com.GHTK.Social_Network.infrastructure.payload.responses.ChatMessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ReactionChatResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.chat.ChatMessageReplyResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.chat.ChatMessageResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.chat.ListChatMessageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -128,14 +130,11 @@ public class MessageService implements MessagePortInput {
                 userBasicDtoList.add(userBasicDto);
               }
 
-              if (reactionMessage.getReactionType().equals(EReactionType.LIKE)) {
-                reactionChatResponse.setCountLike(reactionChatResponse.getCountLike() + 1);
-              } else if (reactionMessage.getReactionType().equals(EReactionType.ANGRY)) {
-                reactionChatResponse.setCountAngry(reactionChatResponse.getCountAngry() + 1);
-              } else if (reactionMessage.getReactionType().equals(EReactionType.LOVE)) {
-                reactionChatResponse.setCountLove(reactionChatResponse.getCountLove() + 1);
-              } else {
-                reactionChatResponse.setCountSmile(reactionChatResponse.getCountSmile() + 1);
+              switch (reactionMessage.getReactionType()) {
+                case LIKE -> reactionChatResponse.setCountLike(reactionChatResponse.getCountLike() + 1);
+                case ANGRY -> reactionChatResponse.setCountAngry(reactionChatResponse.getCountAngry() + 1);
+                case LOVE -> reactionChatResponse.setCountLove(reactionChatResponse.getCountLove() + 1);
+                default -> reactionChatResponse.setCountSmile(reactionChatResponse.getCountSmile() + 1);
               }
 
             }
@@ -147,8 +146,8 @@ public class MessageService implements MessagePortInput {
   }
 
   @Override
-  public List<ChatMessageReplyResponse> getMessages(String groupId, PaginationRequest paginationRequest) {
-    return messagePort.getMessagesByGroupId(groupId, paginationRequest).stream().map(
+  public ListChatMessageResponse getMessages(String groupId, PaginationRequest paginationRequest) {
+    List<ChatMessageReplyResponse> chatMessageReplyResponses = messagePort.getMessagesByGroupId(groupId, paginationRequest).stream().map(
             m -> {
               Message messageChild = m.getRight();
               Message messageParent = m.getLeft();
@@ -173,6 +172,30 @@ public class MessageService implements MessagePortInput {
               );
             }
     ).toList();
+
+    if (!chatMessageReplyResponses.isEmpty()) {
+      String lastMsgId = chatMessageReplyResponses.get(chatMessageReplyResponses.size() - 1).getMsgReply().getMsgId();
+      readMessages(lastMsgId);
+    }
+
+    Group group = getGroup(groupId);
+    Message lastMessage = messagePort.getLastMessageByGroupId(groupId);
+    List<UserBasicDto> userBasicDtoList = new ArrayList<>();
+    group.getMembers().forEach(member -> {
+      if (member.getLastTimeMsgSeen() != null) {
+        if (member.getLastTimeMsgSeen().isAfter(lastMessage.getCreateAt())) {
+          userBasicDtoList.add(
+                  userMapper.userToUserBasicDto(authPort.getUserById(member.getUserId()))
+          );
+        }
+      }
+    });
+
+    return new ListChatMessageResponse(
+            chatMessageReplyResponses,
+            userBasicDtoList,
+            userBasicDtoList.size()
+    );
   }
 
   @Override
@@ -199,6 +222,32 @@ public class MessageService implements MessagePortInput {
 
     return new MessageResponse("No update required");
   }
+
+  @Override
+  public MessageResponse typingMessages(String groupId) {
+    UserBasicDto currentUser = websocketClientPort.getUserAuth();
+    UserCollectionDomain userCollectionDomain = authPort.getUserCollectionById(currentUser.getUserId());
+    Group group = getValidatedGroup(groupId);
+
+    for (UserGroup userGroupInfo : userCollectionDomain.getUserGroupInfoList()) {
+      if (userGroupInfo.getGroupId().equals(groupId)) {
+        websocketClientPort.sendListUserAndNotSave(
+                Message.builder()
+                        .userAuthId(currentUser.getUserId())
+                        .content("Typing")
+                        .msgType(EMessageType.TYPING)
+                        .build(),
+                group.getMembers().stream().map(
+                        Member::getUserId
+                ).toList()
+        );
+        break;
+      }
+    }
+
+    return new MessageResponse("Message typing successfully");
+  }
+
 
   private Group getValidatedGroup(String groupId) {
     Group group = getGroup(groupId);
@@ -232,6 +281,7 @@ public class MessageService implements MessagePortInput {
     group.setMembers(updatedMembers);
     groupPort.saveGroup(group);
   }
+
   private void updateUserCollectionLastSeen(Long userId, String groupId, String msgId) {
     UserCollectionDomain userCollectionDomain = authPort.getUserCollectionById(userId);
     userCollectionDomain.getUserGroupInfoList().stream()

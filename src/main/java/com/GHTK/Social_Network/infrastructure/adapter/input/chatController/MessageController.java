@@ -60,4 +60,9 @@ public class MessageController {
   public ResponseEntity<Object> readMessage(@PathVariable String msgId) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, messagePortInput.readMessages(msgId));
   }
+
+  @PostMapping("/messages/typing/{groupId}")
+  public ResponseEntity<Object> Message(@PathVariable String groupId) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, messagePortInput.typingMessages(groupId));
+  }
 }

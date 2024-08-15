@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.infrastructure.payload.responses;
+package com.GHTK.Social_Network.infrastructure.payload.responses.chat;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

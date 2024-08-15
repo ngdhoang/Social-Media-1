@@ -10,5 +10,6 @@ public enum EMessageTypeCollection {
   DELETE_RECALL,
   EMOJI,
   IMAGE,
-  ERROR
+  ERROR,
+  TYPING
 }

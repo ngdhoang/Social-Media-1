@@ -13,6 +13,7 @@ import com.GHTK.Social_Network.infrastructure.payload.requests.PaginationRequest
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MessageAdapter implements MessagePort {
   private final MessageRepository messageRepository;
+  private final MongoTemplate mongoTemplate;
 
   private final MessageMapperETD messageMapperETD;
   private final ReactionTypeMapperETD reactionTypeMapperETD;
@@ -40,6 +42,17 @@ public class MessageAdapter implements MessagePort {
     return messageMapperETD.messageCollectionToMessage(
             messageRepository.save(messageMapperETD.messageToMessageCollection(newMessage))
     );
+  }
+
+  @Override
+  public Message getLastMessageByGroupId(String groupId) {
+    PaginationRequest paginationRequest = new PaginationRequest();
+    paginationRequest.setPage(0);
+    paginationRequest.setSize(1);
+//    paginationRequest.setOrderBy("asc");
+    List<Pair<Message, Message>> message = getMessagesByGroupId(groupId, paginationRequest);
+
+    return message.get(message.size() - 1).getRight();
   }
 
   @Override

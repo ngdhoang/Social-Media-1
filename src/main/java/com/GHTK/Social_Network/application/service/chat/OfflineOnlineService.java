@@ -3,6 +3,7 @@ package com.GHTK.Social_Network.application.service.chat;
 import com.GHTK.Social_Network.application.port.input.OfflineOnlineInput;
 import com.GHTK.Social_Network.application.port.output.OfflineOnlinePort;
 import com.GHTK.Social_Network.domain.model.user.User;
+import com.GHTK.Social_Network.infrastructure.adapter.input.websocket.WebsocketContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ public class OfflineOnlineService implements OfflineOnlineInput {
 
   @Override
   public void removeOnlineUser(String sessionId) {
+    offlineOnlinePort.removeSessionInMongo(WebsocketContextHolder.getContext().getUserId());
     offlineOnlinePort.removeSessionInRedis(sessionId);
   }
 

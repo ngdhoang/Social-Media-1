@@ -2,10 +2,11 @@ package com.GHTK.Social_Network.application.port.input.chat;
 
 import com.GHTK.Social_Network.infrastructure.payload.requests.PaginationRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionRequest;
-import com.GHTK.Social_Network.infrastructure.payload.responses.ChatMessageReplyResponse;
-import com.GHTK.Social_Network.infrastructure.payload.responses.ChatMessageResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.chat.ChatMessageReplyResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.chat.ChatMessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ReactionChatResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.chat.ListChatMessageResponse;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -21,7 +22,9 @@ public interface MessagePortInput {
 
   ReactionChatResponse getReactionMessage(String messageId, String status);
 
-  List<ChatMessageReplyResponse> getMessages(String groupId, PaginationRequest paginationRequest);
+  ListChatMessageResponse getMessages(String groupId, PaginationRequest paginationRequest);
 
   MessageResponse readMessages(String msgId);
+
+  MessageResponse typingMessages(String groupId);
 }

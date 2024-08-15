@@ -22,3 +22,4 @@ public interface MessageRepository extends MongoRepository<MessageCollection, St
   @Update("{'$push': {'reactionMsgs': ?1}, '$set': {'content': ?2}}")
   void addReaction(String msgId, ReactionMessagesCollection reaction, String content);
 }
+
