@@ -289,7 +289,7 @@ document.addEventListener("DOMContentLoaded", function () {
 function sendPing() {
     if (client && client.connected) {
         client.publish({
-            destination: '/channel/ping',
+            destination: '/app/ping',
             body: JSON.stringify({ message: 'ping' })
         });
         console.log('Sent ping message');
@@ -301,7 +301,7 @@ function sendPing() {
 let pingInterval;
 
 function startPingPong() {
-    pingInterval = setInterval(sendPing, 30000); // 10,000 milliseconds = 10 seconds
+    pingInterval = setInterval(sendPing, 30000); // 30 seconds
 }
 
 function stopPingPong() {
