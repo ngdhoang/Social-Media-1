@@ -1,0 +1,11 @@
+a. Chat Application
+Topic cho tin nhắn nhóm: /topic/group/{groupId}
+Queue cho tin nhắn riêng tư: /queue/private/{userId}
+
+b. Notification System
+Topic cho thông báo toàn hệ thống: /topic/notifications
+Queue cho thông báo cá nhân: /queue/user/{userId}/notifications
+
+c. Live Updates
+Topic cho các cập nhật chung: /topic/updates
+Queue cho các cập nhật theo dõi: /queue/updates/{entityId}
