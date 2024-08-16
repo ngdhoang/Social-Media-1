@@ -11,6 +11,7 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public class GlobalExceptionHandler {
     return ResponseHandler.generateErrorResponse(errors.get(0), HttpStatus.BAD_REQUEST);
   }
 
-  @ExceptionHandler(value = CustomException.class)
+  @ExceptionHandler({CustomException.class, NoResourceFoundException.class})
   public ResponseEntity<Object> handleCustomException(CustomException e) {
     return ResponseHandler.generateErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
   }

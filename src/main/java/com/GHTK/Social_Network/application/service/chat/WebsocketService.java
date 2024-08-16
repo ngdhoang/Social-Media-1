@@ -1,22 +1,15 @@
 package com.GHTK.Social_Network.application.service.chat;
 
-import com.GHTK.Social_Network.application.port.input.chat.GroupPortInput;
 import com.GHTK.Social_Network.application.port.input.chat.WebsocketPortInput;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.chat.GroupPort;
 import com.GHTK.Social_Network.application.port.output.chat.MessagePort;
 import com.GHTK.Social_Network.application.port.output.chat.WebsocketClientPort;
-import com.GHTK.Social_Network.common.customException.CustomException;
-import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
-import com.GHTK.Social_Network.domain.collection.chat.Group;
-import com.GHTK.Social_Network.domain.collection.chat.Member;
-import com.GHTK.Social_Network.domain.collection.chat.Message;
+import com.GHTK.Social_Network.domain.collection.chat.*;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ChatMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.MessageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
-import com.GHTK.Social_Network.infrastructure.payload.requests.CreateGroupRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -28,12 +21,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class WebsocketService implements WebsocketPortInput {
   private static final String GROUP_ID_SEPARATOR = "_";
+  private static final String MESSAGE_ERROR = "Message error";
   private static final String ERROR_GROUP_NOT_EXISTS = "Group does not exist";
   private static final String ERROR_USER_NOT_EXISTS = "User does not exist";
   private static final String ERROR_USER_BLOCKED = "User is blocked";
   private static final String ERROR_USER_NOT_FRIEND = "User is not a friend";
-
-  private final GroupPortInput groupPortInput;
 
   private final FriendShipPort friendShipPort;
   private final WebsocketClientPort webSocketClientPort;
@@ -44,7 +36,13 @@ public class WebsocketService implements WebsocketPortInput {
 
   @Override
   public void handleIncomingMessage(MessageDto message) {
+    message.setContent(message.getContent().trim());
+
     UserBasicDto currentUser = webSocketClientPort.getUserAuth();
+
+    if (!validateMessageContent(message, currentUser.getUserId())) {
+      return;
+    }
 
     boolean isGroup = message.getGroupType().equals(EGroupType.GROUP);
 
@@ -134,6 +132,14 @@ public class WebsocketService implements WebsocketPortInput {
     return true;
   }
 
+  private boolean validateMessageContent(MessageDto message, Long currentUserId) {
+    if (message.getContent().isEmpty() && message.getMsgType().equals(EMessageType.MESSAGE)) {
+      sendError(MESSAGE_ERROR, currentUserId);
+      return false;
+    }
+    return true;
+  }
+
   private boolean validateTagUsers(Long currentUserId, List<Long> tagUserIds, List<Long> memberList) {
     for (Long id : tagUserIds) {
       if (friendShipPort.isDeleteUser(id)) {
@@ -186,12 +192,6 @@ public class WebsocketService implements WebsocketPortInput {
     Message message = chatMapper.messageDtoToMessage(msg);
     message.setUserAuthId(userIdSend);
     webSocketClientPort.sendUserAndSave(EGroupType.PERSONAL, message, "/channel/app/" + userReceiveId);
-  }
-
-  private void sendReplyToUser(MessageDto msgReply, Message msg, Long userIdSend, Long userReceiveId) {
-    Message messageReply = chatMapper.messageDtoToMessage(msgReply);
-    messageReply.setUserAuthId(userIdSend);
-    webSocketClientPort.sendRelyUserAndSave(EGroupType.PERSONAL, messageReply, msg, "/channel/app/" + userReceiveId);
   }
 
   private void sendToGroup(MessageDto msg, Long userIdSend, String groupId) {

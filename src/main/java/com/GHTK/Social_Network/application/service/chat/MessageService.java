@@ -225,7 +225,7 @@ public class MessageService implements MessagePortInput {
 
   @Override
   public MessageResponse typingMessages(String groupId) {
-    UserBasicDto currentUser = websocketClientPort.getUserAuth();
+    User currentUser = authPort.getUserAuth();
     UserCollectionDomain userCollectionDomain = authPort.getUserCollectionById(currentUser.getUserId());
     Group group = getValidatedGroup(groupId);
 

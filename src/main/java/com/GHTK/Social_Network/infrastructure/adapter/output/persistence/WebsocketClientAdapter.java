@@ -43,12 +43,14 @@ public class WebsocketClientAdapter implements WebsocketClientPort {
 
     ChatMessageResponse messageSend = chatMapper.messageToMessageResponse(message, userMapper.userToUserBasicDto(authPort.getUserById(message.getUserAuthId())), groupType);
     messagingTemplate.convertAndSend(destination, messageSend);
+    sendUserAndNotSave(message, "/channel/app/" + message.getUserAuthId());
   }
 
   @Override
   public void sendRelyUserAndSave(EGroupType groupType, Message message, Message messageQuote, String destination) {
     message = saveMessage(message);
     messagingTemplate.convertAndSend(destination, messageToChatMessageReplyResponse(message, messageQuote, groupType));
+    sendUserAndNotSave(message, "/channel/app/" + message.getUserAuthId());
   }
 
   @Override
@@ -67,6 +69,7 @@ public class WebsocketClientAdapter implements WebsocketClientPort {
   public void sendListUserAndSave(Message messages, List<Long> receiverIds) {
     messages = saveMessage(messages);
     sendListUserAndNotSave(messages, receiverIds);
+    sendUserAndNotSave(messages, "/channel/app/" + messages.getUserAuthId());
   }
 
   @Override
@@ -78,6 +81,7 @@ public class WebsocketClientAdapter implements WebsocketClientPort {
       ChatMessageReplyResponse chatMessageReplyResponse = messageToChatMessageReplyResponse(message, messageQuote, EGroupType.PERSONAL);
       messagingTemplate.convertAndSend(destination, chatMessageReplyResponse);
     }
+    sendUserAndNotSave(message, "/channel/app/" + message.getUserAuthId());
   }
 
   @Override
