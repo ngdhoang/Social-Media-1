@@ -1,0 +1,61 @@
+// Get Post + URL: page=1
+{
+	"postId":
+	"content":
+	"createAt":
+	"updateAt":
+	"status":
+	"tagUsers": [
+		{
+			"userId":
+			"firstName":
+			"lastName":
+			"userEmail":
+			"avatar":
+		}
+	]
+
+	"imageUrls": [
+		{
+			"imageId":
+			"imageUrl":
+		}
+	]
+	"reactionsQuantity": 10
+	"commentQuantity": 20
+}
+
+// Create Post
+{
+    "status": "public/private/friend",
+    "content" "",
+    "tagUserIds": [1, 2, 3, 4],
+    "imageIds": [1, 0, 1],
+    "publicIds": ["antiCoder"]
+}
+
+// Update Post + ?p=
+{
+    "status": "public/private/friend",
+    "content" "",
+    "tagUserIds": [1, 2, 3, 4],
+    "imageIds": [1, 0, 1],
+    "publicIds": ["antiCoder"]
+}
+
+
+// Response <-> domain <-> entity
+domainToResponse
+responseToDomain
+domainToEntity
+entityToDomain
+
+
+
+
+
+
+
+
+
+
