@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.websocket;
 
-import com.GHTK.Social_Network.application.port.output.RedisSessionWsPort;
+import com.GHTK.Social_Network.application.port.output.chat.redis.RedisWebsocketPort;
 import com.GHTK.Social_Network.application.port.output.chat.WebsocketPort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class WebsocketFilter implements ChannelInterceptor {
-  private final RedisSessionWsPort redisSessionWsPort;
+  private final RedisWebsocketPort redisWebsocketPort;
   private final AuthPort authPort;
   private final WebsocketPort websocketPort;
   private final UserMapper userMapper;
@@ -45,9 +45,9 @@ public class WebsocketFilter implements ChannelInterceptor {
   }
 
   private void sendPreManagerHandler(String sessionId) {
-    String key = redisSessionWsPort.getKeyByHeaderKey(sessionId);
+    String key = redisWebsocketPort.getKeyByHead(sessionId);
 
-    String[] parts = key.split(RedisSessionWsPort.WS);
+    String[] parts = key.split(RedisWebsocketPort.WEBSOCKET);
     String userId = parts.length > 0 ? parts[parts.length - 1] : null;
 
     User user = authPort.getUserById(Long.valueOf(userId));

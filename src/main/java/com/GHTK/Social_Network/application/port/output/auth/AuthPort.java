@@ -40,6 +40,8 @@ public interface AuthPort {
 
   void saveAccessTokenInRedis(String token, AccessTokenDto accessTokenDto);
 
+  void saveRefreshTokenInRedis(String token, String fingerprinting, UserDetailsImpl userDetails);
+
   void saveAllAccessTokenInRedis(String userEmail, Set<Map<String, AccessTokenDto>> tokenEntities);
 
   void saveAllAccessTokenInRedis(UserDetailsImpl userDetails, Set<Map<String, AccessTokenDto>> tokenEntities);

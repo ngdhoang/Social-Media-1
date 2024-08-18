@@ -16,10 +16,8 @@ import com.GHTK.Social_Network.infrastructure.mapper.UserCollectionMapperETD;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -83,10 +81,23 @@ public class GroupAdapter implements GroupPort {
   }
 
   @Override
+  public Set<Group> getGroupsByUserId(Long userId) {
+    UserCollection userCollection = userCollectionRepository.findByUserId(userId);
+    return userCollection.getUserGroupInfoList().stream().map(
+            userGroupInfo -> {
+              if (userGroupInfo.getState().equals(EStateUserGroupCollection.PERSONAL))
+                return getGroupForPersonal(userGroupInfo.getGroupId());
+              else
+                return getGroupForGroup(userGroupInfo.getGroupId());
+            }
+    ).collect(Collectors.toSet());
+  }
+
+  @Override
   public boolean isUserInGroup(Long userId, String groupId) {
     Group group = getGroupForPersonal(groupId);
     if (group == null) {
-      return false;
+      group = getGroupForGroup(groupId);
     }
 
     return group.getMembers().stream()

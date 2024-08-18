@@ -1,7 +1,8 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.websocket.Listener;
 
-import com.GHTK.Social_Network.application.port.input.OfflineOnlineInput;
+import com.GHTK.Social_Network.application.port.input.chat.OfflineOnlineInput;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
+import com.GHTK.Social_Network.application.port.output.chat.CallVideoPort;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,8 @@ public class WebsocketConnectListener {
 
   private final OfflineOnlineInput offlineOnlineInput;
   private final AuthPort authPort;
+  private final CallVideoPort callVideoPort;
+
   private final SimpMessageSendingOperations messagingTemplate;
 
   @EventListener
@@ -42,6 +45,7 @@ public class WebsocketConnectListener {
       if (userDetails != null && fingerprinting != null) {
         log.info("User connected: {}", userDetails.getUsername());
         offlineOnlineInput.addOnlineUser(authPort.findByEmail(userDetails.getUsername()).orElse(null), "1234", sessionId);
+        callVideoPort.handlerCallVideo(userDetails.getUserEntity().getUserId());
 
         String destinationSub = "/channel/app/" + userDetails.getUserEntity().getUserId();
         messagingTemplate.convertAndSend(destinationSub, "You are automatically subscribed!");

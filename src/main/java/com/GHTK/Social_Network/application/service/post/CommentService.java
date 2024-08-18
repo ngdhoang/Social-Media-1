@@ -7,7 +7,7 @@ import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.post.CommentPostPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
-import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
+import com.GHTK.Social_Network.application.port.output.post.RedisImagePort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.model.post.EPostStatus;
 import com.GHTK.Social_Network.domain.model.post.Post;
@@ -40,7 +40,7 @@ public class CommentService implements CommentPostInput {
   private final AuthPort authPort;
   private final CommentPostPort commentPostPort;
   private final FriendShipPort friendShipPort;
-  private final RedisImageTemplatePort redisImageTemplatePort;
+  private final RedisImagePort redisImageTemplatePort;
   private final ImagePostPort imagePostPort;
 
   private final CommentMapper commentMapper;

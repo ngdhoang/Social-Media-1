@@ -4,7 +4,6 @@ import com.GHTK.Social_Network.application.port.input.chat.GroupPortInput;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.chat.GroupPort;
-import com.GHTK.Social_Network.application.port.output.chat.WebsocketClientPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.collection.UserCollectionDomain;
 import com.GHTK.Social_Network.domain.collection.UserGroup;
@@ -27,7 +26,6 @@ public class GroupService implements GroupPortInput {
   private final FriendShipPort friendShipPort;
   private final GroupPort groupPort;
   private final AuthPort authPort;
-  private final WebsocketClientPort websocketClientPort;
 
   private final GroupMapper groupMapper;
 
@@ -40,6 +38,7 @@ public class GroupService implements GroupPortInput {
     Group newGroup = groupMapper.createGroupToDomain(
             createGroupRequest
     );
+    newGroup.setMembers(members);
     GroupResponse groupResponse = groupMapper.groupToResponse(groupPort.saveGroup(newGroup));
 
     setMemberInGroup(members, groupResponse.getGroupId());
@@ -50,9 +49,9 @@ public class GroupService implements GroupPortInput {
     userIds.forEach(userId -> {
       if (friendShipPort.isBlock(currentId, userId)
               || friendShipPort.isDeleteUser(userId)
-              || friendShipPort.isFriend(userId, currentId)
+              || !friendShipPort.isFriend(userId, currentId)
       ) {
-        throw new CustomException("UserId " + userId + "don't exist", HttpStatus.BAD_REQUEST);
+        throw new CustomException("UserId " + userId + " don't exist", HttpStatus.BAD_REQUEST);
       }
     });
   }
@@ -60,7 +59,7 @@ public class GroupService implements GroupPortInput {
   private Member userToMember(User member, String role) {
     return new Member(
             member.getUserId(),
-            null, // default nickname
+            null,
             null,
             role
     );

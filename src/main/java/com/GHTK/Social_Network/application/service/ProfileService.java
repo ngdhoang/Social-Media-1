@@ -34,8 +34,8 @@ public class ProfileService implements ProfilePortInput {
     User currentUser = authPort.getUserAuthOrDefaultVirtual();
     id = id < 0 ? currentUser.getUserId() : id; // if id < 0 take profile auth
 
-    UserDto userDto = new UserDto();
-    UserDto cachedProfile = redisProfilePort.findByKey(String.valueOf(id));
+    UserDto userDto;
+    UserDto cachedProfile = redisProfilePort.findByKey(id + RedisProfilePort.PROFILE);
     if (cachedProfile != null) {
       if (!cachedProfile.getIsProfilePublic() && !currentUser.getUserId().equals(id)) {
         throw new CustomException("You don't have permission to view this profile", HttpStatus.FORBIDDEN);
@@ -53,7 +53,7 @@ public class ProfileService implements ProfilePortInput {
 
       userDto = userMapper.userAndProfileToUserDto(user, profile);
 
-      redisProfilePort.createOrUpdate(String.valueOf(id), userDto);
+      redisProfilePort.createOrUpdate(id + RedisProfilePort.PROFILE, userDto);
     }
 
     return toResponse(currentUser.getUserId(), id, userDto);
@@ -68,7 +68,7 @@ public class ProfileService implements ProfilePortInput {
     Profile profile = profilePort.takeProfileById(userId);
     UserDto userDto = userMapper.userAndProfileToUserDto(currentUser, profile);
     if (isUpdateProfile) {
-      redisProfilePort.createOrUpdate(String.valueOf(userId), userDto);
+      redisProfilePort.createOrUpdate(userId + RedisProfilePort.PROFILE, userDto);
     }
     return toResponse(userId, userId, userDto);
   }
@@ -81,7 +81,7 @@ public class ProfileService implements ProfilePortInput {
     if (profilePort.setProfileStateById(profileStateDto, currentUser.getUserId())) {
       Profile profile = profilePort.takeProfileById(currentUser.getUserId());
       UserDto userDto = userMapper.userAndProfileToUserDto(currentUser, profile);
-      redisProfilePort.createOrUpdate(String.valueOf(userDto.getUserId()), userDto);
+      redisProfilePort.createOrUpdate(userDto.getUserId() + RedisProfilePort.PROFILE, userDto);
       return toResponse(userId, userId, userDto);
     }
     throw new CustomException("Error updating avatar", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -97,14 +97,14 @@ public class ProfileService implements ProfilePortInput {
     if (user == null) {
       throw new CustomException("Error updating state", HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    UserDto userDto = redisProfilePort.findByKey(String.valueOf(currentUser.getUserId()));
+    UserDto userDto = redisProfilePort.findByKey(currentUser.getUserId() + RedisProfilePort.PROFILE);
     if (userDto != null) {
       userDto.setIsProfilePublic(state);
       return userDto;
     }
     Profile profile = profilePort.takeProfileById(userId);
     userDto = userMapper.userAndProfileToUserDto(user, profile);
-    redisProfilePort.createOrUpdate(String.valueOf(userId), userDto);
+    redisProfilePort.createOrUpdate(userId + RedisProfilePort.PROFILE, userDto);
     return toResponse(userId, userId, userDto);
   }
 
@@ -122,7 +122,7 @@ public class ProfileService implements ProfilePortInput {
     Profile profile = profilePort.takeProfileById(userId);
     UserDto userDto = userMapper.userAndProfileToUserDto(currentUser, profile);
     userDto.setAvatar(url);
-    redisProfilePort.createOrUpdate(String.valueOf(userDto.getUserId()), userDto);
+    redisProfilePort.createOrUpdate(userDto.getUserId() + RedisProfilePort.PROFILE, userDto);
     return toResponse(userId, userId, userDto);
   }
 
@@ -140,7 +140,7 @@ public class ProfileService implements ProfilePortInput {
     Profile profile = profilePort.takeProfileById(userId);
     UserDto userDto = userMapper.userAndProfileToUserDto(currentUser, profile);
     userDto.setBackground(url);
-    redisProfilePort.createOrUpdate(String.valueOf(userDto.getUserId()), userDto);
+    redisProfilePort.createOrUpdate(userDto.getUserId() + RedisProfilePort.PROFILE, userDto);
     return toResponse(userId, userId, userDto);
   }
 

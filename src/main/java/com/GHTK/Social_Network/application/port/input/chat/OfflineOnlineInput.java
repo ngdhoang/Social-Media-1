@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.application.port.input;
+package com.GHTK.Social_Network.application.port.input.chat;
 
 import com.GHTK.Social_Network.domain.model.user.User;
 

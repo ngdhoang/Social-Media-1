@@ -6,7 +6,7 @@ import com.GHTK.Social_Network.application.port.output.OtpPort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.auth.DevicePort;
 import com.GHTK.Social_Network.application.port.output.auth.JwtPort;
-import com.GHTK.Social_Network.application.port.output.auth.RedisAuthPort;
+import com.GHTK.Social_Network.application.port.output.auth.redis.RedisAuthPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.model.user.Device;
 import com.GHTK.Social_Network.domain.model.user.EDeviceType;
@@ -42,92 +42,43 @@ public class AuthService implements AuthPortInput {
   private final AuthPort authPort;
   private final OtpPort otpPort;
   private final JwtPort jwtUtils;
-  private final RedisAuthPort redisAuthPort;
   private final DevicePort devicePort;
   private final DevicePortInput devicePortInput;
 
+  private final RedisAuthPort redisAuthPort;
+
   @Override
   public Object authenticate(AuthRequest authRequest, String userAgent, String fingerprinting) {
-    try {
-      authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-              authRequest.getUserEmail(),
-              authRequest.getPassword()
-      ));
-    } catch (BadCredentialsException e) {
-      throw new CustomException("Incorrect username or password", HttpStatus.UNAUTHORIZED);
-    }
+    authenticateUser(authRequest.getUserEmail(), authRequest.getPassword());
+    User user = findUserByEmail(authRequest.getUserEmail());
 
-    var user = authPort.findByEmail(authRequest.getUserEmail())
-            .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
-    if (devicePort.getDevice(fingerprinting, userAgent, user.getUserId()) == null) {
-      Map<String, Object> otpData = devicePortInput.generateOtp(3);
-      Integer chosenNumber = (Integer) otpData.get("selectedNumber");
-      List<Integer> listNumber = (List<Integer>) otpData.get("generatedNumbers");
-
-      List<String> otpList = listNumber.stream()
-              .map(Object::toString)
-              .collect(Collectors.toList());
-
-      redisAuthPort.createOrUpdate(chosenNumber + RedisAuthPort.DEVICE_TAIL + user.getUserEmail(),
-              AuthRedisDto.builder()
-                      .fingerprinting(fingerprinting)
-                      .userAgent(userAgent)
-                      .otp(otpList)
-                      .key(generateKeyDevicePing())
-                      .build());
-
-      return new MessageResponse("OTP: " + chosenNumber);
+    if (isNewDevice(fingerprinting, userAgent, user.getUserId())) {
+      return handleNewDevice(user.getUserEmail(), fingerprinting, userAgent);
     }
 
     return authenticationWithDeviceTrust(user, fingerprinting);
   }
 
-  private AuthResponse authenticationWithDeviceTrust(User user, String fingerprinting) {
-    UserDetailsImpl userDetails = authPort.getUserDetails(user);
-    var jwtToken = jwtUtils.generateToken(userDetails, fingerprinting);
-    var refreshToken = jwtUtils.generateRefreshToken(userDetails, fingerprinting);
-    revokeAllUserTokens(userDetails);
-    saveUserToken(userDetails, jwtToken, fingerprinting);
-
-    return new AuthResponse(jwtToken, refreshToken, user.getRole().toString());
-  }
-
   @Override
   public Object checkSuccessDevice(String key, String userAgent, String fingerprinting) {
-    String newKey =  key + "_" +fingerprinting + "_" + userAgent + RedisAuthPort.DEVICE_CHECK_TAIL;
-    if (redisAuthPort.existsByKey(newKey)) {
-      AuthRedisDto authRedisDto = redisAuthPort.findByKey(newKey);
-      String email = authRedisDto.getRegisterRequest().getUserEmail();
-      var user = authPort.findByEmail(email)
-              .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
-      redisAuthPort.deleteByKey(newKey);
-      return authenticationWithDeviceTrust(user, fingerprinting);
+    String newKey = key + "_" + fingerprinting + "_" + userAgent + RedisAuthPort.DEVICE_CHECK_TAIL;
+    if (!redisAuthPort.existsByKey(newKey)) {
+      return new MessageResponse("Nothing...");
     }
-    return new MessageResponse("Nothing...");
+
+    AuthRedisDto authRedisDto = redisAuthPort.findByKey(newKey);
+    String email = authRedisDto.getRegisterRequest().getUserEmail();
+    User user = findUserByEmail(email);
+    redisAuthPort.deleteByKey(newKey);
+    return authenticationWithDeviceTrust(user, fingerprinting);
   }
 
   @Override
   public MessageResponse checkOtpRegister(RegisterRequest registerRequest, String userAgent, String fingerprinting, int attemptCount, Long timeInterval) {
     validateOtp(registerRequest.getUserEmail(), registerRequest.getOtp(), attemptCount, timeInterval);
 
-    User userSave = createUser(registerRequest);
-    userSave = authPort.saveUser(userSave);
-    UserDetailsImpl userDetails = authPort.getUserDetails(userSave);
-    String jwtToken = jwtUtils.generateToken(userDetails, fingerprinting);
-    saveUserToken(userDetails, jwtToken, fingerprinting);
-
-    // save new device default
-    Device newDevice = new Device
-            (
-                    fingerprinting,
-                    userAgent,
-                    EDeviceType.DEFAULT,
-                    LocalDate.now(),
-                    userSave.getUserId());
-    devicePort.saveDevice(
-            newDevice,
-            userSave.getUserId()
-    );
+    User user = createAndSaveUser(registerRequest);
+    saveNewDevice(fingerprinting, userAgent, user);
 
     return new MessageResponse("Registration successful");
   }
@@ -136,26 +87,23 @@ public class AuthService implements AuthPortInput {
   public MessageResponse checkOtpForgotPassword(ForgotPasswordRequest forgotPasswordRequest, int attemptCount, Long timeInterval) {
     validateOtp(forgotPasswordRequest.getUserEmail(), forgotPasswordRequest.getOtp(), attemptCount, timeInterval);
 
-    var user = authPort.findByEmail(forgotPasswordRequest.getUserEmail())
-            .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
-    UserDetailsImpl userDetails = authPort.getUserDetails(user);
-    revokeAllUserTokens(userDetails);
-
-    if (passwordEncoder.matches(forgotPasswordRequest.getNewPassword(), user.getPassword())) {
-      throw new CustomException("Old password and new password must be different", HttpStatus.CONFLICT);
-    }
+    User user = findUserByEmail(forgotPasswordRequest.getUserEmail());
+    validateNewPassword(forgotPasswordRequest.getNewPassword(), user);
 
     String encodeNewPassword = passwordEncoder.encode(forgotPasswordRequest.getNewPassword());
     authPort.changePassword(encodeNewPassword, user.getUserId());
+
+    revokeAllUserTokens(authPort.getUserDetails(user));
 
     return new MessageResponse("Password changed");
   }
 
   @Override
   public MessageResponse checkOtpDeleteAccount(OTPRequest otpRequest, int attemptCount, Long timeInterval) {
-    validateOtp(authPort.getUserAuth().getUserEmail(), otpRequest.getOtp(), attemptCount, timeInterval);
+    String userEmail = authPort.getUserAuth().getUserEmail();
+    validateOtp(userEmail, otpRequest.getOtp(), attemptCount, timeInterval);
 
-    authPort.deleteUserByEmail(authPort.getUserAuth().getUserEmail());
+    authPort.deleteUserByEmail(userEmail);
 
     return new MessageResponse("Account deleted");
   }
@@ -166,18 +114,15 @@ public class AuthService implements AuthPortInput {
       throw new CustomException("This email doesn't exist", HttpStatus.NOT_FOUND);
     }
 
-    String otp = otpPort.generateOtp();
-    saveOtpToRedis(forgotPasswordRequest.getUserEmail(), otp);
-    otpPort.sendOtpEmail(forgotPasswordRequest.getUserEmail(), otp);
+    String otp = generateAndSendOtp(forgotPasswordRequest.getUserEmail());
 
     return new MessageResponse("OTP sent to email");
   }
 
   @Override
   public MessageResponse deleteAccount() {
-    String otp = otpPort.generateOtp();
-    saveOtpToRedis(authPort.getUserAuth().getUserEmail(), otp);
-    otpPort.sendOtpEmail(authPort.getUserAuth().getUserEmail(), otp);
+    String userEmail = authPort.getUserAuth().getUserEmail();
+    String otp = generateAndSendOtp(userEmail);
 
     return new MessageResponse("OTP sent to email");
   }
@@ -188,12 +133,16 @@ public class AuthService implements AuthPortInput {
     if (infoAuth == null) {
       throw new CustomException("Invalid refresh token", HttpStatus.UNAUTHORIZED);
     }
-    revokeAllUserTokens(infoAuth.getLeft());
-    saveUserToken(infoAuth.getLeft(), infoAuth.getRight(), fingerprinting);
-    var user = authPort.findByEmail(infoAuth.getLeft().getUsername())
-            .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
-    return new AuthResponse(infoAuth.getRight(), "", user.getRole().toString());
+    UserDetailsImpl userDetails = infoAuth.getLeft();
+    String newToken = infoAuth.getRight();
+
+    revokeAllUserTokens(userDetails);
+    saveUserToken(userDetails, newToken, fingerprinting);
+
+    User user = findUserByEmail(userDetails.getUsername());
+
+    return new AuthResponse(newToken, "", user.getRole().toString());
   }
 
   @Override
@@ -213,26 +162,61 @@ public class AuthService implements AuthPortInput {
   public MessageResponse changePassword(ChangePasswordRequest changePasswordRequest) {
     User user = authPort.getUserAuth();
 
-    if (changePasswordRequest.getOldPassword().equals(changePasswordRequest.getNewPassword())) {
-      throw new CustomException("Old password and new password must be different", HttpStatus.CONFLICT);
-    }
-
-    if (!passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())) {
-      throw new CustomException("Old password is incorrect", HttpStatus.BAD_REQUEST);
-    }
-
-    if (user.getOldPassword() != null && passwordEncoder.matches(changePasswordRequest.getNewPassword(), user.getOldPassword())) {
-      throw new CustomException("Password has already been used before", HttpStatus.BAD_REQUEST);
-    }
+    validatePasswordChange(changePasswordRequest, user);
 
     String encodeNewPassword = passwordEncoder.encode(changePasswordRequest.getNewPassword());
     authPort.changePassword(encodeNewPassword, user.getUserId());
 
-
-    UserDetailsImpl userDetails = authPort.getUserDetails(user);
-    revokeAllUserTokens(userDetails);
+    revokeAllUserTokens(authPort.getUserDetails(user));
 
     return new MessageResponse("Password changed successfully");
+  }
+
+  private void authenticateUser(String email, String password) {
+    try {
+      authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+    } catch (BadCredentialsException e) {
+      throw new CustomException("Incorrect username or password", HttpStatus.UNAUTHORIZED);
+    }
+  }
+
+  private User findUserByEmail(String email) {
+    return authPort.findByEmail(email)
+            .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+  }
+
+  private boolean isNewDevice(String fingerprinting, String userAgent, Long userId) {
+    return devicePort.getDevice(fingerprinting, userAgent, userId) == null;
+  }
+
+  private MessageResponse handleNewDevice(String userEmail, String fingerprinting, String userAgent) {
+    Map<String, Object> otpData = devicePortInput.generateOtp(3);
+    Integer chosenNumber = (Integer) otpData.get("selectedNumber");
+    List<String> otpList = ((List<Integer>) otpData.get("generatedNumbers")).stream()
+            .map(Object::toString)
+            .collect(Collectors.toList());
+
+    redisAuthPort.createOrUpdate(chosenNumber + RedisAuthPort.DEVICE_TAIL + userEmail,
+            AuthRedisDto.builder()
+                    .fingerprinting(fingerprinting)
+                    .userAgent(userAgent)
+                    .otp(otpList)
+                    .key(UUID.randomUUID().toString())
+                    .build());
+
+    return new MessageResponse("OTP: " + chosenNumber);
+  }
+
+  private AuthResponse authenticationWithDeviceTrust(User user, String fingerprinting) {
+    UserDetailsImpl userDetails = authPort.getUserDetails(user);
+    String jwtToken = jwtUtils.generateToken(userDetails, fingerprinting);
+    String refreshToken = jwtUtils.generateRefreshToken(userDetails, fingerprinting);
+
+    revokeAllUserTokens(userDetails);
+    saveUserToken(userDetails, jwtToken, fingerprinting);
+    saveUserRefreshToken(refreshToken, fingerprinting, userDetails);
+
+    return new AuthResponse(jwtToken, refreshToken, user.getRole().toString());
   }
 
   private void validateOtp(String email, String providedOtp, int maxAttempts, long timeInterval) {
@@ -258,7 +242,6 @@ public class AuthService implements AuthPortInput {
     }
 
     redisAuthPort.deleteByKey(email);
-
   }
 
   private void saveOtpToRedis(RegisterRequest registerRequest, String fingerprinting, String userAgent, String otp) {
@@ -271,7 +254,7 @@ public class AuthService implements AuthPortInput {
     redisAuthPort.createOrUpdate(userEmail, authRedisDto);
   }
 
-  private User createUser(RegisterRequest registerRequest) {
+  private User createAndSaveUser(RegisterRequest registerRequest) {
     User user = new User(
             registerRequest.getFirstName(),
             registerRequest.getLastName(),
@@ -279,7 +262,52 @@ public class AuthService implements AuthPortInput {
             passwordEncoder.encode(registerRequest.getPassword())
     );
     user.setRole(ERole.USER);
-    return user;
+    return authPort.saveUser(user);
+  }
+
+  private String generateAndSaveToken(User user, String fingerprinting) {
+    UserDetailsImpl userDetails = authPort.getUserDetails(user);
+    String jwtToken = jwtUtils.generateToken(userDetails, fingerprinting);
+    saveUserToken(userDetails, jwtToken, fingerprinting);
+    return jwtToken;
+  }
+
+  private void saveNewDevice(String fingerprinting, String userAgent, User user) {
+    Device newDevice = new Device(
+            fingerprinting,
+            userAgent,
+            EDeviceType.DEFAULT,
+            LocalDate.now(),
+            user.getUserId()
+    );
+    devicePort.saveDevice(newDevice, user.getUserId());
+  }
+
+  private void validateNewPassword(String newPassword, User user) {
+    if (passwordEncoder.matches(newPassword, user.getPassword())) {
+      throw new CustomException("Old password and new password must be different", HttpStatus.CONFLICT);
+    }
+  }
+
+  private String generateAndSendOtp(String email) {
+    String otp = otpPort.generateOtp();
+    saveOtpToRedis(email, otp);
+    otpPort.sendOtpEmail(email, otp);
+    return otp;
+  }
+
+  private void validatePasswordChange(ChangePasswordRequest changePasswordRequest, User user) {
+    if (changePasswordRequest.getOldPassword().equals(changePasswordRequest.getNewPassword())) {
+      throw new CustomException("Old password and new password must be different", HttpStatus.CONFLICT);
+    }
+
+    if (!passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())) {
+      throw new CustomException("Old password is incorrect", HttpStatus.BAD_REQUEST);
+    }
+
+    if (user.getOldPassword() != null && passwordEncoder.matches(changePasswordRequest.getNewPassword(), user.getOldPassword())) {
+      throw new CustomException("Password has already been used before", HttpStatus.BAD_REQUEST);
+    }
   }
 
   private void saveUserToken(UserDetailsImpl userDetails, String jwtToken, String fingerprinting) {
@@ -307,9 +335,7 @@ public class AuthService implements AuthPortInput {
     authPort.saveAllAccessTokenInRedis(userDetails, validUserTokens);
   }
 
-  private String generateKeyDevicePing(){
-    UUID uuid = UUID.randomUUID();
-    return uuid.toString();
+  private void saveUserRefreshToken(String jwtToken, String fingerprinting, UserDetailsImpl userDetails) {
+    authPort.saveRefreshTokenInRedis(jwtToken, fingerprinting, userDetails);
   }
-
 }

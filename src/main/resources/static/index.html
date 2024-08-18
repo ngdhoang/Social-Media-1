@@ -9,13 +9,14 @@
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="./app.js"></script>
     <script src="./friend.js"></script>
+    <script src="./client.js"></script>
     <link rel="stylesheet" href="light.css">
     <link rel="stylesheet" href="dark.css">
+    <link rel="stylesheet" href="rtc.css">
 </head>
 <body>
 <h1>Configurable WebSocket Client</h1>
 
-<!-- Dark Mode Toggle Button -->
 <button id="darkModeToggle" style="margin-bottom: 15px">Dark Mode</button>
 
 <div class="container">
@@ -63,9 +64,11 @@
     </div>
     <button id="registerOtp">Register Success</button>
 </div>
+
 <div class="container">
     <div id="userInfo"></div>
 </div>
+
 <div class="container">
     <h2>Friend Management</h2>
     <div class="two-column">
@@ -100,23 +103,6 @@
     <button id="disconnect" disabled>Disconnect</button>
 </div>
 
-<!--<div class="container">-->
-<!--    <h2>WebSocket Configuration</h2>-->
-<!--    <div class="row">-->
-<!--        <label for="wsUrl">WebSocket URL:</label>-->
-<!--        <input type="text" id="wsUrl" placeholder="ws://localhost:8080/ws">-->
-<!--    </div>-->
-<!--    <div class="row">-->
-<!--        <label for="topic">Topic:</label>-->
-<!--        <input type="text" id="topic" placeholder="/topic/public">-->
-<!--    </div>-->
-<!--    <div class="row">-->
-<!--        <label for="appDestination">App Destination:</label>-->
-<!--        <input type="text" id="appDestination" placeholder="/app/channel">-->
-<!--    </div>-->
-<!--    <button id="updateConfig">Update Configuration</button>-->
-<!--</div>-->
-
 <div class="container">
     <h2>Send Message</h2>
     <div class="row">
@@ -139,15 +125,7 @@
         <label for="msgType">Message Type:</label>
         <select id="msgType">
             <option value="">Select Message Type</option>
-<!--            <option value="ADD_GROUP">ADD_GROUP</option>-->
-<!--            <option value="LEAVE_GROUP">LEAVE_GROUP</option>-->
-<!--            <option value="KICK_GROUP">KICK_GROUP</option>-->
             <option value="MESSAGE">MESSAGE</option>
-<!--            <option value="RECALL">RECALL</option>-->
-<!--            <option value="DELETE">DELETE</option>-->
-<!--            <option value="EMOJI">EMOJI</option>-->
-<!--            <option value="IMAGE">IMAGE</option>-->
-<!--            <option value="ERROR">ERROR</option>-->
         </select>
     </div>
     <button id="send">Send Message</button>
@@ -163,6 +141,19 @@
         </thead>
         <tbody id="greetings"></tbody>
     </table>
+</div>
+
+<div class="container">
+    <div class="row">
+        <label for="groupCall">User Email:</label>
+        <input type="text" id="groupCall" placeholder="GroupId">
+    </div>
+    <h1>WebRTC Video Call Demo</h1>
+    <button type="button" class="btn btn-primary" onclick='createOffer()'>Start Call</button>
+    <div class="video-container">
+        <video id="localVideo" autoplay muted></video>
+        <video id="remoteVideo" autoplay></video>
+    </div>
 </div>
 
 <script>

@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.chat;
 
 import com.GHTK.Social_Network.application.port.output.OfflineOnlinePort;
-import com.GHTK.Social_Network.application.port.output.RedisSessionWsPort;
+import com.GHTK.Social_Network.application.port.output.chat.redis.RedisWebsocketPort;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.UserCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.collection.UserCollectionRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,19 +12,19 @@ import java.time.Instant;
 @Service
 @RequiredArgsConstructor
 public class OfflineOnlineAdapter implements OfflineOnlinePort {
-  private final RedisSessionWsPort redisSessionWsPort;
+  private final RedisWebsocketPort redisWebsocketPort;
   private final UserCollectionRepository userCollectionRepository;
 
   @Override
   public void updateOrCreateSessionInRedis(String session, String fingerprinting, Long userId) {
-    String key = session + RedisSessionWsPort.WS + fingerprinting + RedisSessionWsPort.WS + userId;
-    redisSessionWsPort.createOrUpdate(key, null);
+    String key = session + RedisWebsocketPort.WEBSOCKET + fingerprinting + RedisWebsocketPort.WEBSOCKET + userId;
+    redisWebsocketPort.createOrUpdate(key, null);
   }
 
   @Override
   public void removeSessionInRedis(String sessionId) {
-    String key = redisSessionWsPort.getKeyByHeaderKey(sessionId);
-    redisSessionWsPort.deleteByKey(key);
+    String key = redisWebsocketPort.getKeyByHead(sessionId);
+    redisWebsocketPort.deleteByKey(key);
   }
 
   @Override
@@ -37,7 +37,7 @@ public class OfflineOnlineAdapter implements OfflineOnlinePort {
 
   @Override
   public boolean isOnlineInRedis(Long userId) {
-    return redisSessionWsPort.existsKeyByTailKey(userId);
+    return redisWebsocketPort.existsKeyByTailKey(userId);
   }
 
 }

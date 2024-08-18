@@ -3,15 +3,15 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.post;
 import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
 import com.GHTK.Social_Network.application.port.output.CloudPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
-import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
+import com.GHTK.Social_Network.application.port.output.post.RedisImagePort;
 import com.GHTK.Social_Network.domain.collection.ImageSequence;
 import com.GHTK.Social_Network.domain.model.post.ImagePost;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.ImageSequenceCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ImagePostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.PostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ImagePostRepository;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.collection.ImageSequenceRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.PostRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.collection.ImageSequenceRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.ImagePostMapperETD;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -20,13 +20,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class ImagePostAdapter implements ImagePostPort {
   private final ImagePostRepository imagePostRepository;
-  private final RedisImageTemplatePort redisImageTemplatePort;
+  private final RedisImagePort redisImageTemplatePort;
   private final ImageSequenceRepository imageSequenceRepository;
   private final PostRepository postRepository;
   private final ImagePostMapperETD imagePostMapperETD;
@@ -45,7 +44,7 @@ public class ImagePostAdapter implements ImagePostPort {
   @Async
   @Override
   public void deleteAllImageRedisByTail(String tail) {
-    Set<String> keys = redisImageTemplatePort.findAllByKeys("*" + tail);
+    List<String> keys = redisImageTemplatePort.getKeysByTail(tail);
 
     if (!keys.isEmpty()) {
       keys.forEach(k -> {
