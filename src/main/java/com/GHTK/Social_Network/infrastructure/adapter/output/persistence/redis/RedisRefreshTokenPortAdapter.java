@@ -1,32 +1,24 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.redis;
 
-import com.GHTK.Social_Network.application.port.output.auth.RedisRefreshTokenPort;
-import lombok.RequiredArgsConstructor;
+import com.GHTK.Social_Network.application.port.output.auth.redis.RedisRefreshTokenPort;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 
-@Service
-@RequiredArgsConstructor
-public class RedisRefreshTokenPortAdapter implements RedisRefreshTokenPort {
-  private final RedisTemplate<String, String> refeshTokenRedisTemplate;
+import java.util.concurrent.TimeUnit;
 
-  @Override
-  public String findByKey(String key) {
-    return refeshTokenRedisTemplate.opsForValue().get(key);
+@Repository
+public class RedisRefreshTokenPortAdapter extends CrudRedisAdapter<String, String> implements RedisRefreshTokenPort {
+  @Value("${application.GHTK.JwtUtils.refreshExpiration}")
+  private long refreshExpiration;
+
+  public RedisRefreshTokenPortAdapter(@Qualifier("StringRedisTemplate") RedisTemplate<String, String> redisTemplate) {
+    super(redisTemplate);
   }
 
   @Override
   public void createOrUpdate(String key, String value) {
-    refeshTokenRedisTemplate.opsForValue().set(key, value);
-  }
-
-  @Override
-  public void deleteByKey(String key) {
-    refeshTokenRedisTemplate.delete(key);
-  }
-
-  @Override
-  public Boolean existsByKey(String key) {
-    return refeshTokenRedisTemplate.hasKey(key);
+    super.createOrUpdateWithTTL(key, value, refreshExpiration, TimeUnit.SECONDS);
   }
 }

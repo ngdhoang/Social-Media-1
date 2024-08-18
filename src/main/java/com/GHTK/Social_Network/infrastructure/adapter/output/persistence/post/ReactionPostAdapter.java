@@ -57,16 +57,6 @@ public class ReactionPostAdapter implements ReactionPostPort {
   }
 
   @Override
-  public int countReactionByPostId(Long postId) {
-    return reactionPostRepository.countReactionByPostId(postId);
-  }
-
-  @Override
-  public int countReactionByPostIdAndType(Long postId, EReactionType reactionType) {
-    return reactionPostRepository.countReactionByPostIdAndType(postId, reactionTypeMapperETD.toEntity(reactionType));
-  }
-
-  @Override
   public List<Map<EReactionType, Set<ReactionPost>>> getReactionGroupByPostId(Long postId) {
 
     List<Map<String, Object>> list = reactionPostRepository.getReactionGroupByPostId(postId);
@@ -132,17 +122,6 @@ public class ReactionPostAdapter implements ReactionPostPort {
     } else {
       throw new IllegalArgumentException("Unsupported type for conversion: " + value.getClass());
     }
-  }
-
-  @Override
-  public List<ReactionPost> getListReactionByPostId(Long postId, GetReactionPostRequest getReactionPostRequest) {
-    Pageable pageable = getReactionPostRequest.toPageable();
-    EReactionType reactionType = getReactionPostRequest.getReactionType() == null ? null : EReactionType.valueOf(getReactionPostRequest.getReactionType());
-
-    if (reactionType == null) {
-      return reactionPostRepository.getByPostId(postId, pageable).stream().map(reactionPostMapperETD::toDomain).toList();
-    }
-    return reactionPostRepository.getByPostIdAndType(postId, reactionTypeMapperETD.toEntity(reactionType), pageable).stream().map(reactionPostMapperETD::toDomain).toList();
   }
 
   @Override

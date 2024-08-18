@@ -27,8 +27,4 @@ public interface CommentPostInput {
   MessageResponse deleteComment(Long commentId);
 
   CommentResponse updateComment(Long commentId, CommentRequest comment) throws TranslateException, OrtException;
-
-  List<InteractionResponse> getCommentsByInteractions(GetCommentRequest getCommentRequest);
-
-//  List<InteractionResponse> getCommentsByInteractions();
 }

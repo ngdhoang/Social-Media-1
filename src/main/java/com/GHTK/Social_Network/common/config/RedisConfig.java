@@ -1,7 +1,6 @@
 package com.GHTK.Social_Network.common.config;
 
 import com.GHTK.Social_Network.infrastructure.payload.dto.AccessTokenDto;
-import com.GHTK.Social_Network.infrastructure.payload.dto.SessionWsDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.redis.AuthRedisDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,55 +37,29 @@ public class RedisConfig {
 
   @Bean
   public RedisTemplate<String, UserDto> profileDtoRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-    RedisTemplate<String, UserDto> template = new RedisTemplate<>();
-    template.setConnectionFactory(redisConnectionFactory);
-    template.setKeySerializer(new StringRedisSerializer());
-    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(UserDto.class));
-    return template;
+    return createRedisTemplate(redisConnectionFactory, UserDto.class);
   }
 
   @Bean
   public RedisTemplate<String, AuthRedisDto> authRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-    RedisTemplate<String, AuthRedisDto> template = new RedisTemplate<>();
-    template.setConnectionFactory(redisConnectionFactory);
-    template.setKeySerializer(new StringRedisSerializer());
-    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(AuthRedisDto.class));
-    return template;
+    return createRedisTemplate(redisConnectionFactory, AuthRedisDto.class);
   }
 
   @Bean
-  public RedisTemplate<String, String> imageRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-    RedisTemplate<String, String> template = new RedisTemplate<>();
-    template.setConnectionFactory(redisConnectionFactory);
-    template.setKeySerializer(new StringRedisSerializer());
-    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(String.class));
-    return template;
-  }
-
-  @Bean
-  public RedisTemplate<String, SessionWsDto> sessionWsTemplate(RedisConnectionFactory redisConnectionFactory) {
-    RedisTemplate<String, SessionWsDto> template = new RedisTemplate<>();
-    template.setConnectionFactory(redisConnectionFactory);
-    template.setKeySerializer(new StringRedisSerializer());
-    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(SessionWsDto.class));
-    return template;
-  }
-
-  @Bean
-  public RedisTemplate<String, String> refeshTokenRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-    RedisTemplate<String, String> template = new RedisTemplate<>();
-    template.setConnectionFactory(redisConnectionFactory);
-    template.setKeySerializer(new StringRedisSerializer());
-    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(String.class));
-    return template;
+  public RedisTemplate<String, String> StringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    return createRedisTemplate(redisConnectionFactory, String.class);
   }
 
   @Bean
   public RedisTemplate<String, AccessTokenDto> accessTokenRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-    RedisTemplate<String, AccessTokenDto> template = new RedisTemplate<>();
+    return createRedisTemplate(redisConnectionFactory, AccessTokenDto.class);
+  }
+
+  private <T> RedisTemplate<String, T> createRedisTemplate(RedisConnectionFactory redisConnectionFactory, Class<T> valueType) {
+    RedisTemplate<String, T> template = new RedisTemplate<>();
     template.setConnectionFactory(redisConnectionFactory);
     template.setKeySerializer(new StringRedisSerializer());
-    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(AccessTokenDto.class));
+    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(valueType));
     return template;
   }
 }

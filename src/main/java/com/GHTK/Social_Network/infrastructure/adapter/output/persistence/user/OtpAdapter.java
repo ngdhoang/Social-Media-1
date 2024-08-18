@@ -70,7 +70,6 @@ public class OtpAdapter implements OtpPort {
   @Async
   @Override
   public void sendOtpEmail(String email, String otp) {
-    log.info("Preparing to send OTP email to: {}", email);
     SimpleMailMessage message = new SimpleMailMessage();
     message.setFrom(hostEmail);
     message.setTo(email);
@@ -78,11 +77,8 @@ public class OtpAdapter implements OtpPort {
     message.setText("Your OTP code is: " + otp);
 
     try {
-      log.info("Attempting to send email...");
       mailSender.send(message);
-      log.info("OTP email sent successfully to: {}", email);
     } catch (MailException e) {
-      log.error("Failed to send OTP email", e);
       throw new CustomException("Failed to send OTP email: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

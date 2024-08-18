@@ -6,7 +6,7 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.U
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.PostNode;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.UserNode;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.UserPostRelationship;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendCollectionRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.collection.UserCollectionRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.PostNodeRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.UserNodeRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 @Component
 @RequiredArgsConstructor
 public class CommentEventListeners {
-    private final FriendCollectionRepository friendCollectionRepository;
+    private final UserCollectionRepository userCollectionRepository;
 
     private final UserNodeRepository userNodeRepository;
 
@@ -39,8 +39,8 @@ public class CommentEventListeners {
 
         UserNode userNode = userNodeRepository.getUserNodeById(userId);
         PostNode postNode = postNodeRepository.getPostNodeByPostId(postId);
-        UserCollection userCollection = friendCollectionRepository.findByUserId(userId);
-        UserCollection ownerPostCollection = friendCollectionRepository.findByUserId(postNode.getOwnerId());
+        UserCollection userCollection = userCollectionRepository.findByUserId(userId);
+        UserCollection ownerPostCollection = userCollectionRepository.findByUserId(postNode.getOwnerId());
         Long ownerPostId = postNode.getOwnerId();
 
         LocalDateTime createAt = LocalDateTime.now(ZoneId.systemDefault());

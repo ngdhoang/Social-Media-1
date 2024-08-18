@@ -8,7 +8,7 @@ import com.GHTK.Social_Network.domain.model.friendShip.EFriendshipStatus;
 import com.GHTK.Social_Network.domain.model.friendShip.FriendShip;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.UserCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.EFriendshipStatusEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendCollectionRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.collection.UserCollectionRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.UserNodeRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.EFriendShipStatusMapperETD;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class FriendshipEventListeners {
-    private final FriendCollectionRepository friendCollectionRepository;
+    private final UserCollectionRepository userCollectionRepository;
     private final EFriendShipStatusMapperETD eFriendShipStatusMapperETD;
     private final UserNodeRepository userNodeRepository;
 
@@ -181,7 +181,7 @@ public class FriendshipEventListeners {
     }
 
     private UserCollection getUserCollection(Long userId) {
-        return friendCollectionRepository.findByUserId(userId);
+        return userCollectionRepository.findByUserId(userId);
     }
 
     private void createBlockUser(Long userInitiatorId, Long userReceiveId) {
@@ -197,6 +197,6 @@ public class FriendshipEventListeners {
     }
 
     private void saveUserCollection(UserCollection userCollection) {
-        friendCollectionRepository.save(userCollection);
+        userCollectionRepository.save(userCollection);
     }
 }

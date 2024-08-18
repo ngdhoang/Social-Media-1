@@ -26,7 +26,7 @@ public class UserDto {
 
   private Boolean isProfilePublic;
 
-  private FieldVisibilityDto<String> dob;
+  private FieldVisibilityDto<LocalDate> dob;
 
   private FieldVisibilityDto<String> phoneNumber;
 

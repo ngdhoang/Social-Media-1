@@ -89,21 +89,6 @@ public class PostPortAdapter implements PostPort {
   }
 
   @Override
-  public List<Post> getListPostTagMeNotBlockAndPrivate(Long currentUser, List<Long> blockIds, GetPostRequest getPostRequest) {
-    Pageable pageable = getPostRequest.toPageableNotSort();
-    List<TagUserEntity> tagUserList = tagUserRepository.getListByUserId(currentUser, blockIds, pageable);
-    List<PostEntity> postList = new ArrayList<>();
-    tagUserList.forEach(tagUser -> {
-      PostEntity p = postRepository.findByTagUsers(tagUser);
-      if (p.getUserEntity().getIsProfilePublic() && !friendShipPort.isBlock(currentUser, p.getUserEntity().getUserId())) {
-        postList.add(p);
-      }
-    });
-    return postList.stream().map(postMapperETD::toDomain).toList();
-  }
-
-
-  @Override
   public List<Post> findPostsTagMe(Long currentUser, List<Long> blockIds, GetPostRequest getPostRequest) {
     Pageable pageable = getPostRequest.toPageableNotSort();
     List<TagUserEntity> tagUserList = tagUserRepository.getListByUserId(currentUser, blockIds, pageable);
@@ -120,11 +105,6 @@ public class PostPortAdapter implements PostPort {
     return postRepository.findPostsWithUserInteractions(userId).stream().map(
             postMapperETD::toDomain
     ).toList();
-  }
-
-  @Override
-  public Post findPostByImagePostId(Long imagePostId) {
-    return postMapperETD.toDomain(postRepository.findByImagePostId(imagePostId));
   }
 
   @Override
@@ -174,12 +154,6 @@ public class PostPortAdapter implements PostPort {
             tagUserMapperETD::ToDomain
     ).toList();
   }
-
-  @Override
-  public List<Long> getListTagUserIdByPostId(Long postId, List<Long> blockIds) {
-    return tagUserRepository.getListUserIdByPostId(postId, blockIds);
-  }
-
 
   @Override
   public void decrementReactionQuantity(Long postId) {

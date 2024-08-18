@@ -111,13 +111,6 @@ public class ReactionPostService implements ReactionPostInput {
   }
 
   @Override
-  public List<ReactionResponse> getAllReactionInPost(Long postId) {
-    return reactionPostPort.findByPostId(postId).stream().map(
-            reactionPostMapper::postToResponse
-    ).toList();
-  }
-
-  @Override
   public ReactionPostResponse getListReactionInPost(Long postId, GetReactionPostRequest getReactionPostRequest) {
     Post post = postPort.findPostByPostId(postId);
     User user = authPort.getUserAuthOrDefaultVirtual();

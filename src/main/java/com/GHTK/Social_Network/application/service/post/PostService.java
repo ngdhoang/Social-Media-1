@@ -10,7 +10,7 @@ import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
 import com.GHTK.Social_Network.application.port.output.post.ReactionPostPort;
-import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
+import com.GHTK.Social_Network.application.port.output.post.RedisImagePort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.collection.ImageSequence;
 import com.GHTK.Social_Network.domain.event.post.PostCreateEvent;
@@ -42,7 +42,7 @@ public class PostService implements PostPortInput {
   private final PostPort portPost;
   private final ImagePostPort imagePostPort;
   private final FriendShipPort friendShipPort;
-  private final RedisImageTemplatePort redisImageTemplatePort;
+  private final RedisImagePort redisImageTemplatePort;
   private final ReactionPostPort reactionPostPort;
   private final ApplicationEventPublisher applicationEventPublisher;
 

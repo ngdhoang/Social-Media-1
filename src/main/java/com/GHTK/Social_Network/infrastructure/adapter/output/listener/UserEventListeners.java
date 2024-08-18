@@ -8,9 +8,8 @@ import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.UserCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.HometownNode;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.UserNode;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendCollectionRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.collection.UserCollectionRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.UserNodeRepository;
-import com.GHTK.Social_Network.infrastructure.mapper.UserMapperETD;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -22,7 +21,7 @@ import java.util.Objects;
 public class UserEventListeners {
 
     private final UserNodeRepository userNodeRepository;
-    private final FriendCollectionRepository friendCollectionRepository;
+    private final UserCollectionRepository userCollectionRepository;
 
     @EventListener
     public void handleUserCreateEvent(CreateUserEvent event) {
@@ -31,7 +30,7 @@ public class UserEventListeners {
         userNodeRepository.save(newUserNode);
 
         UserCollection userCollection = new UserCollection(user.getUserId());
-        friendCollectionRepository.save(userCollection);
+        userCollectionRepository.save(userCollection);
     }
 
     @EventListener

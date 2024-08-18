@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 @Builder
@@ -15,25 +15,23 @@ import java.util.List;
 public class Message {
   private String id;
 
-  private Long msgId;
-
-  private Long groupId;
+  private String groupId;
 
   private Long userAuthId;
 
-  private Long replyMsgId;
+  private String replyMsgId;
 
   private EMessageType msgType;
 
   private String content;
 
+  private List<String> images;
+
   private List<Long> tags;
 
-  private List<Long> reaction;
-
-  private ReactionMessages reactionMsgs;
+  private List<ReactionMessages> reactionMsgs;
 
   private Long reactionQuantity;
 
-  private Date createAt;
+  private Instant createAt;
 }

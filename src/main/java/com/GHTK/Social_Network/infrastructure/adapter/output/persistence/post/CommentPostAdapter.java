@@ -67,18 +67,6 @@ public class CommentPostAdapter implements CommentPostPort {
   }
 
   @Override
-  public List<Comment> findCommentParentByPostId(Long postId) {
-    return commentRepository.findAllCommentParentIdByPostId(postId).stream()
-            .map(commentMapperETD::toDomain)
-            .toList();
-  }
-
-  @Override
-  public List<Comment> findCommentsByInteractions(Long postId) {
-    return List.of();
-  }
-
-  @Override
 
   public void deleteCommentById(Long id) {
     commentRepository.deleteById(id);

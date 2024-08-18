@@ -6,7 +6,7 @@ import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.UserCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.PostNode;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.UserNode;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendCollectionRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.collection.UserCollectionRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.PostNodeRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.UserNodeRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.EPostStatusMapperETD;
@@ -22,7 +22,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class PostEventListeners {
-    private final FriendCollectionRepository friendCollectionRepository;
+    private final UserCollectionRepository userCollectionRepository;
 
     private final UserNodeRepository userNodeRepository;
 
@@ -39,7 +39,7 @@ public class PostEventListeners {
         Long postId = post.getPostId();
         Long userId = post.getUserId();
         UserNode userNode = userNodeRepository.getUserNodeById(userId);
-        UserCollection userCollection = friendCollectionRepository.findByUserId(userId);
+        UserCollection userCollection = userCollectionRepository.findByUserId(userId);
         List<Long> listFriendId = userCollection.getListFriendId();
 
         LocalDateTime createAt = LocalDateTime.now(ZonedDateTime.now().getZone());

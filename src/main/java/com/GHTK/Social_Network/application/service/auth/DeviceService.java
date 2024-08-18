@@ -3,7 +3,7 @@ package com.GHTK.Social_Network.application.service.auth;
 import com.GHTK.Social_Network.application.port.input.post.DevicePortInput;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.auth.DevicePort;
-import com.GHTK.Social_Network.application.port.output.auth.RedisAuthPort;
+import com.GHTK.Social_Network.application.port.output.auth.redis.RedisAuthPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.model.user.Device;
 import com.GHTK.Social_Network.domain.model.user.EDeviceType;

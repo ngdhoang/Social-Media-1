@@ -9,9 +9,9 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.frien
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.FriendSuggestion;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.RelationshipScores;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.UserNode;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendCollectionRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.FriendShipRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.collection.UserCollectionRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.UserNodeRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.EFriendShipStatusMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.FriendShipMapperETD;
@@ -29,7 +29,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class FriendShipAdapter implements FriendShipPort {
   private final FriendShipRepository friendShipRepository;
-  private final FriendCollectionRepository friendCollectionRepository;
+  private final UserCollectionRepository userCollectionRepository;
   private final UserRepository userRepository;
   private final UserNodeRepository userNodeRepository;
 
@@ -128,7 +128,7 @@ public class FriendShipAdapter implements FriendShipPort {
 
   @Override
   public Boolean isBlock(Long fistUserId, Long secondUserId) {
-    UserCollection userCollection = friendCollectionRepository.findByUserId(fistUserId);
+    UserCollection userCollection = userCollectionRepository.findByUserId(fistUserId);
     return userCollection != null && (userCollection.getListBlockedId().contains(secondUserId) || userCollection.getListBlockId().contains(secondUserId));
   }
 
@@ -151,8 +151,8 @@ public class FriendShipAdapter implements FriendShipPort {
 
   @Override
   public int getMutualFriend(Long userInitiatorId, Long userReceiveId) {
-    UserCollection userCollection = friendCollectionRepository.findByUserId(userInitiatorId);
-    UserCollection userCollectionReceive = friendCollectionRepository.findByUserId(userReceiveId);
+    UserCollection userCollection = userCollectionRepository.findByUserId(userInitiatorId);
+    UserCollection userCollectionReceive = userCollectionRepository.findByUserId(userReceiveId);
     if (userCollection == null || userCollectionReceive == null) {
       return 0;
     }
@@ -176,7 +176,7 @@ public class FriendShipAdapter implements FriendShipPort {
   @Override
   public LinkedList<Long> getListBlockBoth(Long userId) {
     LinkedList<Long> listBlock = new LinkedList<>();
-    UserCollection userCollection = friendCollectionRepository.findByUserId(userId);
+    UserCollection userCollection = userCollectionRepository.findByUserId(userId);
     if (userCollection == null) {
       return listBlock;
     }
@@ -190,5 +190,11 @@ public class FriendShipAdapter implements FriendShipPort {
     }
 
     return listBlock;
+  }
+
+  @Override
+  public boolean isDeleteUser(Long userId) {
+    return false;
+//    return friendCollectionRepository.findByUserId(userId).isDelete();
   }
 }

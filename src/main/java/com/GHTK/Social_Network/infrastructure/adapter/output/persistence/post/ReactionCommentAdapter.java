@@ -56,16 +56,6 @@ public class ReactionCommentAdapter implements ReactionCommentPort {
   }
 
   @Override
-  public int countReactionByCommentId(Long commentId) {
-    return reactionCommentRepository.countReactionByCommentId(commentId);
-  }
-
-  @Override
-  public int countReactionByCommentIdAndType(Long commentId, EReactionType reactionType) {
-    return reactionCommentRepository.countReactionByCommentIdAndType(commentId, reactionTypeMapperETD.toEntity(reactionType));
-  }
-
-  @Override
   public List<Map<EReactionType, Set<ReactionComment>>> getReactionGroupByCommentId(Long commentId) {
 
     List<Map<String, Object>> list = reactionCommentRepository.getReactionGroupByCommentId(commentId);
@@ -116,17 +106,6 @@ public class ReactionCommentAdapter implements ReactionCommentPort {
     } else {
       throw new IllegalArgumentException("Unsupported type for conversion: " + value.getClass());
     }
-  }
-
-
-  @Override
-  public List<ReactionComment> getListReactionByCommentId(Long commentId, GetReactionCommentRequest getReactionCommentRequest) {
-    Pageable pageable = getReactionCommentRequest.toPageable();
-    EReactionType reactionType = getReactionCommentRequest.getReactionType() == null ? null : EReactionType.valueOf(getReactionCommentRequest.getReactionType());
-    if (reactionType == null) {
-      return reactionCommentRepository.getByCommentId(commentId, pageable).stream().map(reactionCommentMapperETD::toDomain).toList();
-    }
-    return reactionCommentRepository.getByCommentIdAndType(commentId, reactionTypeMapperETD.toEntity(reactionType), pageable).stream().map(reactionCommentMapperETD::toDomain).toList();
   }
 
   @Override

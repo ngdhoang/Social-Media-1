@@ -12,9 +12,7 @@ import java.util.List;
 public interface ReactionPostInput {
   ReactionResponse handleReactionPost(Long postId, ReactionRequest reactionPostRequest);
 
-  List<ReactionResponse> getAllReactionInPost(Long postId);
-
   ReactionPostResponse getListReactionInPost(Long postId, GetReactionPostRequest getReactionPostRequest);
 
-    List<ActivityInteractionResponse> getListReactionInteractions(GetPostRequest getPostRequest);
+  List<ActivityInteractionResponse> getListReactionInteractions(GetPostRequest getPostRequest);
 }

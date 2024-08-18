@@ -37,4 +37,7 @@ public interface FriendShipPort {
     int getMutualFriendNeo(Long firstUser, Long secondUser);
 
     LinkedList<Long> getListBlockBoth(Long userId);
+
+    boolean isDeleteUser(Long userId);
+
 }

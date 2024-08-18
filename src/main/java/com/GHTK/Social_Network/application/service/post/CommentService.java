@@ -10,7 +10,7 @@ import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.post.CommentPostPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
-import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
+import com.GHTK.Social_Network.application.port.output.post.RedisImagePort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.event.comment.CommentCreateEvent;
 import com.GHTK.Social_Network.domain.model.post.EPostStatus;
@@ -32,7 +32,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -45,15 +44,13 @@ public class CommentService implements CommentPostInput {
   private final AuthPort authPort;
   private final CommentPostPort commentPostPort;
   private final FriendShipPort friendShipPort;
-  private final RedisImageTemplatePort redisImageTemplatePort;
+  private final RedisImagePort redisImageTemplatePort;
   private final ImagePostPort imagePostPort;
 
   private final PhoBERTPortInput phoBERTPortInput;
 
   private final CommentMapper commentMapper;
   private final UserMapper userMapper;
-
-  private final PostMapper postMapper;
 
   private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -339,74 +336,6 @@ public class CommentService implements CommentPostInput {
     return commentMapper.commentToCommentResponse(updatedComment, userBasicDto);
   }
 
-
-  @Override
-  public List<InteractionResponse> getCommentsByInteractions(GetCommentRequest getCommentRequest) {
-    String role = "COMMENT";
-    User currentUser = authPort.getUserAuth();
-    List<InteractionResponse> interactionResponseList = new ArrayList<>();
-//    commentPostPort.findCommentsByInteractions(authPort.getUserAuth().getUserId()).stream().forEach(
-//            c -> {
-//              String content = "You do not have sufficient permissions to view this content.";
-//              String imageUrl = "";
-//              if (!friendShipPort.isBlock(c.getUserId(), currentUser.getUserId())) {
-//                content = c.getContent();
-//                imageUrl = c.getImageUrl();
-//              }
-//              InteractionResponse interactionResponse = InteractionResponse.builder()
-//                      .roleId(c.getCommentId())
-//                      .role(role)
-//                      .owner(userMapper.userToUserBasicDto(authPort.getUserById(c.getUserId())))
-//                      .reactionType(reactionPostPort.findReactionCommentByCommentIdAndUserId(
-//                              c.getCommentId(), currentUser.getUserId()
-//                      ).getReactionType())
-//                      .content(content)
-//                      .image(imageUrl)
-
-//                      .createAt(c.getCreateAt())
-//                      .updateAt(null)
-//                      .build();
-//              interactionResponseList.add(interactionResponse);
-//            }
-//    );
-
-    return interactionResponseList;
-  }
-//
-//  @Override
-//  public ReactionResponse handleReactionComment(Long commentId, String reactionType) {
-//    Post post = postPort.findPostByPostId(commentId);
-//    Comment updatedComment = commentPostPort.findCommentById(commentId);
-//    User userUpdateComment = authPort.getUserById(updatedComment.getUserId());
-//    checkCommentValid(post, userUpdateComment);
-//
-//    EReactionType newReactionType;
-//    try {
-//      newReactionType = EReactionType.valueOf(reactionType.toUpperCase());
-//    } catch (IllegalArgumentException e) {
-//      throw new CustomException("Invalid reaction type", HttpStatus.BAD_REQUEST);
-//    }
-//
-//    ReactionPost reactionComment = commentPostPort.findByCommentIdAndUserID(commentId, this.getUserAuth().getUserId());
-//    if (reactionComment == null) {
-//      ReactionPost newReactionComment = new ReactionPost(
-//              newReactionType,
-//              updatedComment.getCommentId(),
-//              this.getUserAuth().getUserId()
-//      );
-//      ReactionPost reactionPost = reactionPostPort.saveReaction(newReactionComment);
-//      return reactionCommentMapper.commentToResponse(reactionPost);
-//    }
-//
-//    reactionComment.setReactionType(newReactionType);
-//    return reactionCommentMapper.commentToResponse(reactionPostPort.saveReaction(reactionComment));
-//  }
-
-//  @Override
-//  public List<ReactionResponse> getAllReactionInComment(Long commentId) {
-//    return List.of();
-//  }
-//
 
   private String getImageUrlCommentInRedis(String publicId, User userSave) {
     String tail = ImagePostInput.COMMENT_TAIL + userSave.getUserEmail();
