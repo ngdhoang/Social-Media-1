@@ -55,7 +55,7 @@ public interface UserNodeRepository extends Neo4jRepository<UserNode, Long> {
 
 
     @Query("""
-        CALL db.index.fulltext.queryNodes('userIndex', $searchTerm + "*") YIELD node, score
+        CALL db.index.fulltext.queryNodes('userIndex', "*" + $searchTerm + "*") YIELD node, score
         MATCH (currentUser:User {userId: $currentUserId})
         OPTIONAL MATCH (node)-[:RELATED_TO]-(relatedUser:User)-[:RELATED_TO]-(currentUser)
         OPTIONAL MATCH (node)-[relationship:RELATED_TO]-(currentUser)
