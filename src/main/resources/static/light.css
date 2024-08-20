@@ -1,0 +1,151 @@
+body {
+	font-family: Arial, sans-serif;
+	line-height: 1.6;
+	margin: 0;
+	padding: 20px;
+	background-color: #f4f4f4;
+}
+
+.container {
+	background-color: #fff;
+	border-radius: 5px;
+	padding: 20px;
+	margin-bottom: 20px;
+	box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+h1, h2, h3 {
+	color: #333;
+}
+
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], select {
+	width: 100%;
+	padding: 8px;
+	margin-bottom: 10px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+button {
+	background-color: #428be8;
+	color: white;
+	padding: 10px 15px;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	margin-right: 10px;
+	margin-bottom: 10px;
+}
+
+button:hover {
+	background-color: #45a049;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+table th, table td {
+	border: 1px solid #ddd;
+	padding: 8px;
+	text-align: left;
+}
+
+table th {
+	background-color: #f2f2f2;
+}
+
+.hidden {
+	display: none;
+}
+
+.two-column {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	width: 48%;
+}
+
+/* Dark mode styles */
+body.dark-mode {
+	background-color: #121212;
+	color: #f4f4f4;
+}
+
+body.dark-mode .container {
+	background-color: #1e1e1e;
+	box-shadow: none;
+}
+
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3 {
+	color: #f4f4f4;
+}
+
+body.dark-mode input[type="text"],
+body.dark-mode input[type="email"],
+body.dark-mode input[type="password"],
+body.dark-mode input[type="number"],
+body.dark-mode select {
+	background-color: #333;
+	border: 1px solid #555;
+	color: #f4f4f4;
+}
+
+body.dark-mode button {
+	background-color: #555;
+}
+
+body.dark-mode button:hover {
+	background-color: #777;
+}
+
+body.dark-mode table th {
+	background-color: #333;
+}
+
+body.dark-mode table td {
+	border-color: #444;
+}
+
+#greetingsBody {
+	width: 100%;
+	max-width: 800px;
+	margin: 0 auto;
+	border-collapse: collapse;
+}
+
+.chat-message-row {
+	margin: 10px 0;
+	display: flex;
+	justify-content: flex-start; /* Bên trái mặc định */
+}
+
+.chat-message-row[style*="text-align: right;"] {
+	justify-content: flex-end; /* Bên phải nếu là ng gửi */
+}
+
+.chat-message {
+	background-color: #f1f1f1;
+	border-radius: 10px;
+	padding: 10px;
+	max-width: 60%;
+	display: inline-block;
+}
+
+.message-content p {
+	margin: 5px 0;
+}
+
+.message-images {
+	margin-top: 10px;
+}
+
+.chat-image {
+	width: 50px;
+	height: auto;
+	margin-right: 5px;
+	border-radius: 5px;
+}
