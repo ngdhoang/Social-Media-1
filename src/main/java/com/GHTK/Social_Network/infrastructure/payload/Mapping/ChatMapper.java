@@ -1,51 +1,34 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
-import com.GHTK.Social_Network.domain.model.chat.Message;
-import com.GHTK.Social_Network.domain.model.chat.EMessageType;
+import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
+import com.GHTK.Social_Network.domain.collection.chat.Message;
 import com.GHTK.Social_Network.infrastructure.payload.dto.MessageDto;
-import com.GHTK.Social_Network.domain.model.EChatMessageType;
-import org.mapstruct.*;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
+import com.GHTK.Social_Network.infrastructure.payload.responses.chat.ChatMessageResponse;
+import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface ChatMapper {
-  @Mapping(target = "groupId", source = "groupId", qualifiedByName = "longToString")
-  @Mapping(target = "msgType", source = "msgType")
-  @Mapping(target = "userAuthId", ignore = true)
-  @Mapping(target = "reaction", ignore = true)
-  @Mapping(target = "reactionMsgs", ignore = true)
-  @Mapping(target = "createAt", ignore = true)
-  Message messageDtoToMessage(MessageDto messageDto);
+  Message messageDtoToMessage(MessageDto message);
 
-  @Mapping(target = "groupId", source = "groupId", qualifiedByName = "stringToLong")
-  @Mapping(target = "msgType", source = "msgType")
-  @Mapping(target = "groupType", ignore = true)
-  MessageDto messageToMessageDto(Message message);
+  default ChatMessageResponse messageToMessageResponse(Message message, UserBasicDto userBasicDto, EGroupType eGroupType) {
+    MessageDto messageDto = MessageDto.builder()
+            .tags(message.getTags())
+            .msgType(message.getMsgType())
+            .content(message.getContent())
+            .groupType(eGroupType)
+            .groupId(message.getGroupId())
+            .replyMsgId(message.getReplyMsgId())
+            .createAt(message.getCreateAt())
+            .build();
 
-  @Named("longToString")
-  default String longToString(Long value) {
-    return value != null ? value.toString() : null;
-  }
-
-  @Named("stringToLong")
-  default Long stringToLong(String value) {
-    return value != null ? Long.parseLong(value) : null;
-  }
-
-  default EMessageType map(EChatMessageType value) {
-    return value != null ? EMessageType.valueOf(value.name()) : null;
-  }
-
-  default EChatMessageType map(EMessageType value) {
-    return value != null ? EChatMessageType.valueOf(value.name()) : null;
-  }
-
-  @AfterMapping
-  default void setDefaultValues(@MappingTarget Message message) {
-    if (message.getReaction() == null) {
-      message.setReaction(new java.util.ArrayList<>());
-    }
-    if (message.getCreateAt() == null) {
-      message.setCreateAt(new java.util.Date());
-    }
+    ChatMessageResponse messageResponse = ChatMessageResponse.builder()
+            .msgId(message.getId())
+            .user(userBasicDto)
+            .message(messageDto)
+            .reactionQuantity(message.getReactionQuantity())
+            .images(message.getImages())
+            .build();
+    return messageResponse;
   }
 }

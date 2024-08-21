@@ -8,8 +8,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.TimeZone;
 
 @Entity
 @Table(name = "post")
@@ -26,9 +30,9 @@ public class PostEntity {
   @Column(columnDefinition = "TEXT")
   private String content;
 
-  private LocalDate createAt;
+  private Instant createAt;
 
-  private LocalDate updateAt;
+  private Instant updateAt;
 
   private Long reactionsQuantity = 0L;
 
@@ -59,6 +63,7 @@ public class PostEntity {
 
   @PrePersist
   public void prePersist() {
+    this.createAt = Instant.now();
     if (this.reactionsQuantity == null) {
       this.reactionsQuantity = 0L;
     }
@@ -66,4 +71,11 @@ public class PostEntity {
       this.commentQuantity = 0L;
     }
   }
+
+  @PreUpdate
+  public void preUpdate() {
+    this.updateAt = Instant.now();
+  }
+
+
 }

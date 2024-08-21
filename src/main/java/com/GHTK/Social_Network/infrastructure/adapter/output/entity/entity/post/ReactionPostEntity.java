@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
@@ -29,18 +30,18 @@ public class ReactionPostEntity {
     @Enumerated(EnumType.STRING)
     private EReactionTypeEntity reactionType;
 
-    private LocalDate createAt;
+    private Instant createAt;
 
-    private LocalDate updateAt;
+    private Instant updateAt;
 
     @PreUpdate
     public void preUpdate() {
-        updateAt = LocalDate.now();
+        updateAt = Instant.now();
     }
 
     @PrePersist
     public void prePersist() {
-        createAt = LocalDate.now();
+        createAt = Instant.now();
     }
 
 

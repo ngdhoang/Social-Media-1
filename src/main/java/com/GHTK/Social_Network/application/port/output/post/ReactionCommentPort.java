@@ -17,15 +17,7 @@ public interface ReactionCommentPort {
 
     List<ReactionComment> findByCommentId(Long postId, List<Long> userIds);
 
-    int countReactionByCommentId(Long postId);
-
-    int countReactionByCommentIdAndType(Long postId, EReactionType reactionType);
-
     List<Map<EReactionType, Set<ReactionComment>>> getReactionGroupByCommentId(Long postId);
-
-
-    List<ReactionComment> getListReactionByCommentId(Long postId, GetReactionCommentRequest getReactionCommentRequest);
-
 
     List<ReactionComment> getListReactionByCommentIdAndListBlock(Long commentId, GetReactionCommentRequest getReactionCommentRequest, List<Long> listBlock);
 }

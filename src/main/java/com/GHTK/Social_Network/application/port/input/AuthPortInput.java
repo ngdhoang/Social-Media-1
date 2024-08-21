@@ -10,13 +10,13 @@ import java.io.UnsupportedEncodingException;
 public interface AuthPortInput {
   int MAX_COUNT_OTP = 3;
 
-  AuthResponse authenticate(AuthRequest authRequest);
+  Object authenticate(AuthRequest authRequest, String userAgent, String fingerprinting);
 
-  MessageResponse register(RegisterRequest registerRequest) throws MessagingException, UnsupportedEncodingException;
+  MessageResponse register(RegisterRequest registerRequest, String userAgent, String fingerprinting) throws MessagingException, UnsupportedEncodingException;
 
   MessageResponse changePassword(ChangePasswordRequest changePasswordRequest);
 
-  MessageResponse checkOtpRegister(RegisterRequest registerRequest, int attemptCount, Long timeInterval);
+  MessageResponse checkOtpRegister(RegisterRequest registerRequest, String userAgent, String fingerprinting, int attemptCount, Long timeInterval);
 
   MessageResponse checkOtpForgotPassword(ForgotPasswordRequest forgotPasswordRequest, int attemptCount, Long timeInterval);
 
@@ -26,5 +26,7 @@ public interface AuthPortInput {
 
   MessageResponse deleteAccount() throws MessagingException, UnsupportedEncodingException;
 
-  AuthResponse refreshToken(String refreshTokenRequest);
+  AuthResponse refreshToken(String refreshTokenRequest, String fingerprinting);
+
+  Object checkSuccessDevice(String key, String userAgent, String fingerprinting);
 }

@@ -1,10 +1,12 @@
 package com.GHTK.Social_Network.domain.model.post.comment;
 
+import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Data
@@ -14,7 +16,7 @@ import java.time.LocalDate;
 public class Comment {
   private Long commentId;
 
-  private LocalDate createAt;
+  private Instant createAt;
 
   private String imageUrl;
 
@@ -30,11 +32,16 @@ public class Comment {
 
   private Long reactionsQuantity;
 
-  public Comment(LocalDate createAt, String content, Long userId, Long postId, String imageUrl) {
-    this.createAt = createAt;
+  public Comment(String content, Long userId, Long postId, String imageUrl) {
     this.content = content;
     this.userId = userId;
     this.postId = postId;
     this.imageUrl = imageUrl;
   }
+
+  @PrePersist
+  public void prePersist() {
+    createAt = Instant.now();
+  }
+
 }

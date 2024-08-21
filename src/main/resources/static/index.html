@@ -1,50 +1,166 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Spring Boot Tutorial - WebSocket</title>
+    <meta charset="UTF-8">
+    <title>WebSocket Client</title>
     <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
-    <script src="/app.js"></script>
-    <link rel="stylesheet" href="main.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.3/axios.min.js"
+            integrity="sha512-zJXKBryKlsiDaWcWQ9fuvy50SG03/Qc5SqfLXxHmk9XiUUbcD9lXYjHDBxLFOuZSU6ULXaJ69bd7blSMEgxXNQ=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="./app.js"></script>
+    <script src="./friend.js"></script>
+    <script src="./client.js"></script>
+    <link rel="stylesheet" href="light.css">
+    <link rel="stylesheet" href="dark.css">
+    <link rel="stylesheet" href="rtc.css">
 </head>
 <body>
-<div>
-    <div>
-        <h1>Spring Boot Tutorial.</h1>
-        <h2>Websockets.</h2>
-        <div class="row">
-            <form id="form">
-                <div class="row">
-                    <label for="connect">WebSocket connection:</label>
-                    <button id="connect" type="submit">Connect</button>
-                    <button id="disconnect" type="submit" disabled="disabled">Disconnect
-                    </button>
-                </div>
-            </form>
+<h1>Configurable WebSocket Client</h1>
+
+<button id="darkModeToggle" style="margin-bottom: 15px">Dark Mode</button>
+
+<div class="container">
+    <div class="two-column">
+        <div class="column">
+            <h2>Register</h2>
+            <div class="row">
+                <label for="firstName">First Name:</label>
+                <input type="text" id="firstName" placeholder="firstName">
+            </div>
+            <div class="row">
+                <label for="lastName">Last Name:</label>
+                <input type="text" id="lastName" placeholder="lastName">
+            </div>
+            <div class="row">
+                <label for="userEmail">User Email:</label>
+                <input type="email" id="userEmail" placeholder="userEmail">
+            </div>
+            <div class="row">
+                <label for="userPassword">Password:</label>
+                <input type="password" id="userPassword" placeholder="userPassword">
+            </div>
+            <button id="register">Register</button>
         </div>
-        <input type="text" id="inputName" placeholder="Name....">
-        <button id="sendName" type="button">Send</button>
-        <div class="row">
-            <form>
-                <div>
-                    <label class="row" for="name">What is your name?</label>
-                    <input type="text" id="name" placeholder="Your name here...">
-                    <button id="send" type="button">Send</button>
-                </div>
-            </form>
-        </div id="row">
-    </div>
-    <div>
-        <div id="conversation">
-            <table>
-                <thead>
-                <tr>
-                    <th>Greetings:</th>
-                </tr>
-                </thead>
-                <tbody id="greetings"></tbody>
-            </table>
+        <div class="column">
+            <h2>Login</h2>
+            <div class="row">
+                <label for="email">Email:</label>
+                <input type="email" id="email" placeholder="example@example.com">
+            </div>
+            <div class="row">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="password">
+            </div>
+            <button id="login">Log In</button>
         </div>
     </div>
 </div>
+
+<div class="container">
+    <h2>Register Success</h2>
+    <div class="row">
+        <label for="otp">Otp:</label>
+        <input type="text" id="otp" placeholder="otp">
+    </div>
+    <button id="registerOtp">Register Success</button>
+</div>
+
+<div class="container">
+    <div id="userInfo"></div>
+</div>
+
+<div class="container">
+    <h2>Friend Management</h2>
+    <div class="two-column">
+        <div class="column">
+            <h3>Send Friend Request</h3>
+            <input type="number" id="friendUserId" placeholder="User ID">
+            <select id="friendStatus">
+                <option value="CLOSE_FRIEND">Close Friend</option>
+                <option value="FRIEND">Friend</option>
+            </select>
+            <button id="sendFriendRequest">Send Request</button>
+        </div>
+        <div class="column">
+            <h3>Process Friend Request</h3>
+            <input type="number" id="friendRequestId" placeholder="Request ID">
+            <select id="acceptFriendRequest">
+                <option value="1">Accept</option>
+                <option value="0">Reject</option>
+            </select>
+            <button id="processFriendRequest">Process Request</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h2>Connection</h2>
+    <div class="row">
+        <label for="token">JWT Token:</label>
+        <input type="text" id="token" placeholder="Enter your JWT token">
+    </div>
+    <button id="connect">Connect</button>
+    <button id="disconnect" disabled>Disconnect</button>
+</div>
+
+<div class="container">
+    <h2>Send Message</h2>
+    <div class="row">
+        <label for="groupId">Group ID:</label>
+        <input type="text" id="groupId" placeholder="Enter group ID">
+    </div>
+    <div class="row">
+        <label for="groupType">Group Type:</label>
+        <select id="groupType">
+            <option value="">Select Group Type</option>
+            <option value="GROUP">GROUP</option>
+            <option value="PERSONAL">PERSONAL</option>
+        </select>
+    </div>
+    <div class="row">
+        <label for="content">Message Content:</label>
+        <input type="text" id="content" placeholder="Enter your message">
+    </div>
+    <div class="row">
+        <label for="msgType">Message Type:</label>
+        <select id="msgType">
+            <option value="">Select Message Type</option>
+            <option value="MESSAGE">MESSAGE</option>
+        </select>
+    </div>
+    <button id="send">Send Message</button>
+</div>
+
+<div id="conversation" class="container">
+    <h2>Messages</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Message</th>
+        </tr>
+        </thead>
+        <tbody id="greetings"></tbody>
+    </table>
+</div>
+
+<div class="container">
+    <div class="row">
+        <label for="groupCall">User Email:</label>
+        <input type="text" id="groupCall" placeholder="GroupId">
+    </div>
+    <h1>WebRTC Video Call Demo</h1>
+    <button type="button" class="btn btn-primary" onclick='createOffer()'>Start Call</button>
+    <div class="video-container">
+        <video id="localVideo" autoplay muted></video>
+        <video id="remoteVideo" autoplay></video>
+    </div>
+</div>
+
+<script>
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    darkModeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+    });
+</script>
 </body>
 </html>

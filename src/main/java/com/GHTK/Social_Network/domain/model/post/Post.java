@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -16,9 +16,9 @@ public class Post {
 
   private String content;
 
-  private LocalDate createAt;
+  private Instant createAt;
 
-  private LocalDate updateAt;
+  private Instant updateAt;
 
   private Long reactionsQuantity = 0L;
 

@@ -1,5 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input;
 
+import ai.djl.translate.TranslateException;
+import ai.onnxruntime.OrtException;
 import com.GHTK.Social_Network.application.port.input.post.CommentPostInput;
 import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
 import com.GHTK.Social_Network.infrastructure.payload.requests.GetCommentRequest;
@@ -20,12 +22,12 @@ public class CommentController {
   private final ImagePostInput imagePostInput;
 
   @PostMapping("/comments")
-  public ResponseEntity<Object> createRootComment(@RequestBody @Valid CommentRequest commentRequest) {
+  public ResponseEntity<Object> createRootComment(@RequestBody @Valid CommentRequest commentRequest) throws TranslateException, OrtException {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentRoot(commentRequest));
   }
 
   @PostMapping("/comments/{parentCommentId}")
-  public ResponseEntity<Object> createChildComment(@PathVariable Long parentCommentId, @RequestBody @Valid CommentRequest commentRequest) {
+  public ResponseEntity<Object> createChildComment(@PathVariable Long parentCommentId, @RequestBody @Valid CommentRequest commentRequest) throws TranslateException, OrtException {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.createCommentChild(parentCommentId, commentRequest));
   }
 
@@ -55,7 +57,7 @@ public class CommentController {
   }
 
   @PutMapping("/comments/{commentId}")
-  public ResponseEntity<Object> updateComment(@PathVariable Long commentId, @RequestBody @Valid CommentRequest commentRequest) {
+  public ResponseEntity<Object> updateComment(@PathVariable Long commentId, @RequestBody @Valid CommentRequest commentRequest) throws TranslateException, OrtException {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, commentPostInput.updateComment(commentId, commentRequest));
   }
 

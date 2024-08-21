@@ -1,13 +1,12 @@
 package com.GHTK.Social_Network.common.config;
 
+import jakarta.annotation.PostConstruct;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.core.Neo4jClient;
-import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.transaction.PlatformTransactionManager;

@@ -11,7 +11,5 @@ import java.util.List;
 public interface ReactionCommentInput {
   ReactionResponse handleReactionComment(Long commentId, ReactionRequest reactionPostRequest);
 
-  List<ReactionResponse> getAllReactionInComment(Long commentId);
-
   ReactionCommentResponse getListReactionInComment(Long postId, GetReactionCommentRequest getReactionCommentRequest);
 }

@@ -49,7 +49,7 @@ public class UserEntity {
 
   @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)
-  private List<TokenEntity> tokenEntities;
+  private List<DeviceEntity> tokenEntities;
 
   @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY,
           cascade = CascadeType.ALL)

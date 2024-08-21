@@ -13,7 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +30,7 @@ public class ReactionCommentAdapter implements ReactionCommentPort {
   private final ReactionCommentRepository reactionCommentRepository;
   private final ReactionCommentMapperETD reactionCommentMapperETD;
   private final ReactionTypeMapperETD reactionTypeMapperETD;
-  private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+  private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS");
 
   @Override
   public ReactionComment findByCommentIdAndUserID(Long commentId, Long userId) {
@@ -53,16 +56,6 @@ public class ReactionCommentAdapter implements ReactionCommentPort {
   }
 
   @Override
-  public int countReactionByCommentId(Long commentId) {
-    return reactionCommentRepository.countReactionByCommentId(commentId);
-  }
-
-  @Override
-  public int countReactionByCommentIdAndType(Long commentId, EReactionType reactionType) {
-    return reactionCommentRepository.countReactionByCommentIdAndType(commentId, reactionTypeMapperETD.toEntity(reactionType));
-  }
-
-  @Override
   public List<Map<EReactionType, Set<ReactionComment>>> getReactionGroupByCommentId(Long commentId) {
 
     List<Map<String, Object>> list = reactionCommentRepository.getReactionGroupByCommentId(commentId);
@@ -81,7 +74,8 @@ public class ReactionCommentAdapter implements ReactionCommentPort {
                 reactionComment1.setCommentId(convertToLong(reactionComment.get("comment_id")));
                 reactionComment1.setUserId(convertToLong(reactionComment.get("user_id")));
                 String createAtStr = (String) reactionComment.get("create_at");
-                LocalDate createAt = LocalDate.parse(createAtStr, DATE_FORMATTER);
+                LocalDateTime localDateTime = LocalDateTime.parse(createAtStr, DATE_FORMATTER);
+                Instant createAt = localDateTime.atZone(ZoneId.systemDefault()).toInstant();
                 reactionComment1.setCreateAt(createAt);
                 reactionComment1.setReactionCommentId(convertToLong(reactionComment.get("reaction_comment_id")));
                 reactionComment1.setReactionType(reactionType);
@@ -112,17 +106,6 @@ public class ReactionCommentAdapter implements ReactionCommentPort {
     } else {
       throw new IllegalArgumentException("Unsupported type for conversion: " + value.getClass());
     }
-  }
-
-
-  @Override
-  public List<ReactionComment> getListReactionByCommentId(Long commentId, GetReactionCommentRequest getReactionCommentRequest) {
-    Pageable pageable = getReactionCommentRequest.toPageable();
-    EReactionType reactionType = getReactionCommentRequest.getReactionType() == null ? null : EReactionType.valueOf(getReactionCommentRequest.getReactionType());
-    if (reactionType == null) {
-      return reactionCommentRepository.getByCommentId(commentId, pageable).stream().map(reactionCommentMapperETD::toDomain).toList();
-    }
-    return reactionCommentRepository.getByCommentIdAndType(commentId, reactionTypeMapperETD.toEntity(reactionType), pageable).stream().map(reactionCommentMapperETD::toDomain).toList();
   }
 
   @Override

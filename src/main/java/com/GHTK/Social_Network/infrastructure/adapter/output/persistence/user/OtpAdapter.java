@@ -16,6 +16,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 
 @Slf4j
@@ -40,7 +41,7 @@ public class OtpAdapter implements OtpPort {
       throw new CustomException("Maximum OTP attempts exceeded", HttpStatus.TOO_MANY_REQUESTS);
     }
 
-    if (System.currentTimeMillis() > authRedisDto.getCreateTime().getTime() + timeInterval) {
+    if (System.currentTimeMillis() > authRedisDto.getCreateAt().getTime() + timeInterval) {
       authenticationRedisTemplate.delete(email);
       throw new CustomException("OTP has expired", HttpStatus.BAD_REQUEST);
     }
@@ -56,7 +57,7 @@ public class OtpAdapter implements OtpPort {
 
   @Override
   public void saveOtp(String email, String otp) {
-    AuthRedisDto authRedisDto = new AuthRedisDto(null, otp, new Date(), 0);
+    AuthRedisDto authRedisDto = new AuthRedisDto(List.of(otp), new Date(), 0);
     authenticationRedisTemplate.opsForValue().set(email, authRedisDto);
   }
 
@@ -69,7 +70,6 @@ public class OtpAdapter implements OtpPort {
   @Async
   @Override
   public void sendOtpEmail(String email, String otp) {
-    log.info("Preparing to send OTP email to: {}", email);
     SimpleMailMessage message = new SimpleMailMessage();
     message.setFrom(hostEmail);
     message.setTo(email);
@@ -77,11 +77,8 @@ public class OtpAdapter implements OtpPort {
     message.setText("Your OTP code is: " + otp);
 
     try {
-      log.info("Attempting to send email...");
       mailSender.send(message);
-      log.info("OTP email sent successfully to: {}", email);
     } catch (MailException e) {
-      log.error("Failed to send OTP email", e);
       throw new CustomException("Failed to send OTP email: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

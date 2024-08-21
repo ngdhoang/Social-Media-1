@@ -130,15 +130,6 @@ public class ReactionCommentService implements ReactionCommentInput {
     }
   }
 
-
-  @Override
-  public List<ReactionResponse> getAllReactionInComment(Long commentId) {
-    LinkedList<Long> blockList = friendShipPort.getListBlockBoth(getUserAuth().getUserId());
-    return reactionCommentPort.findByCommentId(commentId, blockList).stream().map(
-            reactionCommentMapper::commentToResponse
-    ).toList();
-  }
-
   @Override
   public ReactionCommentResponse getListReactionInComment(Long commentId, GetReactionCommentRequest getReactionCommentRequest) {
     User user = authPort.getUserAuthOrDefaultVirtual();

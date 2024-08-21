@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.payload.responses;
 
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +18,5 @@ public class AuthResponse {
   @JsonProperty("refreshToken")
   private String refreshToken;
 
-  @JsonProperty("role")
-  private String role;
+  private UserDto user;
 }

@@ -9,6 +9,7 @@ import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionRes
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Mapper(componentModel = "spring")
@@ -27,6 +28,6 @@ public interface ReactionPostMapper {
   @Mapping(target = "parentCommentId", source = "parentCommentId")
   @Mapping(target = "imageUrl", source = "imageUrl")
   @Mapping(target = "reactionType", source = "eReactionType")
-  ActivityInteractionResponse reactionToReactionActivityResponse(Long reactionId, EReactionType eReactionType, String imageUrl, LocalDate createAt, Long parentCommentId, User user, Post post, String role);
+  ActivityInteractionResponse reactionToReactionActivityResponse(Long reactionId, EReactionType eReactionType, String imageUrl, Instant createAt, Long parentCommentId, User user, Post post, String role);
 
 }

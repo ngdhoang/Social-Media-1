@@ -1,84 +1,98 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.user;
 
+import com.GHTK.Social_Network.application.port.output.RedisProfilePort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
-
+import com.GHTK.Social_Network.application.port.output.auth.JwtPort;
+import com.GHTK.Social_Network.application.port.output.auth.redis.RedisAccessTokenPort;
+import com.GHTK.Social_Network.application.port.output.auth.redis.RedisRefreshTokenPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
-import com.GHTK.Social_Network.domain.model.user.Token;
+import com.GHTK.Social_Network.domain.collection.UserCollectionDomain;
 import com.GHTK.Social_Network.domain.model.user.User;
-import com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt.JwtUtils;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsImpl;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.TokenEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
-
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.UserNode;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.TokenRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.collection.UserCollectionRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.UserNodeRepository;
-import com.GHTK.Social_Network.infrastructure.mapper.TokenMapperETD;
+import com.GHTK.Social_Network.infrastructure.mapper.UserCollectionMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.UserMapperETD;
-import lombok.AllArgsConstructor;
-
+import com.GHTK.Social_Network.infrastructure.payload.dto.AccessTokenDto;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.HttpStatus;
-
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthAdapter implements AuthPort {
-  private final JwtUtils jwtUtils;
-
-  private final TokenRepository tokenRepository;
+  private final JwtPort jwtPort;
   private final UserRepository userRepository;
   private final UserNodeRepository userNodeRepository;
+  private final UserCollectionRepository userCollectionRepository;
 
-  private final TokenMapperETD tokenMapperETD;
+  private final RedisAccessTokenPort redisAccessTokenPort;
+  private final RedisRefreshTokenPort redisRefreshTokenPort;
+
   private final UserMapperETD userMapperETD;
+  private final UserCollectionMapperETD userCollectionMapperETD;
 
   @Override
-  public List<Token> findAllValidTokenByUser(Long id) {
-    return tokenRepository.findAllValidTokenByUser(id).stream().map(
-            tokenMapperETD::toDomain
-    ).toList();
+  public Set<Map<String, AccessTokenDto>> findAllValidTokenByUser(String userEmail) {
+    return redisAccessTokenPort.getKeyValueByPattern("*" + RedisAccessTokenPort.ACCESS_TOKEN_TAIL + userEmail);
   }
 
   @Override
-  public List<Token> findAllValidTokenByUser(UserDetailsImpl userDetails) {
-    return this.findAllValidTokenByUser(userDetails.getUserEntity().getUserId());
+  public Set<Map<String, AccessTokenDto>> findAllValidTokenByUser(UserDetailsImpl userDetails) {
+    return findAllValidTokenByUser(userDetails.getUserEntity().getUserEmail());
   }
 
   @Override
-  public Token saveToken(Token token) {
-    TokenEntity newToken = tokenMapperETD.toEntity(token);
-    newToken.setUserEntity(
-            userRepository.findById(token.getUserId()).orElse(null)
+  public void saveAccessTokenInRedis(String token, AccessTokenDto accessTokenDto) {
+    userRepository.findById(accessTokenDto.getUserId()).ifPresent(user ->
+            redisAccessTokenPort.createOrUpdate(token + RedisAccessTokenPort.ACCESS_TOKEN_TAIL + user.getUserEmail(), accessTokenDto)
     );
-    return tokenMapperETD.toDomain(tokenRepository.save(newToken));
   }
 
   @Override
-  public List<Token> saveAllToken(List<Token> tokens) {
-    return tokens.stream().map(this::saveToken).toList();
+  public void saveRefreshTokenInRedis(String token, String fingerprinting, UserDetailsImpl userDetails) {
+    redisRefreshTokenPort.createOrUpdate(
+            token + RedisRefreshTokenPort.REFRESH_TOKEN + fingerprinting + RedisRefreshTokenPort.REFRESH_TOKEN + userDetails.getUserEntity().getUserEmail(),
+            null
+    );
   }
 
   @Override
-  public Optional<User> findByEmail(String input) {
-    return Optional.ofNullable(userMapperETD.toDomain(userRepository.findByUserEmail(input).orElse(null)));
+  public void saveAllAccessTokenInRedis(String userEmail, Set<Map<String, AccessTokenDto>> tokenEntities) {
+    tokenEntities.forEach(tokenMap -> tokenMap.forEach((key, accessTokenDto) ->
+            saveAccessTokenInRedis(key + RedisAccessTokenPort.ACCESS_TOKEN_TAIL + userEmail, accessTokenDto)
+    ));
+  }
+
+  @Override
+  public void saveAllAccessTokenInRedis(UserDetailsImpl userDetails, Set<Map<String, AccessTokenDto>> tokenEntities) {
+    saveAllAccessTokenInRedis(userDetails.getUserEntity().getUserEmail(), tokenEntities);
+  }
+
+  @Override
+  public UserCollectionDomain getUserCollectionById(Long userId) {
+    return userCollectionMapperETD.toDomain(userCollectionRepository.findByUserId(userId));
+  }
+
+  @Override
+  public Optional<User> findByEmail(String email) {
+    return userRepository.findByUserEmail(email).map(userMapperETD::toDomain);
   }
 
   @Override
   public User saveUser(User user) {
     User newUser = userMapperETD.toDomain(userRepository.save(userMapperETD.toEntity(user)));
-
-    UserNode newUserNode = userMapperETD.userDomainToNode(newUser);
-    UserNode newUserNodeSave = userNodeRepository.save(newUserNode);
-
     return newUser;
   }
 
@@ -93,35 +107,28 @@ public class AuthAdapter implements AuthPort {
   }
 
   @Override
-  public Token findByToken(String jwt) {
-    return tokenMapperETD.toDomain(tokenRepository.findByToken(jwt).orElse(null));
+  public AccessTokenDto findByToken(String jwt, String email) {
+    return redisAccessTokenPort.findByKey(jwt + RedisAccessTokenPort.ACCESS_TOKEN_TAIL + email);
   }
 
   @Override
   public void deleteUserByEmail(String email) {
-    userRepository.delete(userRepository.findByUserEmail(email).orElseThrow());
+    userRepository.findByUserEmail(email).ifPresent(userRepository::delete);
   }
 
   @Override
   public User getUserById(Long id) {
-    return userMapperETD.toDomain(userRepository.findById(id).orElse(null));
+    return userRepository.findById(id).map(userMapperETD::toDomain).orElse(null);
   }
 
   @Override
   public User getUserAuth() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (isInvalidAuthentication(authentication)) {
-      return null;
-    }
-
-    String username = extractUsername(authentication.getPrincipal());
-    return findByEmail(username).orElse(null);
+    return getAuthenticatedUser().flatMap(this::findByEmail).orElse(null);
   }
 
   @Override
   public User getUserAuthOrDefaultVirtual() {
-    User user = getUserAuth();
-    return user == null ? User.builder().userId(0L).build() : user;
+    return Optional.ofNullable(getUserAuth()).orElse(User.builder().userId(0L).build());
   }
 
   @Override
@@ -130,24 +137,25 @@ public class AuthAdapter implements AuthPort {
   }
 
   @Override
-  public Pair<UserDetailsImpl, String> refreshToken(String refreshToken) {
-    String userEmail = jwtUtils.extractUserEmail(refreshToken);
-    if (userEmail != null) {
-      UserEntity user = userRepository.findByUserEmail(userEmail)
-              .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
-      UserDetailsImpl userDetails = new UserDetailsImpl(user);
-      if (jwtUtils.isTokenValid(refreshToken, userDetails)) {
-        var accessToken = jwtUtils.generateToken(userDetails);
-        return Pair.of(userDetails, accessToken);
-      }
-    }
-    return null;
+  public Pair<UserDetailsImpl, String> refreshToken(String refreshToken, String fingerprinting) {
+    return Optional.ofNullable(jwtPort.extractUserEmail(refreshToken))
+            .flatMap(userEmail -> userRepository.findByUserEmail(userEmail)
+                    .map(user -> {
+                      UserDetailsImpl userDetails = new UserDetailsImpl(user);
+                      if (jwtPort.isTokenValid(refreshToken, userDetails)) {
+                        String accessToken = jwtPort.generateToken(userDetails, fingerprinting);
+                        return Pair.of(userDetails, accessToken);
+                      }
+                      return null;
+                    }))
+            .orElseThrow(() -> new CustomException("Invalid token or user not found", HttpStatus.NOT_FOUND));
   }
 
-  private boolean isInvalidAuthentication(Authentication authentication) {
-    return authentication == null
-            || !authentication.isAuthenticated()
-            || authentication instanceof AnonymousAuthenticationToken;
+  private Optional<String> getAuthenticatedUser() {
+    return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+            .filter(auth -> auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken))
+            .map(Authentication::getPrincipal)
+            .map(this::extractUsername);
   }
 
   private String extractUsername(Object principal) {
