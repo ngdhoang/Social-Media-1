@@ -2,8 +2,8 @@ package com.GHTK.Social_Network.application.port.output.post;
 
 import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import com.GHTK.Social_Network.domain.model.post.ReactionPost;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetReactionPostRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -18,13 +18,7 @@ public interface ReactionPostPort {
 
   List<ReactionPost> findByPostId(Long postId);
 
-  int countReactionByPostId(Long postId);
-
-  int countReactionByPostIdAndType(Long postId, EReactionType reactionType);
-
   List<Map<EReactionType, Set<ReactionPost>>> getReactionGroupByPostId(Long postId);
-
-  List<ReactionPost> getListReactionByPostId(Long postId, GetReactionPostRequest getReactionPostRequest);
 
   List<ReactionPost> getListReactionByPostIdAndListBlock(Long postId, GetReactionPostRequest getReactionPostRequest, List<Long> listBlock);
 

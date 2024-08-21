@@ -1,29 +1,35 @@
 package com.GHTK.Social_Network.application.service.post;
 
+import ai.djl.translate.TranslateException;
+import ai.onnxruntime.OrtException;
 import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
 import com.GHTK.Social_Network.application.port.input.post.PostPortInput;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
+import com.GHTK.Social_Network.application.port.output.PhoBERTPortInput;
+import com.GHTK.Social_Network.application.port.output.ProfilePort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
 import com.GHTK.Social_Network.application.port.output.post.ReactionPostPort;
-import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
+import com.GHTK.Social_Network.application.port.output.post.RedisImagePort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.collection.ImageSequence;
+import com.GHTK.Social_Network.domain.event.post.PostCreateEvent;
+import com.GHTK.Social_Network.domain.event.post.PostUpdateEvent;
 import com.GHTK.Social_Network.domain.model.post.*;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.PostMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetPostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.PostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.InteractionResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.PostResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -37,11 +43,35 @@ public class PostService implements PostPortInput {
   private final PostPort portPost;
   private final ImagePostPort imagePostPort;
   private final FriendShipPort friendShipPort;
-  private final RedisImageTemplatePort redisImageTemplatePort;
+  private final RedisImagePort redisImageTemplatePort;
   private final ReactionPostPort reactionPostPort;
+  private final ApplicationEventPublisher applicationEventPublisher;
+  private final ProfilePort profilePort;
+
+  private final PhoBERTPortInput phoBERTPortInput;
 
   private final PostMapper postMapper;
   private final UserMapper userMapper;
+
+  @Override
+  public List<PostResponse> getPostsSuggest(GetPostRequest getPostRequest) {
+    User currentUser = authPort.getUserAuthOrDefaultVirtual();
+    if (currentUser.getUserId().equals(0L)) {
+      throw new CustomException("Not authorized", HttpStatus.UNAUTHORIZED);
+    }
+
+    List<Post> listPost = portPost.getListPostSuggest(currentUser.getUserId(), getPostRequest);
+    return listPost.stream()
+            .map(
+                    p -> {
+                      List<ImagePost> imagePostList = portPost.getListImageByPostId(p.getPostId());
+                      List<Long> blockIds = friendShipPort.getListBlockBoth(p.getUserId());
+                      List<TagUser> tagUserList = portPost.getListTagUserByPostId(p.getPostId(), blockIds);
+                      List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getUserId())).toList();
+                      return postMapper.postToPostResponse(p, imagePostList, userTagList, userMapper.userToUserBasicDto(authPort.getUserById(p.getUserId())));
+                    }
+            ).toList();
+  }
 
   @Override
   public List<PostResponse> getPostsByUserId(Long userId, GetPostRequest getPostRequest) {
@@ -92,7 +122,7 @@ public class PostService implements PostPortInput {
   @Override
   public PostResponse getPostByPostId(Long postId) {
     Post post = getPostAndCheckAccess(postId);
-    if (post.getPostStatus().equals(EPostStatus.FRIEND) && !friendShipPort.isFriend(post.getUserId(), authPort.getUserAuthOrDefaultVirtual().getUserId())) {
+    if (post.getPostStatus().equals(EPostStatus.FRIEND) && !friendShipPort.isFriend(post.getUserId(), authPort.getUserAuthOrDefaultVirtual().getUserId()) && !post.getUserId().equals(authPort.getUserAuthOrDefaultVirtual().getUserId())) {
       throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
     }
     if (friendShipPort.isBlock(post.getUserId(), authPort.getUserAuthOrDefaultVirtual().getUserId()) || post.getPostStatus().equals(EPostStatus.PRIVATE)) {
@@ -102,25 +132,32 @@ public class PostService implements PostPortInput {
     List<Long> blockIds = friendShipPort.getListBlockBoth(post.getUserId());
     List<TagUser> tagUserList = portPost.getListTagUserByPostId(post.getPostId(), blockIds);
     List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getTagUserId())).toList();
-    return postMapper.postToPostResponse(post, imagePosts, userTagList);
+    return postMapper.postToPostResponse(post, imagePosts, userTagList, userMapper.userToUserBasicDto(authPort.getUserById(postId)));
   }
 
   @Override
-  public PostResponse createPost(PostRequest postRequest) {
+  public PostResponse createPost(PostRequest postRequest) throws TranslateException, OrtException {
     User currentUser = authPort.getUserAuth();
 
+    boolean isToxic = phoBERTPortInput.isToxic(postRequest.getContent());
+    if (isToxic) {
+      throw new CustomException("Content is toxic", HttpStatus.BAD_REQUEST);
+    }
+
     Post post = createNewPost(postRequest, currentUser);
-    post.setCreateAt(LocalDate.now());
     Post newPost = portPost.savePost(post);
 
     List<TagUser> tagUserList = handleTagUsers(postRequest.getTagUserIds(), newPost); // Take tag user list
     List<ImagePost> imagePostEntities = handleImagePosts(postRequest.getPublicIds(), newPost); // Take image list
 
-    portPost.savePost(post);
+    newPost = portPost.savePost(newPost);
 
     imagePostPort.deleteAllImageRedisByTail(ImagePostInput.POST_TAIL + currentUser.getUserEmail());
-    List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getTagUserId())).toList();
-    return postMapper.postToPostResponse(newPost, imagePostEntities, userTagList);
+    List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getUserId())).toList();
+
+    applicationEventPublisher.publishEvent(new PostCreateEvent(newPost));
+
+    return postMapper.postToPostResponse(newPost, imagePostEntities, userTagList, userMapper.userToUserBasicDto(currentUser));
   }
 
   @Override
@@ -136,11 +173,13 @@ public class PostService implements PostPortInput {
     Post newPost = portPost.savePost(post);
     List<TagUser> tagUserList = handleUpdateTagUsers(postRequest.getTagUserIds(), previousTagUserList, newPost);
     List<ImagePost> imagePostList = updateImagePosts(postRequest, newPost);
-    portPost.savePost(newPost);
 
-    imagePostPort.deleteAllImageRedisByTail("_" + currentUser.getUserEmail());
+    imagePostPort.deleteAllImageRedisByTail(ImagePostInput.POST_TAIL + currentUser.getUserEmail());
+
+    applicationEventPublisher.publishEvent(new PostUpdateEvent(newPost));
+
     List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getTagUserId())).toList();
-    return postMapper.postToPostResponse(newPost, imagePostList, userTagList);
+    return postMapper.postToPostResponse(newPost, imagePostList, userTagList, userMapper.userToUserBasicDto(currentUser));
   }
 
   @Override
@@ -202,7 +241,6 @@ public class PostService implements PostPortInput {
     EPostStatus ePostStatusEntity = filterStatusPost(postRequest.getStatus());
     post.setPostStatus(ePostStatusEntity);
     post.setContent(postRequest.getContent());
-    post.setUpdateAt(LocalDate.now());
   }
 
   private Post getAndValidatePostCurrentUser(Long postId, User currentUser) {
@@ -233,7 +271,7 @@ public class PostService implements PostPortInput {
     if (user == null) {
       throw new CustomException("User not found", HttpStatus.NOT_FOUND);
     }
-    if (friendShipPort.isBlock(userId, currentUserId) || !user.getIsProfilePublic()) {
+    if (friendShipPort.isBlock(userId, currentUserId) || (!user.getIsProfilePublic() && !Objects.equals(userId, currentUserId))) {
       throw new CustomException("You do not have permission to view", HttpStatus.FORBIDDEN);
     }
   }
@@ -331,7 +369,7 @@ public class PostService implements PostPortInput {
   private List<ImagePost> updateImagePosts(PostRequest postRequest, Post post) {
     List<Long> imageIds = postRequest.getImageIds();
     List<String> publicIds = postRequest.getPublicIds();
-    String tail = ImagePostInput.POST_TAIL + "_" + authPort.getUserAuth().getUserEmail();
+    String tail = ImagePostInput.POST_TAIL + authPort.getUserAuth().getUserEmail();
 
     long cntZero = imageIds.stream().filter(id -> id == 0).count();
     if (cntZero != publicIds.size()) {
@@ -406,7 +444,8 @@ public class PostService implements PostPortInput {
     List<ImagePost> imagePostList = portPost.getListImageByPostId(p.getPostId());
     List<Long> blockIds = friendShipPort.getListBlockBoth(p.getUserId());
     List<TagUser> tagUserList = portPost.getListTagUserByPostId(p.getPostId(), blockIds);
-    return postMapper.postToPostResponse(p, imagePostList, tagUserList);
+    List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getUserId())).toList();
+    return postMapper.postToPostResponse(p, imagePostList, userTagList, userMapper.userToUserBasicDto(authPort.getUserById(p.getUserId())));
   }
 
 }

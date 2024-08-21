@@ -27,8 +27,7 @@ public class ProfileController {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.getProfile(id));
   }
 
-  @PutMapping("/update")
-
+  @PutMapping("")
   public ResponseEntity<Object> updateProfile(@RequestBody @Valid UpdateProfileRequest updateProfileRequest) {
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, profilePort.updateProfile(updateProfileRequest));
   }

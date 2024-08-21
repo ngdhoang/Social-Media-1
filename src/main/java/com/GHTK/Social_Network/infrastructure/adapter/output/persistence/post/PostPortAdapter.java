@@ -10,15 +10,18 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ImagePostRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.PostRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.TagUserRepository;
+import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.PostNodeRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.ImagePostMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.PostMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.TagUserMapperETD;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetPostRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,15 +33,28 @@ public class PostPortAdapter implements PostPort {
   private final PostRepository postRepository;
   private final TagUserRepository tagUserRepository;
   private final ImagePostRepository imagePostRepository;
+  private final PostNodeRepository postNodeRepository;
 
   private final PostMapperETD postMapperETD;
   private final TagUserMapperETD tagUserMapperETD;
   private final ImagePostMapperETD imagePostMapperETD;
 
   @Override
+  public List<Post> getListPostSuggest(Long userId, GetPostRequest getPostRequest) {
+    Pageable pageable = getPostRequest.toPageableNotSort();
+    LocalDate date = LocalDate.now(ZoneId.systemDefault());
+    List<Long> listPostId = postNodeRepository.getSuggestedPostsWithPagination(userId, date, pageable);
+    return listPostId.stream().map(
+            postId -> postMapperETD.toDomain(postRepository.findById(postId).orElse(null))
+    ).toList();
+  }
+
+
+  @Override
   public Post savePost(Post post) {
     PostEntity postEntity = postMapperETD.toEntity(post);
-    return postMapperETD.toDomain(postRepository.save(postEntity));
+    Post newPost =  postMapperETD.toDomain(postRepository.save(postEntity));
+    return newPost;
   }
 
   @Override
@@ -50,8 +66,8 @@ public class PostPortAdapter implements PostPort {
   @Override
   public List<Post> findPostsByUserIdAndFriendStatus(Long userId, TAKE_POST_STATUS status, List<Long> blockIds, GetPostRequest getPostRequest) {
     String statusString = status.toString();
-    Pageable pageable = getPostRequest.toPageable();
-    return postRepository.getListByUserIdAndFriendStatus(userId, statusString, blockIds, pageable).stream().map(
+    Pageable pageable = getPostRequest.toPageableNotSort();
+    return postRepository.getListByUserIdAndFriendStatus(userId, statusString, pageable).stream().map(
             postMapperETD::toDomain
     ).toList();
   }
@@ -65,6 +81,7 @@ public class PostPortAdapter implements PostPort {
   public Boolean deletePostById(Long id) {
     try {
       postRepository.deleteById(id);
+      postNodeRepository.deletePostNodeBy(id);
       return true;
     } catch (EmptyResultDataAccessException e) {
       return false;
@@ -72,23 +89,8 @@ public class PostPortAdapter implements PostPort {
   }
 
   @Override
-  public List<Post> getListPostTagMeNotBlockAndPrivate(Long currentUser, List<Long> blockIds, GetPostRequest getPostRequest) {
-    Pageable pageable = getPostRequest.toPageable();
-    List<TagUserEntity> tagUserList = tagUserRepository.getListByUserId(currentUser, blockIds, pageable);
-    List<PostEntity> postList = new ArrayList<>();
-    tagUserList.forEach(tagUser -> {
-      PostEntity p = postRepository.findByTagUsers(tagUser);
-      if (p.getUserEntity().getIsProfilePublic() && !friendShipPort.isBlock(currentUser, p.getUserEntity().getUserId())) {
-        postList.add(p);
-      }
-    });
-    return postList.stream().map(postMapperETD::toDomain).toList();
-  }
-
-
-  @Override
   public List<Post> findPostsTagMe(Long currentUser, List<Long> blockIds, GetPostRequest getPostRequest) {
-    Pageable pageable = getPostRequest.toPageable();
+    Pageable pageable = getPostRequest.toPageableNotSort();
     List<TagUserEntity> tagUserList = tagUserRepository.getListByUserId(currentUser, blockIds, pageable);
     List<PostEntity> postList = new ArrayList<>();
     tagUserList.forEach(tagUser -> {
@@ -103,11 +105,6 @@ public class PostPortAdapter implements PostPort {
     return postRepository.findPostsWithUserInteractions(userId).stream().map(
             postMapperETD::toDomain
     ).toList();
-  }
-
-  @Override
-  public Post findPostByImagePostId(Long imagePostId) {
-    return postMapperETD.toDomain(postRepository.findByImagePostId(imagePostId));
   }
 
   @Override
@@ -157,12 +154,6 @@ public class PostPortAdapter implements PostPort {
             tagUserMapperETD::ToDomain
     ).toList();
   }
-
-  @Override
-  public List<Long> getListTagUserIdByPostId(Long postId, List<Long> blockIds) {
-    return tagUserRepository.getListUserIdByPostId(postId, blockIds);
-  }
-
 
   @Override
   public void decrementReactionQuantity(Long postId) {

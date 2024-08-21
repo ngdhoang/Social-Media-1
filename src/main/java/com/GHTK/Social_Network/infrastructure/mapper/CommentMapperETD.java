@@ -2,9 +2,14 @@ package com.GHTK.Social_Network.infrastructure.mapper;
 
 import com.GHTK.Social_Network.domain.model.post.comment.Comment;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.comment.CommentEntity;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.CommentNode;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Mapper(componentModel = "spring")
 public interface CommentMapperETD {
@@ -34,5 +39,18 @@ public interface CommentMapperETD {
     CommentEntity parentComment = new CommentEntity();
     parentComment.setCommentId(parentCommentId);
     return parentComment;
+  }
+
+  @Mapping(source = "commentId", target = "commentId")
+  @Mapping(source = "createAt", target = "createAt", qualifiedByName = "mapInstantToLocalDateTime")
+  CommentNode commentEntityToNode(CommentEntity commentEntity);
+
+  @Named("mapInstantToLocalDateTime")
+  public static LocalDateTime mapInstantToLocalDateTime(Instant instant) {
+    if (instant == null) {
+      return null;
+    }
+    System.out.println(ZoneId.systemDefault());
+    return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
   }
 }

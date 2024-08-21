@@ -33,8 +33,6 @@ public class GroupCollection {
 
   private List<String> msgPin;
 
-
-
   @CreatedDate
   private Date createAt;
 }

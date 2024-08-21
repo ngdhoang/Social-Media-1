@@ -23,5 +23,4 @@ public class Group {
   private List<Member> members;
 
   private List<String> msgPin;
-
 }

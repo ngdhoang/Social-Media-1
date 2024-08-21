@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.payload.responses.chat;
 
-import com.GHTK.Social_Network.infrastructure.payload.dto.MessageDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.chat.MessageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

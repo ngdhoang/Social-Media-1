@@ -13,20 +13,22 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Member {
-    private Long userId;
+  private Long userId;
 
-    private String nickname;
+  private String nickname;
 
-    private String lastMsgSeen;
+  private String lastMsgSeen;
 
-    private Instant lastTimeMsgSeen;
+  private Instant lastTimeMsgSeen;
 
-    private EStateUserGroup role;
+  private EStateUserGroup role;
 
-    public Member(Long userId, String nickname, EStateUserGroup role, String lastMsgSeen) {
-        this.userId = userId;
-        this.nickname = nickname;
-        this.role = role;
-        this.lastMsgSeen = lastMsgSeen;
-    }
+  public Member(Long userId, String nickname, EStateUserGroup role, String lastMsgSeen) {
+    this.userId = userId;
+    this.nickname = nickname;
+    this.role = role;
+    this.lastMsgSeen = lastMsgSeen;
+  }
+
+
 }

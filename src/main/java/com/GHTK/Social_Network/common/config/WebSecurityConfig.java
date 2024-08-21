@@ -3,6 +3,7 @@ package com.GHTK.Social_Network.common.config;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt.AuthEntryPointJwt;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt.AuthJwtFilter;
 import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsServiceImpl;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -78,14 +79,17 @@ public class WebSecurityConfig {
     return http.build();
   }
 
-  @Configuration
-  public class CorsConfig implements WebMvcConfigurer {
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-      registry.addMapping("/api/**")
-              .allowedOrigins("http://localhost:5500/", "http://localhost:3301/")
-              .allowedMethods("GET", "POST", "PUT", "DELETE")
-              .allowedHeaders("*");
-    }
+  @Bean
+  public WebMvcConfigurer corsConfigurer() {
+    return new WebMvcConfigurer() {
+      @Override
+      public void addCorsMappings(@NonNull CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOriginPatterns("http://127.0.0.1:5500", "http://localhost:*")
+                .allowedMethods("*")
+                .allowedHeaders("*")
+                .allowCredentials(true);
+      }
+    };
   }
 }

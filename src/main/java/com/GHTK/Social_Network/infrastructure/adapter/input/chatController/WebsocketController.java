@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.chatController;
 
 import com.GHTK.Social_Network.application.port.input.chat.WebsocketPortInput;
-import com.GHTK.Social_Network.infrastructure.payload.dto.MessageDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.chat.MessageDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;

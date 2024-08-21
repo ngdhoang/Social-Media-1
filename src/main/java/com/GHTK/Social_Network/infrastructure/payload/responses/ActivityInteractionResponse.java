@@ -6,7 +6,7 @@ import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -19,7 +19,7 @@ public class ActivityInteractionResponse {
 
     private String role;
 
-    private LocalDate createAt;
+    private Instant createAt;
 
     private String content;
 

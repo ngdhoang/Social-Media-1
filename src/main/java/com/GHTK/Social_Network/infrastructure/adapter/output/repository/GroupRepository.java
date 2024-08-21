@@ -17,7 +17,5 @@ public interface GroupRepository extends MongoRepository<GroupCollection, String
 
   @Query("{'userId': ?0}")
   List<GroupCollection> findAllByUserId (Long userID, Pageable pageable);
-
-
 }
 

@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,7 @@ public class CommentEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long commentId;
 
-  private LocalDate createAt;
+  private Instant createAt;
 
   private String imageUrl;
 
@@ -53,6 +54,7 @@ public class CommentEntity {
 
   @PrePersist
   public void prePersist() {
+    this.createAt = Instant.now();
     if (this.reactionsQuantity == null) {
       this.reactionsQuantity = 0L;
     }
@@ -60,5 +62,6 @@ public class CommentEntity {
       this.repliesQuantity = 0L;
     }
   }
+
 }
 

@@ -17,11 +17,11 @@ public class UserNode {
     @Id
     private Long userId;
 
-    private String firstName;
-
-    private String lastName;
+    private String fullName;
 
     private String email;
+
+    private Integer maxScorePost;
 
     @Relationship(type = "RELATED_TO")
     private Set<UserRelationship> userRelationships;
@@ -32,10 +32,20 @@ public class UserNode {
     @Relationship(type = "LIVES_IN", direction = Relationship.Direction.OUTGOING)
     private HometownNode hometownNode;
 
+    @Relationship(type = "POSTED", direction = Relationship.Direction.OUTGOING)
+    private Set<PostNode> postNodes;
+
+    @Relationship(type = "COMMENTED", direction = Relationship.Direction.OUTGOING)
+    private Set<CommentNode> commentNodes;
+
+    @Relationship(type = "RELATED_TO_POST", direction = Relationship.Direction.OUTGOING)
+    private Set<UserPostRelationship> userPostRelationships;
+
+
     public UserNode(Long userId, String firstName, String lastName, String email) {
         this.userId = userId;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.fullName = lastName + " " + firstName;
         this.email = email;
+        this.maxScorePost = 0;
     }
 }

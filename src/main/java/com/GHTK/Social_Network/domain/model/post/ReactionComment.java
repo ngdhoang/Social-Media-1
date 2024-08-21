@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 @AllArgsConstructor
@@ -22,18 +23,18 @@ public class ReactionComment {
 
     private Long userId;
 
-    private LocalDate createAt;
+    private Instant createAt;
 
-    private LocalDate updateAt;
+    private Instant updateAt;
 
     @PrePersist
     public void prePersist() {
-        this.createAt = LocalDate.now();
+        this.createAt = Instant.now();
     }
 
     @PreUpdate
     public void preUpdate() {
-        this.updateAt = LocalDate.now();
+        this.updateAt = Instant.now();
     }
 
     public ReactionComment(EReactionType reactionType, Long commentId, Long userId) {

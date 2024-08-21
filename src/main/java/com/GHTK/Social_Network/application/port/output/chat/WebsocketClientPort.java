@@ -2,6 +2,7 @@ package com.GHTK.Social_Network.application.port.output.chat;
 
 import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
 import com.GHTK.Social_Network.domain.collection.chat.Message;
+import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 
 import java.util.List;
@@ -22,6 +23,8 @@ public interface WebsocketClientPort {
   void sendListUserAndNotSave(Message messages, List<Long> receiverIds);
 
   void sendListUserError(String error, List<Long> userReceiveIds);
+
+  Message createNotificationMessage(Long currentUserId, String content);
 
   UserBasicDto getUserAuth();
 }

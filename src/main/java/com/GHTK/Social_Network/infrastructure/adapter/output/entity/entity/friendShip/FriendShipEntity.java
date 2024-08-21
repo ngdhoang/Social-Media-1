@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Table(name = "friend_ship")
@@ -23,8 +24,8 @@ public class FriendShipEntity {
     @Enumerated(EnumType.STRING)
     private EFriendshipStatusEntity friendshipStatus;
 
-    @Column(columnDefinition = "DATE")
-    private LocalDate createAt;
+    @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private Instant createAt;
 
     @Column(nullable = false)
     private Long userReceiveId;
@@ -38,7 +39,7 @@ public class FriendShipEntity {
 
     @PrePersist
     public void prePersist() {
-        createAt = LocalDate.now();
+        createAt = Instant.now();
     }
 
     public FriendShipEntity(Long userReceiveId, Long userInitiatorId, EFriendshipStatusEntity friendshipStatus) {

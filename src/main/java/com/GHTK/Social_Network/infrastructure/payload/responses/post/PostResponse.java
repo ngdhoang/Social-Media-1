@@ -26,4 +26,6 @@ public class PostResponse {
   private Long reactionsQuantity;
 
   private Long commentQuantity;
+
+  private UserBasicDto user;
 }

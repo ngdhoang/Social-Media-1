@@ -4,8 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -15,11 +13,4 @@ public class UserGroupInfo {
   private String lastGroupName;
 
   private String lastMsgId;
-
-  private EStateUserGroupCollection state;
-
-  public UserGroupInfo(String groupId, EStateUserGroupCollection state) {
-    this.groupId = groupId;
-    this.state = state;
-  }
 }

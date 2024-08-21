@@ -11,5 +11,6 @@ public enum EMessageTypeCollection {
   EMOJI,
   IMAGE,
   ERROR,
-  TYPING
+  TYPING,
+  CALL
 }

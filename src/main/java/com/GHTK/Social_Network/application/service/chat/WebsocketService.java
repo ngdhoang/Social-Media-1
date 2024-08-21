@@ -7,7 +7,7 @@ import com.GHTK.Social_Network.application.port.output.chat.MessagePort;
 import com.GHTK.Social_Network.application.port.output.chat.WebsocketClientPort;
 import com.GHTK.Social_Network.domain.collection.chat.*;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ChatMapper;
-import com.GHTK.Social_Network.infrastructure.payload.dto.MessageDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.chat.MessageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,7 +44,7 @@ public class WebsocketService implements WebsocketPortInput {
       return;
     }
 
-    boolean isGroup = message.getGroupType().equals(EGroupType.GROUP_PUBLIC );
+    boolean isGroup = EGroupType.isGroupType(message.getGroupType());
 
     if (isGroup) {
       Optional<Group> currentGroup = Optional.ofNullable(groupPort.getGroupForGroup(message.getGroupId()));
@@ -197,7 +197,7 @@ public class WebsocketService implements WebsocketPortInput {
   private void sendToGroup(MessageDto msg, Long userIdSend, String groupId) {
     Message message = chatMapper.messageDtoToMessage(msg);
     message.setUserAuthId(userIdSend);
-    webSocketClientPort.sendListUserAndSave(message, groupPort.getGroupForPersonal(groupId).getMembers().stream().map(Member::getUserId).toList());
+    webSocketClientPort.sendListUserAndSave(message, groupPort.getGroupForGroup(groupId).getMembers().stream().map(Member::getUserId).toList());
   }
 
   private void sendReplyToGroup(MessageDto msgReply, Message msg, Long userIdSend, String groupId) {

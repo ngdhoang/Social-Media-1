@@ -3,11 +3,11 @@ package com.GHTK.Social_Network.application.port.output.chat;
 import com.GHTK.Social_Network.domain.collection.EStateUserGroup;
 import com.GHTK.Social_Network.domain.collection.UserCollectionDomain;
 import com.GHTK.Social_Network.domain.collection.chat.Group;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.UserCollection;
+import com.GHTK.Social_Network.domain.collection.chat.Member;
 import com.GHTK.Social_Network.infrastructure.payload.requests.PaginationRequest;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 public interface GroupPort {
   UserCollectionDomain saveUser(UserCollectionDomain user);
@@ -22,17 +22,21 @@ public interface GroupPort {
 
   boolean isUserInGroup(Long userId, String groupId);
 
-  List<Group> getPageMyGroups(Long userId, PaginationRequest paginationRequest);
+  List<Group> getMyGroups(Long userId, PaginationRequest paginationRequest);
 
-  UserCollectionDomain findUserListGroupWithPagination(Long userId, int skip, int limit);
-
-//  void outGroup(String groupId);
+  UserCollectionDomain getUserGroups(Long userId, int skip, int limit);
 
   Group createGroupGroup(Long userSendId, List<Long> userReceiveIds);
 
   Group setMemberRole(Long userId, String groupId, EStateUserGroup newRole);
 
-  Group updateGroup(String groupId, Group updateGroup);
+  Set<Group> getGroupsByUserId(Long userId);
 
-  void deleteGroup(String groupId);
+  void removeMemberByUserId(String groupId, Long userId);
+
+  Member getMemberByUserId(String groupId, Long userId);
+
+  void addMember(String groupId, Member newMember);
+
+  Member getLastMember(String groupId);
 }

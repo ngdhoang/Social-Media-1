@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
@@ -25,9 +26,14 @@ public class DeviceEntity {
 
   private EDeviceTypeEntity deviceType;
 
-  private LocalDate localDate;
+  private Instant localDate;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "user_id", nullable = false)
   private UserEntity userEntity;
+
+  @PrePersist
+  public void onPersist(){
+    this.localDate = Instant.now();
+  }
 }

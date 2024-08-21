@@ -2,7 +2,7 @@ package com.GHTK.Social_Network.infrastructure.adapter.input.chatController;
 
 import com.GHTK.Social_Network.application.port.input.chat.MessagePortInput;
 import com.GHTK.Social_Network.infrastructure.payload.requests.PaginationRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.ReactionRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;

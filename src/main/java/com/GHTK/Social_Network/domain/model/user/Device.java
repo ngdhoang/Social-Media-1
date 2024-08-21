@@ -1,11 +1,14 @@
 package com.GHTK.Social_Network.domain.model.user;
 
+import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 
 @Data
 @Builder
@@ -20,22 +23,25 @@ public class Device {
 
   private EDeviceType deviceType;
 
-  private LocalDate localDate;
+  private Instant localDate;
 
   private Long userId;
 
-  public Device(String fingerprinting, String deviceInformation, EDeviceType deviceType, LocalDate localDate, Long userId) {
+  public Device(String fingerprinting, String deviceInformation, EDeviceType deviceType, Long userId) {
     this.fingerprinting = fingerprinting;
     this.deviceInformation = deviceInformation;
     this.deviceType = deviceType;
-    this.localDate = localDate;
     this.userId = userId;
   }
 
-  public Device(String fingerprinting, String deviceInformation, EDeviceType deviceType, LocalDate localDate) {
+  public Device(String fingerprinting, String deviceInformation, EDeviceType deviceType) {
     this.fingerprinting = fingerprinting;
     this.deviceInformation = deviceInformation;
     this.deviceType = deviceType;
-    this.localDate = localDate;
+  }
+
+  @PrePersist
+  public void prePersist() {
+    localDate = Instant.now();
   }
 }

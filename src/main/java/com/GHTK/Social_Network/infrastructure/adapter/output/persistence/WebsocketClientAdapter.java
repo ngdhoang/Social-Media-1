@@ -5,6 +5,7 @@ import com.GHTK.Social_Network.application.port.output.chat.WebsocketClientPort;
 import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
 import com.GHTK.Social_Network.domain.collection.chat.EMessageType;
 import com.GHTK.Social_Network.domain.collection.chat.Message;
+import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.adapter.input.websocket.WebsocketContextHolder;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat.MessageCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.MessageRepository;
@@ -95,6 +96,15 @@ public class WebsocketClientAdapter implements WebsocketClientPort {
   @Override
   public void sendListUserError(String error, List<Long> receiveIds) {
     receiveIds.forEach(receiveId -> sendUserError(error, receiveId));
+  }
+
+  @Override
+  public Message createNotificationMessage(Long currentUserId, String content) {
+    return Message.builder()
+            .userAuthId(currentUserId)
+            .content(content)
+            .msgType(EMessageType.MESSAGE)
+            .build();
   }
 
   @Override

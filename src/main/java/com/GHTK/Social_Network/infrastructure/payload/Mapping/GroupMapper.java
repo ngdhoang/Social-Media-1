@@ -4,11 +4,12 @@ import com.GHTK.Social_Network.domain.collection.EStateUserGroup;
 import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
 import com.GHTK.Social_Network.domain.collection.chat.Group;
 import com.GHTK.Social_Network.domain.collection.chat.Member;
-import com.GHTK.Social_Network.infrastructure.payload.dto.MemberDto;
-import com.GHTK.Social_Network.infrastructure.payload.requests.CreateGroupRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateGroupRequest;
-import com.GHTK.Social_Network.infrastructure.payload.responses.CreateGroupResponse;
-import com.GHTK.Social_Network.infrastructure.payload.responses.GroupResponse;
+import com.GHTK.Social_Network.infrastructure.payload.dto.chat.GroupDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.chat.MemberDto;
+import com.GHTK.Social_Network.infrastructure.payload.requests.chat.group.CreateGroupRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.chat.group.UpdateGroupRequest;
+import com.GHTK.Social_Network.infrastructure.payload.responses.chat.CreateGroupResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.chat.GroupResponse;
 import org.mapstruct.*;
 
 import java.util.List;
@@ -16,12 +17,22 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface GroupMapper {
-  @Mapping(target = "groupId", source = "id")
-  @Mapping(target = "groupType", source = "groupType", qualifiedByName = "mapGroupType")
-  @Mapping(target = "msgPin", source = "msgPin")
-  @Mapping(target = "members", source = "members", qualifiedByName = "mapMembers")
-  @Mapping(target = "createAt", expression = "java(java.time.LocalDate.now())")
-  CreateGroupResponse groupToResponse(Group group);
+  default CreateGroupResponse groupToResponse(Group group) {
+    GroupDto groupDto = GroupDto.builder()
+            .groupId(group.getId())
+            .groupType(group.getGroupType().toString())
+            .groupName(group.getGroupName())
+            .groupBackground(group.getGroupBackground())
+            .build();
+    return CreateGroupResponse.builder()
+            .group(groupDto)
+            .members(
+                    group.getMembers().stream().map(
+                            this::mapMember
+                    ).toList()
+            )
+            .build();
+  }
 
 
   @Mapping(target = "groupId", source = "id")
@@ -37,16 +48,6 @@ public interface GroupMapper {
   default String mapGroupType(EGroupType groupType) {
     return groupType != null ? groupType.name() : null;
   }
-
-//  @Named("mapMsgPin")
-//  default List<Long> mapMsgPin(List<String> msgPin) {
-//    if (msgPin == null) {
-//      return null;
-//    }
-//    return msgPin.stream()
-//            .map(Long::parseLong)
-//            .collect(Collectors.toList());
-//  }
 
   @Named("mapMembers")
   default List<MemberDto> mapMembers(List<Member> members) {
@@ -76,7 +77,7 @@ public interface GroupMapper {
 
   default Group updateGroupToDomain(UpdateGroupRequest updateGroupRequest, List<Member> members) {
     return Group.builder()
-            .id(updateGroupRequest.getId())
+            .id(updateGroupRequest.getGroupId())
             .groupName(updateGroupRequest.getGroupName())
             .members(members)
             .build();

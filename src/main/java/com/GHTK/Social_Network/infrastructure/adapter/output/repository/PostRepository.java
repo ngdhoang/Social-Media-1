@@ -33,20 +33,18 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
 
 
   @Query(value = """
-          select p.*
-          from post p
-          join user u on p.user_id = u.user_id
-          where u.user_id = :userId
-          and (
-            (:status = 'PRIVATE' and p.post_status = 'PRIVATE')
-            or (:status = 'PUBLIC' and p.post_status = 'PUBLIC')
-            or (:status = 'FRIEND' and p.post_status in ('FRIEND', 'PUBLIC'))
-            or (:status = 'ALL' and p.post_status in ('FRIEND', 'PUBLIC', 'PRIVATE'))
-          )
-
-          and p.post_id not in :blockIds
-          """, nativeQuery = true)
-  List<PostEntity> getListByUserIdAndFriendStatus(@Param("userId") Long userId, @Param("status") String status, @Param("blockIds") List<Long> blockIds, Pageable pageable);
+      select p.*
+      from post p
+      join user u on p.user_id = u.user_id
+      where u.user_id = :userId
+      and (
+        (:status = 'PRIVATE' and p.post_status = 'PRIVATE')
+        or (:status = 'PUBLIC' and p.post_status = 'PUBLIC')
+        or (:status = 'FRIEND' and p.post_status in ('FRIEND', 'PUBLIC'))
+        or (:status = 'ALL' and p.post_status in ('FRIEND', 'PUBLIC', 'PRIVATE'))
+      )
+      """, nativeQuery = true)
+  List<PostEntity> getListByUserIdAndFriendStatus(@Param("userId") Long userId, @Param("status") String status, Pageable pageable);
 
   @Query(value = """
           select distinct p from PostEntity p

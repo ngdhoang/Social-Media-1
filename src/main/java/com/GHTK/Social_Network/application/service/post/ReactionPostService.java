@@ -17,9 +17,9 @@ import com.GHTK.Social_Network.infrastructure.payload.Mapping.*;
 import com.GHTK.Social_Network.infrastructure.payload.dto.post.ReactionCountDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.post.ReactionUserDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionPostRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetReactionPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.ReactionRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ActivityInteractionResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionPostResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionResponse;
@@ -28,7 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -110,13 +110,6 @@ public class ReactionPostService implements ReactionPostInput {
   }
 
   @Override
-  public List<ReactionResponse> getAllReactionInPost(Long postId) {
-    return reactionPostPort.findByPostId(postId).stream().map(
-            reactionPostMapper::postToResponse
-    ).toList();
-  }
-
-  @Override
   public ReactionPostResponse getListReactionInPost(Long postId, GetReactionPostRequest getReactionPostRequest) {
     Post post = postPort.findPostByPostId(postId);
     User user = authPort.getUserAuthOrDefaultVirtual();
@@ -155,7 +148,7 @@ public class ReactionPostService implements ReactionPostInput {
                 EReactionType reactionType = EReactionType.valueOf((String) reactionInteraction[1]);
                 Long targetId = (Long) reactionInteraction[2];
                 Date createAtDate = (Date) reactionInteraction[3];
-                LocalDate createAt = createAtDate.toLocalDate();
+                Instant createAt = createAtDate.toInstant();
                 String role = (String) reactionInteraction[4];
                 if (role.equals("post")) {
                   Post post = postPort.findPostByPostId(targetId);

@@ -17,9 +17,9 @@ import com.GHTK.Social_Network.infrastructure.payload.Mapping.ChatMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.PaginationRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.ReactionRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
-import com.GHTK.Social_Network.infrastructure.payload.responses.ReactionChatResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.chat.ReactionChatResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.chat.ChatMessageReplyResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.chat.ChatMessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.chat.ListChatMessageResponse;
@@ -212,7 +212,7 @@ public class MessageService implements MessagePortInput {
     if (shouldUpdateLastSeen(currentMember)) {
       updateMemberLastSeen(currentMember, msgId);
       updateGroupMember(group, currentMember);
-      if (group.getGroupType().equals(EGroupType.GROUP_PUBLIC)) {
+      if (group.getGroupType().isGroupPublic(group.getGroupType())) {
         updateUserCollectionLastSeen(currentUser.getUserId(), group.getId(), msgId);
       } else {
         updateUserCollectionLastSeen(currentUser.getUserId(), group.getGroupName(), msgId);

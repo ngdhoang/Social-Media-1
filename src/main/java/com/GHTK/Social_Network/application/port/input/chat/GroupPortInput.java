@@ -1,30 +1,33 @@
 package com.GHTK.Social_Network.application.port.input.chat;
 
-import com.GHTK.Social_Network.domain.collection.chat.Member;
-import com.GHTK.Social_Network.infrastructure.payload.requests.CreateGroupRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.PaginationRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.SetMemBerNickNameRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.UpdateGroupRequest;
-import com.GHTK.Social_Network.infrastructure.payload.responses.CreateGroupResponse;
-import com.GHTK.Social_Network.infrastructure.payload.responses.GroupResponse;
+import com.GHTK.Social_Network.infrastructure.payload.requests.*;
+import com.GHTK.Social_Network.infrastructure.payload.requests.chat.group.UpdateGroupRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.chat.group.CreateGroupRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.chat.group.MemberRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.chat.group.SetMemBerNickNameRequest;
+import com.GHTK.Social_Network.infrastructure.payload.responses.chat.CreateGroupResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.chat.GroupResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface GroupPortInput {
   CreateGroupResponse createGroup(CreateGroupRequest createGroupRequest);
 
-  CreateGroupResponse updateGroup(UpdateGroupRequest updateGroupRequest);
+  CreateGroupResponse changeGroupName(UpdateGroupRequest updateGroupRequest);
 
-  MessageResponse deleteGroup(String groupId);
+  CreateGroupResponse changeGroupBackground(MultipartFile backgroundImage, String groupId);
 
-  CreateGroupResponse addNewMemberToGroup(String groupId, List<Member> members);
+  CreateGroupResponse addMemberToGroup(MemberRequest memberRequest);
+
+  CreateGroupResponse kickMemberToGroup(MemberRequest memberRequest);
 
   MessageResponse outGroup(String groupId);
 
-  MessageResponse setMemberNickName(SetMemBerNickNameRequest setMemBerNickNameRequest);
+  MessageResponse changeNickname(SetMemBerNickNameRequest setMemBerNickNameRequest);
 
-  List<GroupResponse> getAllMyGroups( PaginationRequest paginationRequest);
+  MessageResponse changeStateGroup(String groupId, String state);
 
-//  GroupResponse setMemberRole(ChangeMemberRoleRequest changeMemberRoleRequest);
+  List<GroupResponse> getMyGroups(PaginationRequest paginationRequest);
 }

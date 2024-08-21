@@ -2,7 +2,7 @@ package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
 import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
 import com.GHTK.Social_Network.domain.collection.chat.Message;
-import com.GHTK.Social_Network.infrastructure.payload.dto.MessageDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.chat.MessageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import com.GHTK.Social_Network.infrastructure.payload.responses.chat.ChatMessageResponse;
 import org.mapstruct.Mapper;

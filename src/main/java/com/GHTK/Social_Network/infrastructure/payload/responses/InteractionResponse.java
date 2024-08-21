@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Data
@@ -26,7 +27,7 @@ public class InteractionResponse {
 
   private String image;
 
-  private LocalDate createAt;
+  private Instant createAt;
 
-  private LocalDate updateAt;
+  private Instant updateAt;
 }
