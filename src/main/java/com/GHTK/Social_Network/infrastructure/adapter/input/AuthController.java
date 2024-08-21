@@ -4,7 +4,7 @@ import com.GHTK.Social_Network.application.port.input.AuthPortInput;
 import com.GHTK.Social_Network.application.port.input.ProfilePortInput;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
-import com.GHTK.Social_Network.infrastructure.payload.requests.*;
+import com.GHTK.Social_Network.infrastructure.payload.requests.auth.*;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.mail.MessagingException;

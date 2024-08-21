@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.infrastructure.payload.requests;
+package com.GHTK.Social_Network.infrastructure.payload.requests.chat.group;
 
 import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
 import lombok.AllArgsConstructor;

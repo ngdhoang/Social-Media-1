@@ -1,7 +1,8 @@
-package com.GHTK.Social_Network.infrastructure.payload.requests;
+package com.GHTK.Social_Network.infrastructure.payload.requests.post.comment;
 
 import com.GHTK.Social_Network.common.customAnnotation.config.ValidPattern;
 import com.GHTK.Social_Network.common.customAnnotation.logic.CustomPatternValidator;
+import com.GHTK.Social_Network.infrastructure.payload.requests.PaginationRequest;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 

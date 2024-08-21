@@ -5,6 +5,7 @@ import com.GHTK.Social_Network.application.port.input.chat.GroupPortInput;
 import com.GHTK.Social_Network.application.port.input.chat.OfflineOnlineInput;
 import com.GHTK.Social_Network.application.port.output.CloudPort;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
+import com.GHTK.Social_Network.application.port.output.UserCollectionPort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.chat.GroupPort;
 import com.GHTK.Social_Network.application.port.output.chat.WebsocketClientPort;
@@ -15,10 +16,14 @@ import com.GHTK.Social_Network.domain.collection.UserGroup;
 import com.GHTK.Social_Network.domain.collection.chat.*;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.GroupMapper;
-import com.GHTK.Social_Network.infrastructure.payload.requests.*;
-import com.GHTK.Social_Network.infrastructure.payload.responses.CreateGroupResponse;
-import com.GHTK.Social_Network.infrastructure.payload.responses.GroupResponse;
+import com.GHTK.Social_Network.infrastructure.payload.requests.PaginationRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.chat.group.CreateGroupRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.chat.group.MemberRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.chat.group.SetMemBerNickNameRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.chat.group.UpdateGroupRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.chat.CreateGroupResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.chat.GroupResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -30,12 +35,14 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class GroupService implements GroupPortInput {
+  private final OfflineOnlineInput offlineOnlineInput;
+
   private final FriendShipPort friendShipPort;
   private final GroupPort groupPort;
   private final AuthPort authPort;
   private final WebsocketClientPort websocketClientPort;
-  private final OfflineOnlineInput offlineOnlineInput;
   private final CloudPort cloudPort;
+  private final UserCollectionPort userCollectionPort;
 
   private final GroupMapper groupMapper;
 
@@ -49,8 +56,8 @@ public class GroupService implements GroupPortInput {
             createGroupRequest
     );
     newGroup.setMembers(members);
-    CreateGroupResponse createGroupResponse = groupMapper.groupToCreateResponse(groupPort.saveGroup(newGroup));
-    setMemberInGroup(members, createGroupResponse.getGroupId());
+    CreateGroupResponse createGroupResponse = groupMapper.groupToResponse(groupPort.saveGroup(newGroup));
+    setMemberInGroup(members, createGroupResponse.getGroup().getGroupId());
 
     Message message = Message.builder()
             .userAuthId(currentUser.getUserId())
@@ -73,7 +80,7 @@ public class GroupService implements GroupPortInput {
     validatePermissionGroup(group, currentUser.getUserId());
 
     group.setGroupName(updateGroupRequest.getGroupName());
-    return groupMapper.groupToCreateResponse(groupPort.saveGroup(group));
+    return groupMapper.groupToResponse(groupPort.saveGroup(group));
   }
 
   @Override
@@ -87,7 +94,7 @@ public class GroupService implements GroupPortInput {
     String url = (String) cloudPort.uploadPictureByFile(backgroundImage, ImageHandlerPortInput.MAX_SIZE_AVATAR).get("url");
     group.setGroupBackground(url);
 
-    return groupMapper.groupToCreateResponse(groupPort.saveGroup(group));
+    return groupMapper.groupToResponse(groupPort.saveGroup(group));
   }
 
   @Override
@@ -108,7 +115,7 @@ public class GroupService implements GroupPortInput {
 
     addNewMembersToGroup(group, newMemberIds, currentUser, existingMemberIds);
 
-    return groupMapper.groupToCreateResponse(group);
+    return groupMapper.groupToResponse(group);
   }
 
 
@@ -130,7 +137,7 @@ public class GroupService implements GroupPortInput {
 
     kickMembersToGroup(group, newMemberIds, currentUser, existingMemberIds);
 
-    return groupMapper.groupToCreateResponse(group);
+    return groupMapper.groupToResponse(group);
   }
 
   @Override
@@ -140,20 +147,18 @@ public class GroupService implements GroupPortInput {
 
     validateGroupForMe(group, currentUser.getUserId());
 
-    // Check if the current user is a member of the group
-    boolean isMember = group.getMembers().stream()
-            .anyMatch(member -> member.getUserId().equals(currentUser.getUserId()));
-    if (!isMember) {
+    if (!groupPort.isUserInGroup(currentUser.getUserId(), groupId)) {
       throw new CustomException("You are not a member of this group and cannot out group", HttpStatus.FORBIDDEN);
     }
 
-    UserCollectionDomain userCollection = authPort.getUserCollectionById(currentUser.getUserId());
-    UserGroup userGroup = userCollection.getUserGroupInfoList().stream()
-            .filter(ug -> ug.getGroupId().equals(groupId))
-            .findFirst()
-            .orElse(null);
+    groupPort.removeMemberByUserId(groupId, currentUser.getUserId());
 
+    UserGroup userGroup = userCollectionPort.getUserGroupsByUserId(currentUser.getUserId());
     userGroup.setLastGroupName(group.getGroupName());
+    userCollectionPort.addUserGroup(
+            currentUser.getUserId(),
+            userGroup
+    );
 
     return new MessageResponse("Out group successful!");
   }
@@ -166,11 +171,30 @@ public class GroupService implements GroupPortInput {
     validateGroupForMe(group, currentUser.getUserId());
     validatePermissionGroup(group, currentUser.getUserId());
 
-    return null;
+    Member member = groupPort.getMemberByUserId(group.getId(), setMemBerNickNameRequest.getUserId());
+    member.setNickname(setMemBerNickNameRequest.getNickName());
+
+    return new MessageResponse("Change nickname successful!");
   }
 
   @Override
   public MessageResponse changeStateGroup(String groupId, String state) {
+    User currentUser = authPort.getUserAuth();
+    Group group = getGroup(groupId);
+
+    if (group.getGroupType().equals(EGroupType.PERSONAL)) {
+      throw new CustomException("User cannot change state group", HttpStatus.UNAUTHORIZED);
+    }
+
+    validateGroupForMe(group, currentUser.getUserId());
+    validatePermissionGroup(group, currentUser.getUserId());
+
+    if (state.equals("private")) {
+      group.setGroupType(EGroupType.createGroupWithRole(EGroupType.EGroupRole.PRIVATE));
+    } else {
+      group.setGroupType(EGroupType.createGroupWithRole(EGroupType.EGroupRole.PUBLIC));
+    }
+
     return null;
   }
 
@@ -183,10 +207,9 @@ public class GroupService implements GroupPortInput {
             paginationRequest.getPage(),
             paginationRequest.getSize()
     );
-//        List<GroupResponse> groupResponses = userGroupInfoList.getUserGroupInfoList().stream()
-//                .map(userGroup -> groupInfoToResponse(userGroup, currentUser.getUserId()))
-//                .collect(Collectors.toList());
-    return null;
+    return userGroupInfoList.getUserGroupInfoList().stream()
+            .map(userGroup -> groupInfoToResponse(userGroup, currentUser.getUserId()))
+            .toList();
   }
 
   private GroupResponse groupInfoToResponse(UserGroup userGroup, Long currentId) {
@@ -194,7 +217,7 @@ public class GroupService implements GroupPortInput {
     GroupResponse groupResponse = new GroupResponse();
     groupResponse.setGroupId(userGroup.getGroupId());
     groupResponse.setGroupName(
-            userGroup.getLastGroupName() != null ? group.getGroupName() : userGroup.getLastGroupName()
+            userGroup.getLastGroupName() == null ? group.getGroupName() : userGroup.getLastGroupName()
     );
     groupResponse.setGroupBackground(group.getGroupBackground());
     if (group.getGroupType().equals(EGroupType.PERSONAL)) {
@@ -240,7 +263,8 @@ public class GroupService implements GroupPortInput {
     newMemberIds.forEach(id -> {
       User newMember = authPort.getUserById(id);
       sendNotificationsAddMember(currentUser, newMember, existingMemberIds);
-      kickMemberToGroup(group, id);
+
+      groupPort.removeMemberByUserId(group.getId(), id);
     });
   }
 
@@ -253,24 +277,6 @@ public class GroupService implements GroupPortInput {
     websocketClientPort.sendUserAndNotSave(message, "/app/channel/" + newMember.getUserId());
   }
 
-  private void addMemberToGroup(Group group, Long userId) {
-    group.getMembers().add(
-            Member.builder()
-                    .userId(userId)
-                    .role(EStateUserGroup.USER)
-                    .build()
-    );
-  }
-
-  private void kickMemberToGroup(Group group, Long userId) {
-    group.getMembers().remove(
-            Member.builder()
-                    .userId(userId)
-                    .role(EStateUserGroup.USER)
-                    .build()
-    );
-  }
-
   private Member userToMember(User member, String role) {
     EStateUserGroup newRole;
     if (role.equals("MANAGER")) {
@@ -280,12 +286,10 @@ public class GroupService implements GroupPortInput {
     } else {
       newRole = EStateUserGroup.USER;
     }
-    return new Member(
-            member.getUserId(),
-            null, // default nickname
-            newRole,
-            null
-    );
+    return Member.builder()
+            .userId(member.getUserId())
+            .role(newRole)
+            .build();
   }
 
   private List<Member> getMembersByListId(List<Long> memberIds) {
@@ -350,19 +354,6 @@ public class GroupService implements GroupPortInput {
     return group.getMembers().stream()
             .anyMatch(member -> member.getUserId().equals(userId) &&
                     !member.getRole().equals(EStateUserGroup.USER));
-  }
-
-  private List<Long> getGroupMemberIds(List<Member> members) {
-    return members.stream().map(Member::getUserId).toList();
-  }
-
-  private Group deleteMemberInGroup(String groupId, Long userId) {
-    Group group = getGroup(groupId);
-    List<Member> members = group.getMembers().stream()
-            .filter(m -> !m.getUserId().equals(userId))
-            .toList();
-    group.setMembers(members);
-    return group;
   }
 
   private Group getGroup(String groupId) {

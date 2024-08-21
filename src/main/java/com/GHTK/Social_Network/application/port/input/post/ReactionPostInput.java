@@ -1,8 +1,8 @@
 package com.GHTK.Social_Network.application.port.input.post;
 
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionPostRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetReactionPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.ReactionRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ActivityInteractionResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionPostResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionResponse;

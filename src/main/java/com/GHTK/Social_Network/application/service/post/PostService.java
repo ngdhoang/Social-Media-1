@@ -19,7 +19,7 @@ import com.GHTK.Social_Network.domain.model.post.*;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.PostMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetPostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.PostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.InteractionResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;

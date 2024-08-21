@@ -29,4 +29,6 @@ public class Member {
     this.role = role;
     this.lastMsgSeen = lastMsgSeen;
   }
+
+
 }

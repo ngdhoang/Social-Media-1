@@ -14,7 +14,7 @@ import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.Pos
 import com.GHTK.Social_Network.infrastructure.mapper.ImagePostMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.PostMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.TagUserMapperETD;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetPostRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Pageable;

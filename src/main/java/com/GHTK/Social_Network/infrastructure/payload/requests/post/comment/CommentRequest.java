@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.infrastructure.payload.requests.post;
+package com.GHTK.Social_Network.infrastructure.payload.requests.post.comment;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

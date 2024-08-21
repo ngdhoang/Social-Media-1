@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.infrastructure.payload.dto;
+package com.GHTK.Social_Network.infrastructure.payload.dto.chat;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

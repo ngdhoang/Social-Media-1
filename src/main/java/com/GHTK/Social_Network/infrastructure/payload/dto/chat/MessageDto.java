@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.infrastructure.payload.dto;
+package com.GHTK.Social_Network.infrastructure.payload.dto.chat;
 
 import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
 import com.GHTK.Social_Network.domain.collection.chat.EMessageType;

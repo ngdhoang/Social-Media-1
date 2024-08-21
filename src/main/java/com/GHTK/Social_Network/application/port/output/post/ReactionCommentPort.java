@@ -2,7 +2,7 @@ package com.GHTK.Social_Network.application.port.output.post;
 
 import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import com.GHTK.Social_Network.domain.model.post.ReactionComment;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionCommentRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.comment.GetReactionCommentRequest;
 
 import java.util.List;
 import java.util.Map;

@@ -2,8 +2,8 @@ package com.GHTK.Social_Network.application.port.output.post;
 
 import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import com.GHTK.Social_Network.domain.model.post.ReactionPost;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetReactionPostRequest;
 
 import java.util.List;
 import java.util.Map;

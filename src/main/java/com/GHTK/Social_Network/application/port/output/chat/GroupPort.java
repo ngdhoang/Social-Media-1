@@ -32,9 +32,9 @@ public interface GroupPort {
 
   Set<Group> getGroupsByUserId(Long userId);
 
-  void removeMemberByUserId(String groupId, String userId);
+  void removeMemberByUserId(String groupId, Long userId);
 
-  Member getMemberByUserId(String groupId, String userId);
+  Member getMemberByUserId(String groupId, Long userId);
 
   void addMember(String groupId, Member newMember);
 }

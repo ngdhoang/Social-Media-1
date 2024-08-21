@@ -1,7 +1,7 @@
 package com.GHTK.Social_Network.application.port.output.post;
 
 import com.GHTK.Social_Network.domain.model.post.comment.Comment;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetCommentRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.comment.GetCommentRequest;
 
 import java.util.List;
 

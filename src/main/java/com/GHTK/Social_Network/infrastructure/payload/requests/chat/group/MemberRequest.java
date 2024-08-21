@@ -1,17 +1,16 @@
-package com.GHTK.Social_Network.infrastructure.payload.requests;
+package com.GHTK.Social_Network.infrastructure.payload.requests.chat.group;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SetMemBerNickNameRequest {
-  private Long userId;
-
+public class MemberRequest {
   private String groupId;
 
-  private String nickName;
-
+  private List<Long> memberId;
 }

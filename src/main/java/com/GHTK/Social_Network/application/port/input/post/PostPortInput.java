@@ -2,7 +2,7 @@ package com.GHTK.Social_Network.application.port.input.post;
 
 import ai.djl.translate.TranslateException;
 import ai.onnxruntime.OrtException;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetPostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.PostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.InteractionResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;

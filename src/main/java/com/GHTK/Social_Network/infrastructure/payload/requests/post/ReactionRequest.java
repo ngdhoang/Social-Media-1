@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.infrastructure.payload.requests;
+package com.GHTK.Social_Network.infrastructure.payload.requests.post;
 
 import com.GHTK.Social_Network.common.customAnnotation.config.ValidPattern;
 import com.GHTK.Social_Network.common.customAnnotation.logic.CustomPatternValidator;

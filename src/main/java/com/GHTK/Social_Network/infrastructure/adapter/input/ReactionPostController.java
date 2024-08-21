@@ -2,10 +2,10 @@ package com.GHTK.Social_Network.infrastructure.adapter.input;
 
 import com.GHTK.Social_Network.application.port.input.post.ReactionCommentInput;
 import com.GHTK.Social_Network.application.port.input.post.ReactionPostInput;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionCommentRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionPostRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.comment.GetReactionCommentRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetReactionPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.ReactionRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

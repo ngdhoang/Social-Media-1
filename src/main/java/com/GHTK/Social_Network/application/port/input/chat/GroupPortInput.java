@@ -1,8 +1,12 @@
 package com.GHTK.Social_Network.application.port.input.chat;
 
 import com.GHTK.Social_Network.infrastructure.payload.requests.*;
-import com.GHTK.Social_Network.infrastructure.payload.responses.CreateGroupResponse;
-import com.GHTK.Social_Network.infrastructure.payload.responses.GroupResponse;
+import com.GHTK.Social_Network.infrastructure.payload.requests.chat.group.UpdateGroupRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.chat.group.CreateGroupRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.chat.group.MemberRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.chat.group.SetMemBerNickNameRequest;
+import com.GHTK.Social_Network.infrastructure.payload.responses.chat.CreateGroupResponse;
+import com.GHTK.Social_Network.infrastructure.payload.responses.chat.GroupResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import org.springframework.web.multipart.MultipartFile;
 

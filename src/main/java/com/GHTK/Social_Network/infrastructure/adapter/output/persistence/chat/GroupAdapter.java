@@ -194,14 +194,14 @@ public class GroupAdapter implements GroupPort {
   }
 
   @Override
-  public void removeMemberByUserId(String groupId, String userId) {
+  public void removeMemberByUserId(String groupId, Long userId) {
     Query query = new Query(Criteria.where("_id").is(new ObjectId(groupId)));
     Update update = new Update().pull("members", Query.query(Criteria.where("userId").is(userId)));
     mongoTemplate.updateFirst(query, update, GroupCollection.class);
   }
 
   @Override
-  public Member getMemberByUserId(String groupId, String userId) {
+  public Member getMemberByUserId(String groupId, Long userId) {
     Query query = new Query(Criteria.where("_id").is(new ObjectId(groupId))
             .and("members.userId").is(userId));
     query.fields().include("members.$");

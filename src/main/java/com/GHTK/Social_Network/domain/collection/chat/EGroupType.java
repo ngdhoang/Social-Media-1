@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 public enum EGroupType {
   GROUP(Arrays.asList(EGroupRole.PUBLIC, EGroupRole.PRIVATE)),
-  PERSONAL(Collections.EMPTY_LIST);
+  PERSONAL(Collections.emptyList());
 
   private final List<EGroupRole> allowedRoles;
 
@@ -21,6 +21,14 @@ public enum EGroupType {
   public enum EGroupRole {
     PUBLIC,
     PRIVATE
+  }
+
+  public static EGroupType createGroupWithRole(EGroupRole role) {
+    if (role == EGroupRole.PUBLIC || role == EGroupRole.PRIVATE) {
+      return GROUP;
+    } else {
+      throw new IllegalArgumentException("Invalid group role");
+    }
   }
 
   public boolean isRolePublic(EGroupRole role) {

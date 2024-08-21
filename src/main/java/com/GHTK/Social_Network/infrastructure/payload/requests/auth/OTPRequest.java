@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.infrastructure.payload.requests;
+package com.GHTK.Social_Network.infrastructure.payload.requests.auth;
 
 import lombok.Data;
 

@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.application.port.input;
 
-import com.GHTK.Social_Network.infrastructure.payload.requests.*;
+import com.GHTK.Social_Network.infrastructure.payload.requests.auth.*;
 import com.GHTK.Social_Network.infrastructure.payload.responses.AuthResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import jakarta.mail.MessagingException;

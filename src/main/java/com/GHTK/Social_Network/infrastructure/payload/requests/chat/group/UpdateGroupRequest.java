@@ -1,4 +1,4 @@
-package com.GHTK.Social_Network.infrastructure.payload.requests;
+package com.GHTK.Social_Network.infrastructure.payload.requests.chat.group;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,8 +9,10 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MemberRequest {
+public class UpdateGroupRequest {
   private String groupId;
 
-  private List<Long> memberId;
+  private String groupName;
+
+  private List<Long> members;
 }

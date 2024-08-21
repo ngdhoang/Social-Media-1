@@ -7,7 +7,7 @@ import com.GHTK.Social_Network.application.port.output.chat.MessagePort;
 import com.GHTK.Social_Network.application.port.output.chat.WebsocketClientPort;
 import com.GHTK.Social_Network.domain.collection.chat.*;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ChatMapper;
-import com.GHTK.Social_Network.infrastructure.payload.dto.MessageDto;
+import com.GHTK.Social_Network.infrastructure.payload.dto.chat.MessageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,7 +44,7 @@ public class WebsocketService implements WebsocketPortInput {
       return;
     }
 
-    boolean isGroup = message.getGroupType().equals(EGroupType.GROUP_PUBLIC);
+    boolean isGroup = message.getGroupType().equals(EGroupType.GROUP);
 
     if (isGroup) {
       Optional<Group> currentGroup = Optional.ofNullable(groupPort.getGroupForGroup(message.getGroupId()));
