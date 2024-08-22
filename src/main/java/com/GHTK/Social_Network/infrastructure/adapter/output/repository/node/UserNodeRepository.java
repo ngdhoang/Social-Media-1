@@ -1,17 +1,14 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.repository.node;
 
-import com.GHTK.Social_Network.domain.model.friendShip.EFriendshipStatus;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.friendShip.EFriendshipStatusEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.HometownNode;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.FriendSuggestion;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.UserNode;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.UserRelationship;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.*;
+import org.neo4j.driver.internal.value.FloatValue;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,6 +53,35 @@ public interface UserNodeRepository extends Neo4jRepository<UserNode, Long> {
             int sameHometownScore
     );
 
+
+    @Query("""
+        CALL db.index.fulltext.queryNodes('userIndex', "*" + $searchTerm + "*") YIELD node, score
+        MATCH (currentUser:User {userId: $currentUserId})
+        OPTIONAL MATCH (node)-[:RELATED_TO]-(relatedUser:User)-[:RELATED_TO]-(currentUser)
+        OPTIONAL MATCH (node)-[relationship:RELATED_TO]-(currentUser)
+        OPTIONAL MATCH (node)-[:LIVES_IN]->(hometown:Hometown)
+        OPTIONAL MATCH (currentUser)-[:LIVES_IN]->(currentUserHometown:Hometown)
+        WITH node, score,
+             CASE
+                 WHEN (relatedUser IS NOT NULL  OR relationship IS NOT NULL) THEN 1
+                 ELSE 0
+             END AS hasRelationship,
+             CASE
+                 WHEN hometown = currentUserHometown THEN 1
+                 ELSE 0
+             END AS sameHometown,
+             CASE
+                 WHEN node = currentUser THEN 20
+                 ELSE 1
+             END AS isMe
+        WHERE NOT EXISTS {MATCH (currentUser)-[:BLOCK_TO]-(node)}
+        RETURN node.userId AS userId
+        ORDER BY score + (1 * hasRelationship) + (0.1 * isMe) + (0.1 * sameHometown) DESC
+        SKIP $skip
+        LIMIT $limit
+    """)
+    List<Long> searchUserFullTextSearch(String searchTerm, Long currentUserId, Pageable pageable);
+
     @Query("MATCH (u:User {email: $email})\n" +
             "RETURN u")
     UserNode getUserNodeByEmail(String email);
@@ -64,18 +90,25 @@ public interface UserNodeRepository extends Neo4jRepository<UserNode, Long> {
             "RETURN u")
     UserNode getUserNodeById(Long userId);
 
-    @Query("MATCH (a:User {userId: $firstUser})\n" +
-            "MATCH (b:User {userId: $secondUser})\n" +
-            "WHERE NOT (a)-[:RELATED_TO]-(b)\n" +
-            "CREATE (a)-[:status]-(b)")
-    void createFriend( Long firstUser, Long secondUser, EFriendshipStatusEntity status);
+    @Query("MATCH (u:User {userId: $userId})-[r:RELATED_TO]->(p:Post {postId: $postId}) " +
+            "RETURN r")
+    UserPostRelationship findExistingUserPostRelationship(Long userId, Long postId);
 
-    @Query("MATCH (u1:User {userId: $userId1}), (u2:User {userId: $userId2}) " +
-            "MERGE (u1)-[r:RELATED_TO]-(u2) " +
-            "ON CREATE SET r.relationship = $relationship " +
-            "ON MATCH SET r.relationship = $relationship " +
+    @Query("MATCH (u1:User {userId: $userId1})\n" +
+            "MATCH (u2:User {userId: $userId2})\n" +
+            "MERGE (u1)-[r:RELATED_TO]-(u2)\n" +
+            "ON CREATE SET r.relationship = $relationship\n" +
+            "ON MATCH SET r.relationship = $relationship\n" +
             "RETURN r")
     UserRelationship createOrUpdateFriend(Long userId1, Long userId2, EFriendshipStatusEntity relationship);
+
+    @Query("MATCH (u:User {userId: $userId}) " +
+            "MATCH (p:Post {postId: $postId}) " +
+            "MERGE (u)-[r:RELATED_TO_POST]->(p) " +
+            "SET r.score = $score " +
+            "SET r.updatedAt = $updatedAt " +
+            "SET u.maxScorePost = $score ")
+    void createOrUpdateUserPostRelationship(Long userId, Long postId, Integer score, LocalDateTime updatedAt);
 
     @Query("MATCH (u1:User {userId: $firstUser})\n" +
             "MATCH (u2:User {userId: $secondUser})\n" +
@@ -138,5 +171,16 @@ public interface UserNodeRepository extends Neo4jRepository<UserNode, Long> {
             RETURN COUNT(DISTINCT mutualFriend) AS mutualFriendsCount
             """)
     int getMutualFriend(Long firstUser, Long secondUser);
+
+
+    @Query("""
+                MATCH (u:User {userId: $userId})
+                MATCH (p:Post {id: $postId})
+                MERGE (u)-[r:RELATED_TO]->(p)
+                SET r.score = $score
+                SET u.maxScorePost = $score
+                RETURN u
+            """)
+    UserNode setMaxScorePost(Long userId, Long postId, Integer score);
 
 }

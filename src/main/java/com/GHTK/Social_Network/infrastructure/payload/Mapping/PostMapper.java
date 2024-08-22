@@ -27,7 +27,7 @@ public interface PostMapper {
   @Mapping(source = "tagUsers", target = "tagUsers", qualifiedByName = "mapTagUsers")
   @Mapping(source = "post.reactionsQuantity", target = "reactionsQuantity")
   @Mapping(source = "post.commentQuantity", target = "commentQuantity")
-  PostResponse postToPostResponse(Post post, List<ImagePost> imagePosts, List<?> tagUsers);
+  PostResponse postToPostResponse(Post post, List<ImagePost> imagePosts, List<?> tagUsers, UserBasicDto user);
 
   @Mapping(target = "postStatus", source = "status", qualifiedByName = "stringToPostStatus")
   @Mapping(target = "userId", ignore = true)

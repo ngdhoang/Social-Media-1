@@ -1,18 +1,19 @@
 package com.GHTK.Social_Network.application.port.input.post;
 
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetCommentRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.post.CommentRequest;
+import ai.djl.translate.TranslateException;
+import ai.onnxruntime.OrtException;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.comment.GetCommentRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.comment.CommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ActivityInteractionResponse;
-import com.GHTK.Social_Network.infrastructure.payload.responses.InteractionResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.CommentResponse;
 
 import java.util.List;
 
 public interface CommentPostInput {
-  CommentResponse createCommentRoot(CommentRequest comment);
+  CommentResponse createCommentRoot(CommentRequest comment) throws TranslateException, OrtException;
 
-  CommentResponse createCommentChild(Long commentIdSrc, CommentRequest comment);
+  CommentResponse createCommentChild(Long commentIdSrc, CommentRequest comment) throws TranslateException, OrtException;
 
   List<CommentResponse> getCommentsByPostId(Long postId, GetCommentRequest getCommentRequest);
 
@@ -24,9 +25,5 @@ public interface CommentPostInput {
 
   MessageResponse deleteComment(Long commentId);
 
-  CommentResponse updateComment(Long commentId, CommentRequest comment);
-
-  List<InteractionResponse> getCommentsByInteractions(GetCommentRequest getCommentRequest);
-
-//  List<InteractionResponse> getCommentsByInteractions();
+  CommentResponse updateComment(Long commentId, CommentRequest comment) throws TranslateException, OrtException;
 }

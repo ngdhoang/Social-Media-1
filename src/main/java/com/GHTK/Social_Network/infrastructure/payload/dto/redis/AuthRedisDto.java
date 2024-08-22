@@ -1,6 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.payload.dto.redis;
 
-import com.GHTK.Social_Network.infrastructure.payload.requests.RegisterRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.auth.RegisterRequest;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

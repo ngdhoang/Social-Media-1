@@ -1,34 +1,35 @@
 package com.GHTK.Social_Network.application.service.post;
 
+import ai.djl.translate.TranslateException;
+import ai.onnxruntime.OrtException;
 import com.GHTK.Social_Network.application.port.input.post.CommentPostInput;
 import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
+import com.GHTK.Social_Network.application.port.output.PhoBERTPortInput;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.post.CommentPostPort;
 import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
-import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
+import com.GHTK.Social_Network.application.port.output.post.RedisImagePort;
 import com.GHTK.Social_Network.common.customException.CustomException;
+import com.GHTK.Social_Network.domain.event.comment.CommentCreateEvent;
 import com.GHTK.Social_Network.domain.model.post.EPostStatus;
 import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.domain.model.post.comment.Comment;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.CommentMapper;
-import com.GHTK.Social_Network.infrastructure.payload.Mapping.PostMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetCommentRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.post.CommentRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.comment.GetCommentRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.comment.CommentRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ActivityInteractionResponse;
-import com.GHTK.Social_Network.infrastructure.payload.responses.InteractionResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.CommentResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -40,13 +41,15 @@ public class CommentService implements CommentPostInput {
   private final AuthPort authPort;
   private final CommentPostPort commentPostPort;
   private final FriendShipPort friendShipPort;
-  private final RedisImageTemplatePort redisImageTemplatePort;
+  private final RedisImagePort redisImageTemplatePort;
   private final ImagePostPort imagePostPort;
+
+  private final PhoBERTPortInput phoBERTPortInput;
 
   private final CommentMapper commentMapper;
   private final UserMapper userMapper;
 
-  private final PostMapper postMapper;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   private User getUserAuth() {
     User user = authPort.getUserAuth();
@@ -74,10 +77,16 @@ public class CommentService implements CommentPostInput {
   }
 
   @Override
-  public CommentResponse createCommentRoot(CommentRequest comment) {
+  public CommentResponse createCommentRoot(CommentRequest comment) throws TranslateException, OrtException {
     Post post = postPort.findPostByPostId(comment.getPostId());
     User user = getUserAuth();
     checkCommentValid(post, user);
+
+    boolean isToxic = phoBERTPortInput.isToxic(comment.getContent());
+
+    if (isToxic) {
+      throw new CustomException("Comment is toxic", HttpStatus.BAD_REQUEST);
+    }
 
     String imageCommentUrl = getImageUrlCommentInRedis(comment.getPublicId(), getUserAuth());
     Comment newComment = new Comment(
@@ -88,6 +97,9 @@ public class CommentService implements CommentPostInput {
     );
     Comment saveComment = commentPostPort.saveComment(newComment);
     postPort.incrementCommentQuantity(post.getPostId());
+
+    applicationEventPublisher.publishEvent(new CommentCreateEvent(saveComment));
+
     UserBasicDto userBasicDto = userMapper.userToUserBasicDto(user);
 
     return commentMapper.commentToCommentResponse(saveComment, userBasicDto);
@@ -95,10 +107,17 @@ public class CommentService implements CommentPostInput {
 
 
   @Override
-  public CommentResponse createCommentChild(Long commentIdSrc, CommentRequest comment) {
+  public CommentResponse createCommentChild(Long commentIdSrc, CommentRequest comment) throws TranslateException, OrtException {
     Post post = postPort.findPostByPostId(comment.getPostId());
     User user = this.getUserAuth();
     checkCommentValid(post, user);
+
+    boolean isToxic = phoBERTPortInput.isToxic(comment.getContent());
+
+    if (isToxic) {
+      throw new CustomException("Comment is toxic", HttpStatus.BAD_REQUEST);
+    }
+
     Comment parentComment = commentPostPort.findCommentById(commentIdSrc);
     if (parentComment == null) {
       throw new CustomException("Parent comment not found", HttpStatus.NOT_FOUND);
@@ -121,6 +140,9 @@ public class CommentService implements CommentPostInput {
     postPort.incrementCommentQuantity(post.getPostId());
     Long commentParentId = parentComment.getCommentId();
     commentPostPort.increaseCommentCount(commentParentId);
+
+    applicationEventPublisher.publishEvent(new CommentCreateEvent(newComment));
+
     UserBasicDto userBasicDto = userMapper.userToUserBasicDto(user);
 
     return commentMapper.commentToCommentResponse(newComment, userBasicDto);
@@ -283,10 +305,15 @@ public class CommentService implements CommentPostInput {
   }
 
   @Override
-  public CommentResponse updateComment(Long commentId, CommentRequest comment) {
+  public CommentResponse updateComment(Long commentId, CommentRequest comment) throws TranslateException, OrtException {
     Post post = postPort.findPostByPostId(comment.getPostId());
     User user = this.getUserAuth();
     checkCommentValid(post, user);
+    boolean isToxic = phoBERTPortInput.isToxic(comment.getContent());
+
+    if (isToxic) {
+      throw new CustomException("Comment is toxic", HttpStatus.BAD_REQUEST);
+    }
 
     Comment updatedComment = commentPostPort.findCommentById(commentId);
 
@@ -306,74 +333,6 @@ public class CommentService implements CommentPostInput {
     return commentMapper.commentToCommentResponse(updatedComment, userBasicDto);
   }
 
-
-  @Override
-  public List<InteractionResponse> getCommentsByInteractions(GetCommentRequest getCommentRequest) {
-    String role = "COMMENT";
-    User currentUser = authPort.getUserAuth();
-    List<InteractionResponse> interactionResponseList = new ArrayList<>();
-//    commentPostPort.findCommentsByInteractions(authPort.getUserAuth().getUserId()).stream().forEach(
-//            c -> {
-//              String content = "You do not have sufficient permissions to view this content.";
-//              String imageUrl = "";
-//              if (!friendShipPort.isBlock(c.getUserId(), currentUser.getUserId())) {
-//                content = c.getContent();
-//                imageUrl = c.getImageUrl();
-//              }
-//              InteractionResponse interactionResponse = InteractionResponse.builder()
-//                      .roleId(c.getCommentId())
-//                      .role(role)
-//                      .owner(userMapper.userToUserBasicDto(authPort.getUserById(c.getUserId())))
-//                      .reactionType(reactionPostPort.findReactionCommentByCommentIdAndUserId(
-//                              c.getCommentId(), currentUser.getUserId()
-//                      ).getReactionType())
-//                      .content(content)
-//                      .image(imageUrl)
-
-//                      .createAt(c.getCreateAt())
-//                      .updateAt(null)
-//                      .build();
-//              interactionResponseList.add(interactionResponse);
-//            }
-//    );
-
-    return interactionResponseList;
-  }
-//
-//  @Override
-//  public ReactionResponse handleReactionComment(Long commentId, String reactionType) {
-//    Post post = postPort.findPostByPostId(commentId);
-//    Comment updatedComment = commentPostPort.findCommentById(commentId);
-//    User userUpdateComment = authPort.getUserById(updatedComment.getUserId());
-//    checkCommentValid(post, userUpdateComment);
-//
-//    EReactionType newReactionType;
-//    try {
-//      newReactionType = EReactionType.valueOf(reactionType.toUpperCase());
-//    } catch (IllegalArgumentException e) {
-//      throw new CustomException("Invalid reaction type", HttpStatus.BAD_REQUEST);
-//    }
-//
-//    ReactionPost reactionComment = commentPostPort.findByCommentIdAndUserID(commentId, this.getUserAuth().getUserId());
-//    if (reactionComment == null) {
-//      ReactionPost newReactionComment = new ReactionPost(
-//              newReactionType,
-//              updatedComment.getCommentId(),
-//              this.getUserAuth().getUserId()
-//      );
-//      ReactionPost reactionPost = reactionPostPort.saveReaction(newReactionComment);
-//      return reactionCommentMapper.commentToResponse(reactionPost);
-//    }
-//
-//    reactionComment.setReactionType(newReactionType);
-//    return reactionCommentMapper.commentToResponse(reactionPostPort.saveReaction(reactionComment));
-//  }
-
-//  @Override
-//  public List<ReactionResponse> getAllReactionInComment(Long commentId) {
-//    return List.of();
-//  }
-//
 
   private String getImageUrlCommentInRedis(String publicId, User userSave) {
     String tail = ImagePostInput.COMMENT_TAIL + userSave.getUserEmail();

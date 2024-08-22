@@ -14,6 +14,5 @@ public class AcceptFriendRequest {
     private Long friendId;
 
     @NotNull(message = "isAccept cannot blank")
-//    @ValidPattern(value = CustomPatternValidator.BINARY)
     private Integer isAccept;
 }

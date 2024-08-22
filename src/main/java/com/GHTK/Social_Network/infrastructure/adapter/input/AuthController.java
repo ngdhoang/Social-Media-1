@@ -4,7 +4,7 @@ import com.GHTK.Social_Network.application.port.input.AuthPortInput;
 import com.GHTK.Social_Network.application.port.input.ProfilePortInput;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
-import com.GHTK.Social_Network.infrastructure.payload.requests.*;
+import com.GHTK.Social_Network.infrastructure.payload.requests.auth.*;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.mail.MessagingException;
@@ -32,6 +32,8 @@ public class AuthController {
   private Pair<String, String> extractDeviceInfo(HttpServletRequest httpServletRequest) {
     String userAgent = httpServletRequest.getHeader("User-Agent");
     String fingerprinting = httpServletRequest.getHeader("fingerprinting");
+    userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0";
+    fingerprinting = "231231243124";
     return Pair.of(userAgent, fingerprinting);
   }
 

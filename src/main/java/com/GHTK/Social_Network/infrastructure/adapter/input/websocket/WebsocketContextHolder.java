@@ -1,15 +1,15 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.websocket;
 
-import com.GHTK.Social_Network.domain.UserWsDetails;
+import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 
 public class WebsocketContextHolder {
-  private static final ThreadLocal<UserWsDetails> contextHolder = new ThreadLocal<>();
+  private static final InheritableThreadLocal<UserBasicDto> contextHolder = new InheritableThreadLocal<>();
 
-  public static void setContext(UserWsDetails userWsDetails) {
-    contextHolder.set(userWsDetails);
+  public static void setContext(UserBasicDto context) {
+    contextHolder.set(context);
   }
 
-  public static UserWsDetails getContext() {
+  public static UserBasicDto getContext() {
     return contextHolder.get();
   }
 

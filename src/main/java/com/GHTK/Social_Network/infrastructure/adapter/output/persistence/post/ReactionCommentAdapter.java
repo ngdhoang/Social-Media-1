@@ -6,7 +6,7 @@ import com.GHTK.Social_Network.domain.model.post.ReactionComment;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ReactionCommentRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.ReactionCommentMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.ReactionTypeMapperETD;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionCommentRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.comment.GetReactionCommentRequest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -53,16 +52,6 @@ public class ReactionCommentAdapter implements ReactionCommentPort {
   @Override
   public List<ReactionComment> findByCommentId(Long commentId, List<Long> blockIds) {
     return reactionCommentRepository.findByCommentId(commentId, blockIds).stream().map(reactionCommentMapperETD::toDomain).toList();
-  }
-
-  @Override
-  public int countReactionByCommentId(Long commentId) {
-    return reactionCommentRepository.countReactionByCommentId(commentId);
-  }
-
-  @Override
-  public int countReactionByCommentIdAndType(Long commentId, EReactionType reactionType) {
-    return reactionCommentRepository.countReactionByCommentIdAndType(commentId, reactionTypeMapperETD.toEntity(reactionType));
   }
 
   @Override
@@ -116,17 +105,6 @@ public class ReactionCommentAdapter implements ReactionCommentPort {
     } else {
       throw new IllegalArgumentException("Unsupported type for conversion: " + value.getClass());
     }
-  }
-
-
-  @Override
-  public List<ReactionComment> getListReactionByCommentId(Long commentId, GetReactionCommentRequest getReactionCommentRequest) {
-    Pageable pageable = getReactionCommentRequest.toPageable();
-    EReactionType reactionType = getReactionCommentRequest.getReactionType() == null ? null : EReactionType.valueOf(getReactionCommentRequest.getReactionType());
-    if (reactionType == null) {
-      return reactionCommentRepository.getByCommentId(commentId, pageable).stream().map(reactionCommentMapperETD::toDomain).toList();
-    }
-    return reactionCommentRepository.getByCommentIdAndType(commentId, reactionTypeMapperETD.toEntity(reactionType), pageable).stream().map(reactionCommentMapperETD::toDomain).toList();
   }
 
   @Override

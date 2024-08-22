@@ -10,6 +10,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MultipartException;
@@ -57,6 +58,11 @@ public class GlobalExceptionHandler {
   @ExceptionHandler({MultipartException.class})
   public ResponseEntity<Object> handleMultipartException(Exception ex) {
     return ResponseHandler.generateErrorResponse("Invalid file", HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(MissingServletRequestParameterException.class)
+  public ResponseEntity<Object> handleMissingServletRequestParameterException(MissingServletRequestParameterException ex) {
+    return ResponseHandler.generateErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(Exception.class)

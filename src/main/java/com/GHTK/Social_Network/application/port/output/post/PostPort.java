@@ -3,7 +3,7 @@ package com.GHTK.Social_Network.application.port.output.post;
 import com.GHTK.Social_Network.domain.model.post.ImagePost;
 import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.domain.model.post.TagUser;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetPostRequest;
 
 import java.util.List;
 
@@ -15,6 +15,8 @@ public interface PostPort {
     ALL
   }
 
+  List<Post> getListPostSuggest(Long userId, GetPostRequest getPostRequest);
+
   Post savePost(Post post);
 
   Post findPostById(Long id);
@@ -25,13 +27,9 @@ public interface PostPort {
 
   Boolean deletePostById(Long id);
 
-  List<Post> getListPostTagMeNotBlockAndPrivate(Long currentUser, List<Long> blockIds, GetPostRequest getPostRequest);
-
   List<Post> findPostsTagMe(Long currentUser, List<Long> blockIds, GetPostRequest getPostRequest);
 
   List<Post> findPostsWithUserInteractions(Long userId);
-
-  Post findPostByImagePostId(Long imagePostId);
 
   TagUser saveTagUser(TagUser tagUser);
 
@@ -44,8 +42,6 @@ public interface PostPort {
   List<ImagePost> getListImageByPostId(Long postId);
 
   List<TagUser> getListTagUserByPostId(Long postId, List<Long> blockIds);
-
-  List<Long> getListTagUserIdByPostId(Long postId, List<Long> blockIds);
 
   void decrementReactionQuantity(Long postId);
 

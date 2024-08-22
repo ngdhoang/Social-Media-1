@@ -7,6 +7,7 @@ import com.GHTK.Social_Network.application.port.output.ProfilePort;
 import com.GHTK.Social_Network.application.port.output.RedisProfilePort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
+import com.GHTK.Social_Network.domain.event.user.UpdateProfileEvent;
 import com.GHTK.Social_Network.domain.model.user.Profile;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
@@ -15,6 +16,7 @@ import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
 import com.GHTK.Social_Network.infrastructure.payload.requests.profile.UpdateProfilePrivacyRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.profile.UpdateProfileRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +27,8 @@ public class ProfileService implements ProfilePortInput {
   private final AuthPort authPort;
   private final ProfilePort profilePort;
   private final CloudPort cloudPort;
+
+  private ApplicationEventPublisher applicationEventPublisher;
 
   private final RedisProfilePort redisProfilePort;
   private final UserMapper userMapper;
@@ -65,7 +69,11 @@ public class ProfileService implements ProfilePortInput {
     Long userId = currentUser.getUserId();
 
     Boolean isUpdateProfile = profilePort.updateProfile(updateProfileRequest, userId);
+
     Profile profile = profilePort.takeProfileById(userId);
+
+    applicationEventPublisher.publishEvent(new UpdateProfileEvent(profile));
+
     UserDto userDto = userMapper.userAndProfileToUserDto(currentUser, profile);
     if (isUpdateProfile) {
       redisProfilePort.createOrUpdate(String.valueOf(userId), userDto);

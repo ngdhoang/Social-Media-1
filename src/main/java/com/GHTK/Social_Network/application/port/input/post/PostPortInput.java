@@ -1,6 +1,8 @@
 package com.GHTK.Social_Network.application.port.input.post;
 
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
+import ai.djl.translate.TranslateException;
+import ai.onnxruntime.OrtException;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetPostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.post.PostRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.InteractionResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
@@ -17,9 +19,11 @@ public interface PostPortInput {
 
   PostResponse getPostByPostId(Long postId); // No auth or auth
 
-  PostResponse createPost(PostRequest postRequest); // Auth
+  PostResponse createPost(PostRequest postRequest) throws TranslateException, OrtException; // Auth
 
   PostResponse updatePost(Long postId, PostRequest postRequest); // Auth
 
   MessageResponse deletePost(Long id); // Auth
+
+  List<PostResponse> getPostsSuggest(GetPostRequest getPostRequest);
 }

@@ -18,15 +18,14 @@ import com.GHTK.Social_Network.infrastructure.payload.Mapping.ReactionCommentRes
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.ReactionInfoMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.post.ReactionCountDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.post.ReactionUserDto;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionCommentRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.ReactionRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.comment.GetReactionCommentRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.ReactionRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionCommentResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -128,15 +127,6 @@ public class ReactionCommentService implements ReactionCommentInput {
         return reactionCommentMapper.commentToResponse(reactionCommentPort.saveReaction(reactionComment));
       }
     }
-  }
-
-
-  @Override
-  public List<ReactionResponse> getAllReactionInComment(Long commentId) {
-    LinkedList<Long> blockList = friendShipPort.getListBlockBoth(getUserAuth().getUserId());
-    return reactionCommentPort.findByCommentId(commentId, blockList).stream().map(
-            reactionCommentMapper::commentToResponse
-    ).toList();
   }
 
   @Override

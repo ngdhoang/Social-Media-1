@@ -1,13 +1,13 @@
 package com.GHTK.Social_Network.infrastructure.adapter.input.security.jwt;
 
 import com.GHTK.Social_Network.application.port.output.auth.JwtPort;
-import com.GHTK.Social_Network.common.customException.CustomException;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -40,11 +40,11 @@ public class JwtUtils implements JwtPort {
   }
 
   private Claims extractAllClaims(String token) {
-      return Jwts.parser()
-              .verifyWith(getSignInKey())
-              .build()
-              .parseSignedClaims(token)
-              .getPayload();
+    return Jwts.parser()
+            .verifyWith(getSignInKey())
+            .build()
+            .parseSignedClaims(token)
+            .getPayload();
   }
 
   public boolean isTokenValid(String token, UserDetails userDetails) {

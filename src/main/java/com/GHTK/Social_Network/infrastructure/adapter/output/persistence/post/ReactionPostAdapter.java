@@ -6,8 +6,8 @@ import com.GHTK.Social_Network.domain.model.post.ReactionPost;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ReactionPostRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.ReactionPostMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.ReactionTypeMapperETD;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetPostRequest;
-import com.GHTK.Social_Network.infrastructure.payload.requests.GetReactionPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetPostRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.post.GetReactionPostRequest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -54,16 +53,6 @@ public class ReactionPostAdapter implements ReactionPostPort {
   @Override
   public List<ReactionPost> findByPostId(Long postId) {
     return reactionPostRepository.findByPostId(postId).stream().map(reactionPostMapperETD::toDomain).toList();
-  }
-
-  @Override
-  public int countReactionByPostId(Long postId) {
-    return reactionPostRepository.countReactionByPostId(postId);
-  }
-
-  @Override
-  public int countReactionByPostIdAndType(Long postId, EReactionType reactionType) {
-    return reactionPostRepository.countReactionByPostIdAndType(postId, reactionTypeMapperETD.toEntity(reactionType));
   }
 
   @Override
@@ -132,17 +121,6 @@ public class ReactionPostAdapter implements ReactionPostPort {
     } else {
       throw new IllegalArgumentException("Unsupported type for conversion: " + value.getClass());
     }
-  }
-
-  @Override
-  public List<ReactionPost> getListReactionByPostId(Long postId, GetReactionPostRequest getReactionPostRequest) {
-    Pageable pageable = getReactionPostRequest.toPageable();
-    EReactionType reactionType = getReactionPostRequest.getReactionType() == null ? null : EReactionType.valueOf(getReactionPostRequest.getReactionType());
-
-    if (reactionType == null) {
-      return reactionPostRepository.getByPostId(postId, pageable).stream().map(reactionPostMapperETD::toDomain).toList();
-    }
-    return reactionPostRepository.getByPostIdAndType(postId, reactionTypeMapperETD.toEntity(reactionType), pageable).stream().map(reactionPostMapperETD::toDomain).toList();
   }
 
   @Override

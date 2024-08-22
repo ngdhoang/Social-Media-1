@@ -3,7 +3,7 @@ package com.GHTK.Social_Network.application.service.post;
 import com.GHTK.Social_Network.application.port.input.AsyncImageUploadPortInput;
 import com.GHTK.Social_Network.application.port.input.ImageHandlerPortInput;
 import com.GHTK.Social_Network.application.port.output.CloudPort;
-import com.GHTK.Social_Network.application.port.output.post.RedisImageTemplatePort;
+import com.GHTK.Social_Network.application.port.output.post.RedisImagePort;
 import com.GHTK.Social_Network.domain.CustomMultipartFile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 @Service
 @RequiredArgsConstructor
 public class AsyncImageUploadService implements AsyncImageUploadPortInput {
-  private final RedisImageTemplatePort redisImageTemplatePort;
+  private final RedisImagePort redisImageTemplatePort;
   private final CloudPort cloudPort;
 
   @Async

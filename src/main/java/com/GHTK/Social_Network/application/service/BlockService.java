@@ -6,6 +6,9 @@ import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.ProfilePort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
+import com.GHTK.Social_Network.domain.event.friendship.CreateBlockEvent;
+import com.GHTK.Social_Network.domain.event.friendship.RemoveBlockEvent;
+import com.GHTK.Social_Network.domain.event.friendship.UpdateFriendShipEvent;
 import com.GHTK.Social_Network.domain.model.friendShip.EFriendshipStatus;
 import com.GHTK.Social_Network.domain.model.friendShip.FriendShip;
 import com.GHTK.Social_Network.domain.model.user.User;
@@ -18,6 +21,7 @@ import com.GHTK.Social_Network.infrastructure.payload.responses.FriendShipRespon
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +41,7 @@ public class BlockService implements BlockPortInput {
   private final FriendShipPort friendShipPort;
   private final BlockPort blockPort;
   private final ProfilePort profilePort;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   private final FriendShipMapper friendShipMapper;
 
@@ -82,31 +87,27 @@ public class BlockService implements BlockPortInput {
     profilePort.takeUserById(userReceiveId).orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
     FriendShip friendShip = friendShipPort.getFriendShip(user.getUserId(), userReceiveId);
+    FriendShip friendShipReverse = friendShipPort.getFriendShip(userReceiveId, user.getUserId());
+    if(friendShipReverse != null && friendShip != null){
+      throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
+    }
+
     if (friendShip != null) {
       if (friendShip.getFriendshipStatus().equals(EFriendshipStatus.BLOCK)) {
         throw new CustomException("Duplicated request", HttpStatus.BAD_REQUEST);
       }
       friendShipPort.setRequestFriendShip(friendShip.getFriendShipId(), EFriendshipStatus.BLOCK);
-
-      FriendShip friendShipReverse = friendShipPort.getFriendShip(userReceiveId, user.getUserId());
-      if (friendShipReverse != null && !friendShipReverse.getFriendshipStatus().equals(EFriendshipStatus.BLOCK)) {
+      applicationEventPublisher.publishEvent(new UpdateFriendShipEvent(friendShip, EFriendshipStatus.BLOCK, friendShip.getFriendshipStatus()));
+    } else if (friendShipReverse != null) {
+      if (!friendShipReverse.getFriendshipStatus().equals(EFriendshipStatus.BLOCK)) {
         friendShipPort.deleteFriendShip(friendShipReverse.getFriendShipId());
       }
-      return new MessageResponse("Request sent successfully");
-    }
-
-    friendShip = friendShipPort.getFriendShip(userReceiveId, user.getUserId());
-    if (friendShip != null) {
-      if (friendShip.getFriendshipStatus().equals(EFriendshipStatus.BLOCK)) {
-        blockPort.addBlock(user.getUserId(), userReceiveId);
-        return new MessageResponse("Request sent successfully");
-      }
-      friendShipPort.deleteFriendShip(friendShip.getFriendShipId());
       blockPort.addBlock(user.getUserId(), userReceiveId);
-      return new MessageResponse("Request sent successfully");
+      applicationEventPublisher.publishEvent(new CreateBlockEvent(user.getUserId(), userReceiveId));
+    } else {
+      blockPort.addBlock(user.getUserId(), userReceiveId);
+      applicationEventPublisher.publishEvent(new CreateBlockEvent(user.getUserId(), userReceiveId));
     }
-
-    blockPort.addBlock(user.getUserId(), userReceiveId);
     return new MessageResponse("Request sent successfully");
   }
 
@@ -125,6 +126,8 @@ public class BlockService implements BlockPortInput {
     }
 
     blockPort.unBlock(friendShip.getFriendShipId());
+
+    applicationEventPublisher.publishEvent(new RemoveBlockEvent(friendShip));
     return new MessageResponse("Request sent successfully");
   }
 

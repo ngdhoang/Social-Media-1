@@ -1,11 +1,14 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat;
 
-import jakarta.persistence.Id;
-import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 @Document
@@ -15,13 +18,13 @@ import java.util.List;
 @Data
 public class MessageCollection {
   @Id
-  private Long msgId;
+  private ObjectId id;
 
-  private Long groupId;
+  private String groupId;
 
   private Long userAuthId;
 
-  private Long replyMsgId;
+  private String replyMsgId;
 
   private EMessageTypeCollection msgType;
 
@@ -29,10 +32,11 @@ public class MessageCollection {
 
   private List<Long> tags;
 
-  private ReactionMessagesCollection reactionMsgs;
+  private List<String> images;
+
+  private List<ReactionMessagesCollection> reactionMsgs;
 
   private Long reactionQuantity;
 
-  @CreatedDate
-  private Date createAt;
+  private Instant createAt;
 }

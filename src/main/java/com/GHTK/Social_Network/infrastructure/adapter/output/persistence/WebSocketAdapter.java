@@ -1,28 +1,34 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
-import com.GHTK.Social_Network.application.port.output.WebSocketPort;
-import com.GHTK.Social_Network.domain.collection.chat.Message;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat.MessageCollection;
-import com.GHTK.Social_Network.infrastructure.adapter.output.repository.MessageRepository;
-import com.GHTK.Social_Network.infrastructure.mapper.ChatMapperETD;
-import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import com.GHTK.Social_Network.application.port.output.chat.WebsocketPort;
+import com.GHTK.Social_Network.infrastructure.adapter.input.security.service.UserDetailsImpl;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Service
-@RequiredArgsConstructor
-public class WebSocketAdapter implements WebSocketPort {
-  private final SimpMessageSendingOperations messagingTemplate;
-  private final MessageRepository messageRepository;
-  private final ChatMapperETD chatMapperETD;
+public class WebsocketAdapter implements WebsocketPort {
+  @Override
+  public UserDetailsImpl extractUserDetails(StompHeaderAccessor accessor) {
+    return (UserDetailsImpl) extractAll(accessor).get("userDetails");
+  }
 
   @Override
-  public void SendAndSaveChatMessage(Message message, Long sendId, Long receiverId) {
-    String destination = String.format("/channel/%s", receiverId);
-    messagingTemplate.convertAndSend(destination, message);
+  public UserDetailsImpl extractUserDetails(Message<?> message) {
+    StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+    return extractUserDetails(accessor);
+  }
 
-    // save message into database
-    MessageCollection messageCollection = chatMapperETD.messageToMessageCollection(message);
-    messageRepository.save(messageCollection);
+  @Override
+  public Object extractByKey(String key, StompHeaderAccessor accessor) {
+    return extractAll(accessor).get(key);
+  }
+
+  @Override
+  public Map<String, Object> extractAll(StompHeaderAccessor accessor) {
+    return accessor.getSessionAttributes();
   }
 }

@@ -3,18 +3,17 @@ package com.GHTK.Social_Network.application.service.auth;
 import com.GHTK.Social_Network.application.port.input.post.DevicePortInput;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.auth.DevicePort;
-import com.GHTK.Social_Network.application.port.output.auth.RedisAuthPort;
+import com.GHTK.Social_Network.application.port.output.auth.redis.RedisAuthPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.model.user.Device;
 import com.GHTK.Social_Network.domain.model.user.EDeviceType;
 import com.GHTK.Social_Network.infrastructure.payload.dto.redis.AuthRedisDto;
-import com.GHTK.Social_Network.infrastructure.payload.requests.RegisterRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.auth.RegisterRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.MessageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @Service

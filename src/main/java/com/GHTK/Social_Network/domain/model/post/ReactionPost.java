@@ -5,7 +5,6 @@ import jakarta.persistence.PreUpdate;
 import lombok.*;
 
 import java.time.Instant;
-import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor

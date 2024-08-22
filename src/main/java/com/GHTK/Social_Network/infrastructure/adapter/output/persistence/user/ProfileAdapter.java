@@ -7,8 +7,6 @@ import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.EGenderEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.ProfileEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.user.UserEntity;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.HometownNode;
-import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.UserNode;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ProfileRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.UserNodeRepository;
@@ -27,7 +25,6 @@ import java.util.Optional;
 public class ProfileAdapter implements ProfilePort {
   private final UserRepository userRepository;
   private final ProfileRepository profileRepository;
-  private final UserNodeRepository userNodeRepository;
 
   private final UserMapperETD userMapperETD;
 
@@ -44,7 +41,6 @@ public class ProfileAdapter implements ProfilePort {
   @Override
   public Boolean updateProfile(UpdateProfileRequest updateProfileRequest, Long userId) {
     UserEntity savedUserEntity = userRepository.findById(userId).orElse(null);
-    Integer homeTown = updateProfileRequest.getHomeTown();
     ProfileEntity saveProfileEntity = profileRepository.findById(userId).orElse(null);
     if (savedUserEntity == null || saveProfileEntity == null) {
       return false;
@@ -60,19 +56,6 @@ public class ProfileAdapter implements ProfilePort {
     saveProfileEntity.setGender(updateProfileRequest.getGender() != null ? EGenderEntity.valueOf(updateProfileRequest.getGender().toUpperCase()) : null);
 
     userRepository.save(savedUserEntity);
-
-    HometownNode hometownNode = userNodeRepository.getUserWithHometown(userId);
-    if (hometownNode != null){
-      if (homeTown != null && !Objects.equals(hometownNode.getHometownId(), homeTown)) {
-        userNodeRepository.removeUserHometown(userId);
-        userNodeRepository.setUserHometown(userId, homeTown);
-      }
-      else if (homeTown == null){
-        userNodeRepository.removeUserHometown(userId);
-      }
-    } else if (hometownNode == null && homeTown != null) {
-      userNodeRepository.setUserHometown(userId, homeTown);
-    }
 
     return true;
   }

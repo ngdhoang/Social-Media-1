@@ -10,19 +10,9 @@ public interface BlockPort {
 
     FriendShip getBlock(Long userInitiatorId, Long userReceiveId);
 
-    FriendShip getBlockById(Long id);
-
-    FriendShip findBlock(Long userInitiatorId, Long userReceiveId);
-
-    FriendShip findBlockById(Long id);
-
-    void unBlock(Long userReceiveId, Long userInitiateId);
-
     void unBlock(Long friendShipId);
 
     List<FriendShip> getListBlock(GetBlockRequest getBlockRequest);
-
-    Boolean findUserById(Long id);
 
     Boolean isBlock(Long fistUserId, Long secondUserId);
 }
