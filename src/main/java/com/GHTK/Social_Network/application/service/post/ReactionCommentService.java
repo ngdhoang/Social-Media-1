@@ -105,6 +105,7 @@ public class ReactionCommentService implements ReactionCommentInput {
     reactionComment = reactionCommentPort.findByCommentIdAndUserID(commentId, getUserAuth().getUserId());
 
     if (reactionComment == null) {
+      System.out.println("reactionComment == null");
       ReactionComment newReactionComment = ReactionComment.builder()
               .commentId(commentId)
               .userId(user.getUserId())
@@ -117,13 +118,15 @@ public class ReactionCommentService implements ReactionCommentInput {
       return reactionCommentMapper.commentToResponse(savedReactionComment);
     } else {
       if (reactionComment.getReactionType() == newReactionType || newReactionType == null) {
+        System.out.println("reactionComment.getReactionType() == newReactionType || newReactionType == null");
         reactionCommentPort.deleteReaction(reactionComment);
         Long commentParentId = comment.getParentCommentId();
         if (commentParentId != null)
+          System.out.println("commentParentId != null");
           commentPostPort.decreaseReactionCount(commentParentId, 1L);
-
         return null;
       } else {
+        System.out.println("reactionComment.getReactionType() != newReactionType");
         reactionComment.setReactionType(newReactionType);
         return reactionCommentMapper.commentToResponse(reactionCommentPort.saveReaction(reactionComment));
       }

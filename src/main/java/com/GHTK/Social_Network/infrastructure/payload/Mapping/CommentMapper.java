@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
+import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import com.GHTK.Social_Network.domain.model.post.Post;
 import com.GHTK.Social_Network.domain.model.post.comment.Comment;
 import com.GHTK.Social_Network.domain.model.user.User;
@@ -14,7 +15,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface CommentMapper {
   @Mapping(target = "user", source = "userBasicDto")
-  CommentResponse commentToCommentResponse(Comment comment, UserBasicDto userBasicDto);
+  CommentResponse commentToCommentResponse(Comment comment, UserBasicDto userBasicDto, EReactionType reactionType);
 
   Comment commentResponseToComment(CommentResponse commentResponse);
 

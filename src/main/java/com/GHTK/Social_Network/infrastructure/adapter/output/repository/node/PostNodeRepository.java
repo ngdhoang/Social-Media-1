@@ -42,18 +42,27 @@ public interface PostNodeRepository extends Neo4jRepository<PostNode, Long> {
     @Query("MATCH (u:User)-[r:RELATED_TO_POST]-(p:Post{postId: $postId}) RETURN r")
     List<UserPostRelationship> getUserPostRelationshipByPostId(Long postId);
 
-    @Query("MATCH (u:User{userId: $userId})-[r:RELATED_TO_POST]-(p:Post{postId: $postId}) RETURN r")
+    @Query("MATCH (u:User{userId: $userId})-[r:RELATED_TO_POST]->(p:Post{postId: $postId}) " +
+            "RETURN r AS relationship, p AS post, r.score AS score, r.updatedAt AS updatedAt")
     UserPostRelationship getUserRelationshipByUserIdAndPostId(Long userId, Long postId);
 
     @Query("""
             MATCH (user:User {userId: $userId})
             CALL {
                 WITH user
+                MATCH (user)-[:POSTED]->(post:Post)
+                WHERE date(post.createAt) = date($date)
+                MATCH (user)-[rel:RELATED_TO_POST]->(post)
+                RETURN post.postId as postId, 1 AS priority, rel.score AS score, post.createAt AS createAt
+                
+                UNION ALL
+                
+                WITH user
                 MATCH (user)-[:RELATED_TO]->(friend:User)-[:POSTED]->(post:Post)
                 WHERE date(post.createAt) = date($date)
-                AND ( post.postStatus = 'PUBLIC' OR post.postStatus = 'FRIEND' )
+                AND ( post.postStatus = 'PUBLIC' OR post.postStatus = 'FRIEND')
                 MATCH (user)-[rel:RELATED_TO_POST]->(post)
-                RETURN post, rel, 1 AS priority
+                RETURN post.postId AS postId, 2 AS priority, rel.score AS score, post.createAt AS createAt
                 
                 UNION ALL
                 
@@ -61,39 +70,44 @@ public interface PostNodeRepository extends Neo4jRepository<PostNode, Long> {
                 MATCH (otherUser:User)-[:POSTED]->(post:Post)
                 WHERE NOT (user)-[:BLOCK_TO]-(otherUser) 
                 AND NOT (user)-[:RELATED_TO]-(otherUser)
+                AND NOT (user.userId = otherUser.userId)
                 AND post.postStatus = 'PUBLIC'
                 AND date(post.createAt) = date($date)               
                 MATCH (user)-[rel:RELATED_TO_POST]->(post)
-                RETURN post, rel, 2 AS priority
+                RETURN post.postId as postId, 3 AS priority, rel.score AS score, post.createAt AS createAt
                 
                 UNION ALL
                 
                 WITH user
                 MATCH (otherUser:User)-[:POSTED]->(post:Post)
-                WHERE date(post.createAt) < date($date)
-                AND (
+                WHERE (
                         (
                             (user)-[:RELATED_TO]-(otherUser)
                             AND (post.postStatus = 'FRIEND' OR post.postStatus = 'PUBLIC')
+                            AND date(post.createAt) < date($date)
                         )
                         OR
                         (
                             post.postStatus = 'PUBLIC'
-                            AND NOT (user)-[:BLOCK_TO]-(otherUser)
+                            AND (NOT (user)-[:BLOCK_TO]-(otherUser)) AND (user.userId <> otherUser.userId)
+                        )
+                        OR
+                        (
+                            user.userId = otherUser.userId
+                            AND date(post.createAt) < date($date)
                         )
                 )
-                OPTIONAL MATCH (user)-[rel:RELATED_TO_POST]->(post)
-                RETURN post, rel, 3 AS priority
+                RETURN post.postId as postId, 4 AS priority, null AS score, post.createAt AS createAt
             }
-            WITH post, rel, priority
+            WITH postId, score, priority, createAt
             ORDER BY
                 priority,
                 CASE
-                    WHEN priority < 3 THEN rel.score
+                    WHEN priority < 4 THEN score
                     ELSE null
                 END DESC,
-                post.createAt DESC
-            RETURN post.postId
+                createAt DESC
+            RETURN postId
             SKIP $skip LIMIT $limit
             """)
     List<Long> getSuggestedPostsWithPagination(Long userId, LocalDate date, Pageable pageable);

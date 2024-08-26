@@ -39,6 +39,14 @@ public class Comment {
     this.imageUrl = imageUrl;
   }
 
+  public Comment(String content, Long userId,Long parentCommentId, Long postId, String imageUrl) {
+    this.content = content;
+    this.userId = userId;
+    this.postId = postId;
+    this.imageUrl = imageUrl;
+    this.parentCommentId = parentCommentId;
+  }
+
   @PrePersist
   public void prePersist() {
     createAt = Instant.now();

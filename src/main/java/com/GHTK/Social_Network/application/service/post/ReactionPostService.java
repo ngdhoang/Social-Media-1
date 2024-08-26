@@ -3,6 +3,7 @@ package com.GHTK.Social_Network.application.service.post;
 import com.GHTK.Social_Network.application.port.input.post.ReactionPostInput;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
+import com.GHTK.Social_Network.application.port.output.auth.redis.RedisLockPort;
 import com.GHTK.Social_Network.application.port.output.post.CommentPostPort;
 import com.GHTK.Social_Network.application.port.output.post.PostPort;
 import com.GHTK.Social_Network.application.port.output.post.ReactionPostPort;
@@ -24,6 +25,8 @@ import com.GHTK.Social_Network.infrastructure.payload.responses.ActivityInteract
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionPostResponse;
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +36,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -42,13 +46,14 @@ public class ReactionPostService implements ReactionPostInput {
   private final AuthPort authPort;
   private final FriendShipPort friendShipPort;
   private final CommentPostPort commentPostPort;
+  private final RedisLockPort redisLockPort;
 
   private final ReactionPostMapper reactionPostMapper;
   private final ReactionInfoMapper reactionInfoMapper;
   private final ReactionPostResponseMapper reactionPostResponseMapper;
   private final CommentMapper commentMapper;
   private final UserMapper userMapper;
-
+  private final TaskExecutor taskExecutor;
   private void validatePostAccess(Post post, User user) {
     if (post == null) {
       throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
@@ -109,6 +114,7 @@ public class ReactionPostService implements ReactionPostInput {
       }
     }
   }
+
 
   @Override
   public ReactionPostResponse getListReactionInPost(Long postId, GetReactionPostRequest getReactionPostRequest) {

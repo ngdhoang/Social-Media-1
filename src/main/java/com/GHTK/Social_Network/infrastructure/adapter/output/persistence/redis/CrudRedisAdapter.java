@@ -26,8 +26,9 @@ public class CrudRedisAdapter<K, V> implements CrudRedisPort<K, V> {
   }
 
   @Override
-  public void createOrUpdateWithTTL(K key, V value, long timeout, TimeUnit unit) {
-    redisTemplate.opsForValue().set(key, value, timeout, unit);
+  public boolean createOrUpdateWithTTL(K key, V value, long timeout, TimeUnit unit) {
+//    redisTemplate.opsForValue().set(key, value, timeout, unit);
+    return redisTemplate.opsForValue().setIfAbsent(key, value, timeout, unit);
   }
 
   @Override

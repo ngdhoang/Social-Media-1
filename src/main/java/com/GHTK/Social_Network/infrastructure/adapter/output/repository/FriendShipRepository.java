@@ -16,10 +16,11 @@ import java.util.List;
 public interface FriendShipRepository extends JpaRepository<FriendShipEntity, Long> {
 
   @Query("""
-          select f from FriendShipEntity f
-          where (f.userReceiveId = :userId or f.userInitiatorId = :userId)
-              and ((:status is null and f.friendshipStatus <> 'BLOCK') or (:status is null and f.friendshipStatus <> 'PENDING') or f.friendshipStatus = :status)
-          """)
+      select f from FriendShipEntity f
+      where (f.userReceiveId = :userId or f.userInitiatorId = :userId)
+          and ((:status is null and f.friendshipStatus not in ('BLOCK', 'PENDING')) 
+              or f.friendshipStatus = :status)
+      """)
   List<FriendShipEntity> getListFriend(
           @Param("userId") Long userId,
           @Param("status") EFriendshipStatusEntity status,
@@ -47,11 +48,12 @@ public interface FriendShipRepository extends JpaRepository<FriendShipEntity, Lo
           Pageable pageable);
 
 
-    @Query("""
-            select count(f) from FriendShipEntity f
-            where (f.userReceiveId = :userId or f.userInitiatorId = :userId)
-              and ((:status is null and f.friendshipStatus <> 'BLOCK') or (:status is null and f.friendshipStatus <> 'PENDING') or f.friendshipStatus = :status)
-            """)
+  @Query("""
+      select count(f) from FriendShipEntity f
+      where (f.userReceiveId = :userId or f.userInitiatorId = :userId)
+        and ((:status is null and f.friendshipStatus not in ('BLOCK', 'PENDING')) 
+             or (f.friendshipStatus = :status))
+    """)
   Long countByUserIdAndFriendshipStatus(Long userId, EFriendshipStatusEntity status);
 
     @Query("""
@@ -169,4 +171,15 @@ public interface FriendShipRepository extends JpaRepository<FriendShipEntity, Lo
             and f.friendshipStatus = 'BLOCK'
             """)
   FriendShipEntity findBlockById(Long id);
+
+  @Query("""
+    select case 
+               when f.userReceiveId = :userId then f.userInitiatorId 
+               else f.userReceiveId 
+           end 
+    from FriendShipEntity f
+    where (f.userReceiveId = :userId or f.userInitiatorId = :userId)
+      and f.friendshipStatus = 'PENDING'
+    """)
+  List<Long> getAllPendingUserId(@Param("userId") Long userId);
 }

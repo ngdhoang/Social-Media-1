@@ -28,11 +28,8 @@ public class CommentPostAdapter implements CommentPostPort {
 
   @Override
   public Comment saveComment(Comment comment) {
-    Comment newComment = commentMapperETD.toDomain(
-            commentRepository.save(commentMapperETD.toEntity(comment)
-            )
-    );
-
+    CommentEntity commentEntity = commentRepository.save(commentMapperETD.toEntity(comment));
+    Comment newComment = commentMapperETD.toDomain(commentEntity);
     return newComment;
   }
 

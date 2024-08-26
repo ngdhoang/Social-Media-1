@@ -1,9 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.payload.Mapping;
 
-import com.GHTK.Social_Network.domain.model.post.EPostStatus;
-import com.GHTK.Social_Network.domain.model.post.ImagePost;
-import com.GHTK.Social_Network.domain.model.post.Post;
-import com.GHTK.Social_Network.domain.model.post.TagUser;
+import com.GHTK.Social_Network.domain.model.post.*;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.dto.ImageDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.post.PostBasicDto;
@@ -27,7 +24,7 @@ public interface PostMapper {
   @Mapping(source = "tagUsers", target = "tagUsers", qualifiedByName = "mapTagUsers")
   @Mapping(source = "post.reactionsQuantity", target = "reactionsQuantity")
   @Mapping(source = "post.commentQuantity", target = "commentQuantity")
-  PostResponse postToPostResponse(Post post, List<ImagePost> imagePosts, List<?> tagUsers, UserBasicDto user);
+  PostResponse postToPostResponse(Post post, List<ImagePost> imagePosts, List<?> tagUsers, UserBasicDto user, EReactionType reactionType);
 
   @Mapping(target = "postStatus", source = "status", qualifiedByName = "stringToPostStatus")
   @Mapping(target = "userId", ignore = true)

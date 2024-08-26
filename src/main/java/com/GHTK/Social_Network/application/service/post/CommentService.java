@@ -7,14 +7,13 @@ import com.GHTK.Social_Network.application.port.input.post.ImagePostInput;
 import com.GHTK.Social_Network.application.port.output.FriendShipPort;
 import com.GHTK.Social_Network.application.port.output.PhoBERTPortInput;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
-import com.GHTK.Social_Network.application.port.output.post.CommentPostPort;
-import com.GHTK.Social_Network.application.port.output.post.ImagePostPort;
-import com.GHTK.Social_Network.application.port.output.post.PostPort;
-import com.GHTK.Social_Network.application.port.output.post.RedisImagePort;
+import com.GHTK.Social_Network.application.port.output.post.*;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.event.comment.CommentCreateEvent;
 import com.GHTK.Social_Network.domain.model.post.EPostStatus;
+import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import com.GHTK.Social_Network.domain.model.post.Post;
+import com.GHTK.Social_Network.domain.model.post.ReactionComment;
 import com.GHTK.Social_Network.domain.model.post.comment.Comment;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.CommentMapper;
@@ -46,6 +45,7 @@ public class CommentService implements CommentPostInput {
   private final FriendShipPort friendShipPort;
   private final RedisImagePort redisImageTemplatePort;
   private final ImagePostPort imagePostPort;
+  private final ReactionCommentPort reactionCommentPort;
 
   private final PhoBERTPortInput phoBERTPortInput;
 
@@ -85,6 +85,10 @@ public class CommentService implements CommentPostInput {
     User user = getUserAuth();
     checkCommentValid(post, user);
 
+    if (comment.getContent().trim().isEmpty() && comment.getPublicId() == null) {
+      throw new CustomException("Comment content is empty", HttpStatus.BAD_REQUEST);
+    }
+
     boolean isToxic = phoBERTPortInput.isToxic(comment.getContent());
 
     if (isToxic) {
@@ -104,8 +108,7 @@ public class CommentService implements CommentPostInput {
     applicationEventPublisher.publishEvent(new CommentCreateEvent(saveComment));
 
     UserBasicDto userBasicDto = userMapper.userToUserBasicDto(user);
-
-    return commentMapper.commentToCommentResponse(saveComment, userBasicDto);
+    return commentMapper.commentToCommentResponse(saveComment, userBasicDto, null);
   }
 
 
@@ -135,20 +138,19 @@ public class CommentService implements CommentPostInput {
     Comment newComment = new Comment(
             comment.getContent(),
             user.getUserId(),
+            commentIdSrc,
             post.getPostId(),
             imageComment
     );
-    commentPostPort.setParentComment(commentIdSrc, newComment);
-    newComment = commentPostPort.saveComment(newComment);
+    Comment newCommentSave = commentPostPort.saveComment(newComment);
     postPort.incrementCommentQuantity(post.getPostId());
     Long commentParentId = parentComment.getCommentId();
     commentPostPort.increaseCommentCount(commentParentId);
 
-    applicationEventPublisher.publishEvent(new CommentCreateEvent(newComment));
+    applicationEventPublisher.publishEvent(new CommentCreateEvent(newCommentSave));
 
     UserBasicDto userBasicDto = userMapper.userToUserBasicDto(user);
-
-    return commentMapper.commentToCommentResponse(newComment, userBasicDto);
+    return commentMapper.commentToCommentResponse(newCommentSave, userBasicDto, null);
   }
 
   @Override
@@ -238,7 +240,8 @@ public class CommentService implements CommentPostInput {
 
   private CommentResponse processCommentWithChildren(Comment comment, List<Comment> listComment) {
     User authComment = authPort.getUserById(comment.getUserId());
-    CommentResponse response = commentMapper.commentToCommentResponse(comment, userMapper.userToUserBasicDto(authComment));
+
+    CommentResponse response = commentMapper.commentToCommentResponse(comment, userMapper.userToUserBasicDto(authComment),  getReactionTypeByUserIdAndCommentId(comment.getCommentId(), getUserAuth().getUserId()));
     if (comment.getCommentId() == null) {
       throw new CustomException("Comment is not found", HttpStatus.NOT_FOUND);
     }
@@ -255,8 +258,7 @@ public class CommentService implements CommentPostInput {
     Post post = postPort.findPostByPostId(comment.getPostId());
     checkCommentValid(post, getUserAuth());
     UserBasicDto userBasicDto = userMapper.userToUserBasicDto(authPort.getUserById(comment.getUserId()));
-
-    return commentMapper.commentToCommentResponse(comment, userBasicDto);
+    return commentMapper.commentToCommentResponse(comment, userBasicDto, getReactionTypeByUserIdAndCommentId(commentId, getUserAuth().getUserId()));
   }
 
   @Override
@@ -276,7 +278,7 @@ public class CommentService implements CommentPostInput {
     return commentPostPort.getListCommentByParentId(id, blockIds, getCommentRequest).stream().map(
             comment -> {
               User userAuth = authPort.getUserById(comment.getUserId());
-              return commentMapper.commentToCommentResponse(comment, userMapper.userToUserBasicDto(userAuth));
+              return commentMapper.commentToCommentResponse(comment, userMapper.userToUserBasicDto(userAuth), getReactionTypeByUserIdAndCommentId(comment.getCommentId(), user.getUserId()));
             }
     ).toList();
   }
@@ -333,7 +335,8 @@ public class CommentService implements CommentPostInput {
     UserBasicDto userBasicDto = userMapper.userToUserBasicDto(user);
 
     commentPostPort.saveComment(updatedComment);
-    return commentMapper.commentToCommentResponse(updatedComment, userBasicDto);
+
+    return commentMapper.commentToCommentResponse(updatedComment, userBasicDto, getReactionTypeByUserIdAndCommentId(commentId, user.getUserId()));
   }
 
 
@@ -349,10 +352,15 @@ public class CommentService implements CommentPostInput {
           Thread.currentThread().interrupt();
         }
       }
-      imagePostPort.deleteAllImageRedisByTail(tail);
+//      imagePostPort.deleteAllImageRedisByTail(tail);
       return value.equals(ImagePostInput.VALUE_LOADING) ? null : value;
     }
     return null;
+  }
+
+  private EReactionType getReactionTypeByUserIdAndCommentId(Long commentId, Long userId) {
+    ReactionComment reactionComment = reactionCommentPort.findByCommentIdAndUserID(commentId, userId);
+    return reactionComment != null ? reactionComment.getReactionType() : null;
   }
 
 }

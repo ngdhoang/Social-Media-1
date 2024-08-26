@@ -10,7 +10,7 @@ public interface CrudRedisPort<K, V> {
 
   void createOrUpdate(K key, V value);
 
-  void createOrUpdateWithTTL(K key, V value, long timeout, TimeUnit unit);
+  boolean createOrUpdateWithTTL(K key, V value, long timeout, TimeUnit unit);
 
   void deleteByKey(K key);
 

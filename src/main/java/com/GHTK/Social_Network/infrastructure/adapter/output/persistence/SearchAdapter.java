@@ -5,6 +5,7 @@ import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.UserRepository;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.UserNodeRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.UserMapperETD;
+import com.GHTK.Social_Network.infrastructure.payload.requests.PaginationRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.SearchUserRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -34,5 +35,11 @@ public class SearchAdapter implements SearchPort {
         List<Long> users = userNodeRepository.searchUserFullTextSearch(searchUserRequest.getKeyword(), userId, pageable);
         System.out.println(users);
         return users;
+    }
+
+    @Override
+    public List<Long> searchFriend(String keyword, Long userId, PaginationRequest paginationRequest) {
+        Pageable pageable = paginationRequest.toPageableNotSort();
+        return userNodeRepository.searchFriendFullTextSearch(keyword, userId, pageable);
     }
 }

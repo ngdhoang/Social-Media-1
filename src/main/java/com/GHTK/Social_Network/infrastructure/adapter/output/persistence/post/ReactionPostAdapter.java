@@ -3,6 +3,7 @@ package com.GHTK.Social_Network.infrastructure.adapter.output.persistence.post;
 import com.GHTK.Social_Network.application.port.output.post.ReactionPostPort;
 import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import com.GHTK.Social_Network.domain.model.post.ReactionPost;
+import com.GHTK.Social_Network.infrastructure.adapter.output.entity.entity.post.ReactionPostEntity;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.ReactionPostRepository;
 import com.GHTK.Social_Network.infrastructure.mapper.ReactionPostMapperETD;
 import com.GHTK.Social_Network.infrastructure.mapper.ReactionTypeMapperETD;
@@ -40,10 +41,15 @@ public class ReactionPostAdapter implements ReactionPostPort {
 
   @Override
   public ReactionPost saveReaction(ReactionPost reactionPost) {
+    System.out.println("0000000000000000");
     if (reactionPost.getReactionType() == null) {
       reactionPost.setReactionType(EReactionType.LIKE);
     }
-    return reactionPostMapperETD.toDomain(reactionPostRepository.save(reactionPostMapperETD.toEntity(reactionPost)));
+    System.out.println(reactionPost.getReactionType());
+    ReactionPostEntity reactionPostEntity = reactionPostRepository.save(reactionPostMapperETD.toEntity(reactionPost));
+    System.out.println(reactionPostEntity.getReactionType());
+    return reactionPostMapperETD.toDomain(reactionPostEntity);
+//    return reactionPostMapperETD.toDomain(reactionPostRepository.save(reactionPostMapperETD.toEntity(reactionPost)));
   }
 
   @Override

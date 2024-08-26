@@ -55,6 +55,11 @@ public class RedisConfig {
     return createRedisTemplate(redisConnectionFactory, AccessTokenDto.class);
   }
 
+  @Bean
+  public RedisTemplate<String, String> lockReactionRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    return createRedisTemplate(redisConnectionFactory, String.class);
+  }
+
   private <T> RedisTemplate<String, T> createRedisTemplate(RedisConnectionFactory redisConnectionFactory, Class<T> valueType) {
     RedisTemplate<String, T> template = new RedisTemplate<>();
     template.setConnectionFactory(redisConnectionFactory);

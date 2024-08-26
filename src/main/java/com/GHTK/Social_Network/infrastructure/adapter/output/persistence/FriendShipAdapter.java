@@ -44,7 +44,6 @@ public class FriendShipAdapter implements FriendShipPort {
     if (statusString != null && statusString.equalsIgnoreCase("REQUESTED")) {
       return friendShipRepository.getListFriendRequest(userId, EFriendshipStatusEntity.PENDING, pageable).stream().map(friendShipMapperETD::toDomain).toList();
     }
-
     EFriendshipStatus status = statusString != null ? EFriendshipStatus.valueOf(statusString.toUpperCase()) : null;
     EFriendshipStatusEntity statusEntity = status != null ? eFriendShipStatusMapperETD.toEntity(status) : null;
 
@@ -75,9 +74,10 @@ public class FriendShipAdapter implements FriendShipPort {
       if (status.equals(EFriendshipStatus.BLOCK)) {
         return friendShipRepository.countByUserRequestAndFriendshipStatus(userId, statusEntity);
       }
+      return friendShipRepository.countByUserIdAndFriendshipStatus(userId, statusEntity);
     }
 
-    return friendShipRepository.countByUserIdAndFriendshipStatus(userId, statusEntity);
+    return friendShipRepository.countByUserIdAndFriendshipStatus(userId, null);
   }
 
   @Override
@@ -134,8 +134,10 @@ public class FriendShipAdapter implements FriendShipPort {
 
   @Override
   public List<Long> getListSuggestFriend(Long userId) {
+    List<Long> list = friendShipRepository.getAllPendingUserId(userId);
     List<FriendSuggestion> listFriend = userNodeRepository.getListPotentialFriends(
             userId,
+            list,
             RelationshipScores.CLOSE_FRIEND_SCORE,
             RelationshipScores.SIBLING_SCORE,
             RelationshipScores.PARENT_SCORE,

@@ -8,13 +8,13 @@ import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.common.customException.CustomException;
 import com.GHTK.Social_Network.domain.model.friendShip.EFriendshipStatus;
 import com.GHTK.Social_Network.domain.model.friendShip.FriendShip;
-import com.GHTK.Social_Network.domain.model.user.Profile;
 import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.FriendShipMapper;
 import com.GHTK.Social_Network.infrastructure.payload.Mapping.UserMapper;
 import com.GHTK.Social_Network.infrastructure.payload.dto.FriendShipUserDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserDto;
+import com.GHTK.Social_Network.infrastructure.payload.requests.PaginationRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.SearchUserRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -90,6 +90,20 @@ public class SearchService implements SearchPortInput {
                     long mutualFriends = friendShipPort.getMutualFriendNeo(user.getUserId(), friendShipId);
                     return friendShipMapper.toFriendShipUserDto(profileUser, status, mutualFriends);
                 })
+                .toList();
+    }
+
+    @Override
+    public List<UserBasicDto> searchFriend(String keyword, PaginationRequest paginationRequest) {
+        User user = authPort.getUserAuthOrDefaultVirtual();
+        if (user.getUserId().equals(0L)){
+            throw new CustomException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
+        }
+        List<Long> users = searchPort.searchFriend(keyword, user.getUserId(), paginationRequest);
+        return users.stream().map(profilePort::takeUserById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(userMapper::userToUserBasicDto)
                 .toList();
     }
 

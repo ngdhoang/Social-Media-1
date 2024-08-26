@@ -23,6 +23,7 @@ public class FriendShipController {
   public ResponseEntity<Object> getListFriend(
           @Valid @ModelAttribute GetFriendShipRequest getFriendShipRequest
   ) {
+    System.out.println("getFriendShipRequest = " + getFriendShipRequest);
     return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, friendShipService.getListFriend(getFriendShipRequest));
   }
 

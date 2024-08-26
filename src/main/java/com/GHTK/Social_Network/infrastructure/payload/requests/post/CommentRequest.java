@@ -9,7 +9,6 @@ public class CommentRequest {
   @NotNull(message = "postId cannot blank")
   private Long postId;
 
-  @NotBlank(message = "content cannot blank")
   private String content;
 
   private String publicId;

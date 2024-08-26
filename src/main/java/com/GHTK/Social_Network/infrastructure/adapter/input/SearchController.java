@@ -4,6 +4,7 @@ package com.GHTK.Social_Network.infrastructure.adapter.input;
 import com.GHTK.Social_Network.application.port.input.SearchPortInput;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.node.UserNode;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.node.UserNodeRepository;
+import com.GHTK.Social_Network.infrastructure.payload.requests.PaginationRequest;
 import com.GHTK.Social_Network.infrastructure.payload.requests.SearchUserRequest;
 import com.GHTK.Social_Network.infrastructure.payload.responses.ResponseHandler;
 import jakarta.validation.Valid;
@@ -29,5 +30,10 @@ public class SearchController {
   @GetMapping("/user")
   public ResponseEntity<Object> infer(@ModelAttribute @Valid SearchUserRequest searchUserRequest) {
       return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, searchPortInput.searchUser(searchUserRequest));
+  }
+
+  @GetMapping("friend")
+  public ResponseEntity<Object> searchFriend(@RequestParam(required = false) String keyword, @ModelAttribute @Valid PaginationRequest paginationRequest) {
+    return ResponseHandler.generateResponse(ResponseHandler.MESSAGE_SUCCESS, HttpStatus.OK, searchPortInput.searchFriend(keyword, paginationRequest));
   }
 }

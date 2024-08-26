@@ -70,7 +70,6 @@ public class FriendShipService implements FriendShipPortInput {
     if ((friendShip != null && friendShip.getFriendshipStatus().equals(EFriendshipStatus.BLOCK)) || (friendShipReverse != null && friendShipReverse.getFriendshipStatus().equals(EFriendshipStatus.BLOCK))) {
       throw new CustomException("Not permission", HttpStatus.FORBIDDEN);
     }
-
     List<FriendShip> friendShips = friendShipPort.getListFriendShip(getFriendShipRequest);
     List<FriendShipUserDto> friendShipUsersDto = getProfileDtos(userTarget, friendShips);
     Long count = friendShipPort.countByUserReceiveIdAndFriendshipStatus(getFriendShipRequest);
@@ -188,7 +187,7 @@ public class FriendShipService implements FriendShipPortInput {
       throw new CustomException("Cannot send request to yourself", HttpStatus.BAD_REQUEST);
     }
 
-    if (profilePort.takeUserById(userReceiveId).isEmpty()) {
+    if (userReceiveId == null || profilePort.takeUserById(userReceiveId).isEmpty()) {
       throw new CustomException("User not found", HttpStatus.NOT_FOUND);
     }
   }
@@ -274,7 +273,7 @@ public class FriendShipService implements FriendShipPortInput {
     }
 
     if (friendShip != null) {
-      if ( friendShip.getFriendshipStatus().equals(EFriendshipStatus.BLOCK) || friendShip.getFriendshipStatus().equals(EFriendshipStatus.PENDING)) {
+      if ( friendShip.getFriendshipStatus().equals(EFriendshipStatus.BLOCK)) {
         throw new CustomException("Invalid request", HttpStatus.BAD_REQUEST);
       }
       friendShipPort.deleteFriendShip(friendShip.getFriendShipId());

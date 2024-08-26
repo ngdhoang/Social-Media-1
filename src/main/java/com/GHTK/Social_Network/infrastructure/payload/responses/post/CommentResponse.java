@@ -1,5 +1,6 @@
 package com.GHTK.Social_Network.infrastructure.payload.responses.post;
 
+import com.GHTK.Social_Network.domain.model.post.EReactionType;
 import com.GHTK.Social_Network.infrastructure.payload.dto.user.UserBasicDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,4 +29,6 @@ public class CommentResponse {
   private Long repliesQuantity;
 
   private Long reactionsQuantity;
+
+  private EReactionType reactionType;
 }

@@ -68,7 +68,8 @@ public class PostService implements PostPortInput {
                       List<Long> blockIds = friendShipPort.getListBlockBoth(p.getUserId());
                       List<TagUser> tagUserList = portPost.getListTagUserByPostId(p.getPostId(), blockIds);
                       List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getUserId())).toList();
-                      return postMapper.postToPostResponse(p, imagePostList, userTagList, userMapper.userToUserBasicDto(authPort.getUserById(p.getUserId())));
+                      EReactionType reactionType = getReactionTypeByUserIdAndCommentId(p.getPostId(), currentUser.getUserId());
+                      return postMapper.postToPostResponse(p, imagePostList, userTagList, userMapper.userToUserBasicDto(authPort.getUserById(p.getUserId())), reactionType);
                     }
             ).toList();
   }
@@ -125,14 +126,15 @@ public class PostService implements PostPortInput {
     if (post.getPostStatus().equals(EPostStatus.FRIEND) && !friendShipPort.isFriend(post.getUserId(), authPort.getUserAuthOrDefaultVirtual().getUserId()) && !post.getUserId().equals(authPort.getUserAuthOrDefaultVirtual().getUserId())) {
       throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
     }
-    if (friendShipPort.isBlock(post.getUserId(), authPort.getUserAuthOrDefaultVirtual().getUserId()) || post.getPostStatus().equals(EPostStatus.PRIVATE)) {
+    if (friendShipPort.isBlock(post.getUserId(), authPort.getUserAuthOrDefaultVirtual().getUserId()) || (post.getPostStatus().equals(EPostStatus.PRIVATE) && !post.getUserId().equals(authPort.getUserAuthOrDefaultVirtual().getUserId()))) {
       throw new CustomException("Post not found", HttpStatus.NOT_FOUND);
     }
     List<ImagePost> imagePosts = sortImagePosts(postId, portPost.getListImageByPostId(post.getPostId()));
     List<Long> blockIds = friendShipPort.getListBlockBoth(post.getUserId());
     List<TagUser> tagUserList = portPost.getListTagUserByPostId(post.getPostId(), blockIds);
-    List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getTagUserId())).toList();
-    return postMapper.postToPostResponse(post, imagePosts, userTagList, userMapper.userToUserBasicDto(authPort.getUserById(postId)));
+    List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getUserId())).toList();
+    EReactionType reactionType = getReactionTypeByUserIdAndCommentId(postId, authPort.getUserAuthOrDefaultVirtual().getUserId());
+    return postMapper.postToPostResponse(post, imagePosts, userTagList, userMapper.userToUserBasicDto(authPort.getUserById(post.getUserId())), reactionType);
   }
 
   @Override
@@ -157,7 +159,7 @@ public class PostService implements PostPortInput {
 
     applicationEventPublisher.publishEvent(new PostCreateEvent(newPost));
 
-    return postMapper.postToPostResponse(newPost, imagePostEntities, userTagList, userMapper.userToUserBasicDto(currentUser));
+    return postMapper.postToPostResponse(newPost, imagePostEntities, userTagList, userMapper.userToUserBasicDto(currentUser), null);
   }
 
   @Override
@@ -179,7 +181,8 @@ public class PostService implements PostPortInput {
     applicationEventPublisher.publishEvent(new PostUpdateEvent(newPost));
 
     List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getTagUserId())).toList();
-    return postMapper.postToPostResponse(newPost, imagePostList, userTagList, userMapper.userToUserBasicDto(currentUser));
+    EReactionType reactionType = getReactionTypeByUserIdAndCommentId(postId, currentUser.getUserId());
+    return postMapper.postToPostResponse(newPost, imagePostList, userTagList, userMapper.userToUserBasicDto(currentUser), reactionType);
   }
 
   @Override
@@ -445,7 +448,14 @@ public class PostService implements PostPortInput {
     List<Long> blockIds = friendShipPort.getListBlockBoth(p.getUserId());
     List<TagUser> tagUserList = portPost.getListTagUserByPostId(p.getPostId(), blockIds);
     List<User> userTagList = tagUserList.stream().map(t -> authPort.getUserById(t.getUserId())).toList();
-    return postMapper.postToPostResponse(p, imagePostList, userTagList, userMapper.userToUserBasicDto(authPort.getUserById(p.getUserId())));
+    EReactionType reactionType = getReactionTypeByUserIdAndCommentId(p.getPostId(), authPort.getUserAuthOrDefaultVirtual().getUserId());
+    return postMapper.postToPostResponse(p, imagePostList, userTagList, userMapper.userToUserBasicDto(authPort.getUserById(p.getUserId())), reactionType);
   }
+
+  private EReactionType getReactionTypeByUserIdAndCommentId(Long postId, Long userId) {
+    ReactionPost reactionPost = reactionPostPort.findByPostIdAndUserID(postId, userId);
+    return reactionPost != null ? reactionPost.getReactionType() : null;
+  }
+
 
 }

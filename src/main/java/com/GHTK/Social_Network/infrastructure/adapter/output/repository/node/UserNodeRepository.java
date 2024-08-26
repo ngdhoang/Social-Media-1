@@ -21,6 +21,7 @@ public interface UserNodeRepository extends Neo4jRepository<UserNode, Long> {
             "  AND NOT (user)-[:BLOCK_TO]->(potentialFriend)\n" +
             "  AND NOT (potentialFriend)-[:BLOCK_TO]->(user)\n" +
             "  AND NOT (user)-[:RELATED_TO]-(potentialFriend)\n" +
+            "  AND NOT potentialFriend.userId IN $excludeUserIds\n" +
             "OPTIONAL MATCH (user)-[r1:RELATED_TO]-(mutualFriend:User)-[r2:RELATED_TO]-(potentialFriend)\n" +
             "WITH user, potentialFriend, COUNT(DISTINCT mutualFriend) AS mutualFriendsCount,\n" +
             "     SUM(CASE r1.relationship\n" +
@@ -46,6 +47,7 @@ public interface UserNodeRepository extends Neo4jRepository<UserNode, Long> {
             "LIMIT 10")
     List<FriendSuggestion> getListPotentialFriends(
             Long userId,
+            List<Long> excludeUserIds,
             int closeFriendScore,
             int siblingScore,
             int parentScore,
@@ -81,6 +83,16 @@ public interface UserNodeRepository extends Neo4jRepository<UserNode, Long> {
         LIMIT $limit
     """)
     List<Long> searchUserFullTextSearch(String searchTerm, Long currentUserId, Pageable pageable);
+
+    @Query("""
+        CALL db.index.fulltext.queryNodes('userIndex', CASE WHEN $searchTerm IS NOT NULL AND $searchTerm <> '' THEN "*" + $searchTerm + "*" ELSE "*" END) YIELD node AS friend, score
+        MATCH (friend:User)-[:RELATED_TO]-(user:User {userId: $userId})
+        RETURN friend.userId AS friendId
+        ORDER BY score DESC
+        SKIP $skip
+        LIMIT $limit
+        """)
+    List<Long> searchFriendFullTextSearch(String searchTerm, Long userId, Pageable pageable);
 
     @Query("MATCH (u:User {email: $email})\n" +
             "RETURN u")

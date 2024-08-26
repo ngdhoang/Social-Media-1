@@ -8,10 +8,12 @@ import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionPos
 import com.GHTK.Social_Network.infrastructure.payload.responses.post.ReactionResponse;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface ReactionPostInput {
-  ReactionResponse handleReactionPost(Long postId, ReactionRequest reactionPostRequest);
+//  ReactionResponse handleReactionPost(Long postId, ReactionRequest reactionPostRequest);
 
+  ReactionResponse handleReactionPost(Long postId, ReactionRequest reactionPostRequest);
   ReactionPostResponse getListReactionInPost(Long postId, GetReactionPostRequest getReactionPostRequest);
 
   List<ActivityInteractionResponse> getListReactionInteractions(GetPostRequest getPostRequest);
