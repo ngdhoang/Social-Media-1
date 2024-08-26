@@ -1,0 +1,10 @@
+.video-container {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+video {
+    width: 45%;
+    border: 1px solid #ddd;
+}
