@@ -14,12 +14,15 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Table(name = "user")
 @Entity
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "user", indexes = {
+        @Index(name = "idx_status_user", columnList = "status_user"),
+        @Index(name = "idx_role", columnList = "role")
+})
 public class UserEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +32,7 @@ public class UserEntity {
 
   private String lastName;
 
+  @Column(unique = true)
   private String userEmail;
 
   private String password;

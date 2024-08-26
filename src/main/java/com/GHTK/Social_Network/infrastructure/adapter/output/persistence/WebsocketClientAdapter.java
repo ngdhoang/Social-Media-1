@@ -1,13 +1,10 @@
 package com.GHTK.Social_Network.infrastructure.adapter.output.persistence;
 
-import com.GHTK.Social_Network.application.port.output.UserCollectionPort;
 import com.GHTK.Social_Network.application.port.output.auth.AuthPort;
 import com.GHTK.Social_Network.application.port.output.chat.WebsocketClientPort;
-import com.GHTK.Social_Network.domain.collection.UserGroup;
 import com.GHTK.Social_Network.domain.collection.chat.EGroupType;
 import com.GHTK.Social_Network.domain.collection.chat.EMessageType;
 import com.GHTK.Social_Network.domain.collection.chat.Message;
-import com.GHTK.Social_Network.domain.model.user.User;
 import com.GHTK.Social_Network.infrastructure.adapter.input.websocket.WebsocketContextHolder;
 import com.GHTK.Social_Network.infrastructure.adapter.output.entity.collection.chat.MessageCollection;
 import com.GHTK.Social_Network.infrastructure.adapter.output.repository.MessageRepository;

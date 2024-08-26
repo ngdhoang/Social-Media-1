@@ -16,11 +16,14 @@ import java.util.List;
 import java.util.TimeZone;
 
 @Entity
-@Table(name = "post")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "post", indexes = {
+        @Index(name = "idx_post_user", columnList = "user_id"),
+        @Index(name = "idx_post_status", columnList = "postStatus"),
+})
 public class PostEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

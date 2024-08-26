@@ -5,11 +5,9 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public enum Permission {
-    GROUP_PUBLIC("group:public"),
-    GROUP_PRIVATE("group:private")
+  GROUP_PUBLIC("group:public"),
+  GROUP_PRIVATE("group:private");
 
-    ;
-
-    @Getter
-    private final String permission;
+  @Getter
+  private final String permission;
 }

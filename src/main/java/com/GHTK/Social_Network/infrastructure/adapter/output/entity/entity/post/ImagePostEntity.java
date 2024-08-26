@@ -8,10 +8,12 @@ import lombok.NoArgsConstructor;
 import java.util.Date;
 
 @Entity
-@Table(name = "image_post")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "image_post", indexes = {
+        @Index(name = "idx_post_id", columnList = "post_id"),
+})
 public class ImagePostEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

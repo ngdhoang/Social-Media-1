@@ -5,7 +5,11 @@ public interface OfflineOnlinePort {
 
   void removeSessionInRedis(String sessionId);
 
-  void removeSessionInMongo(Long userId);
+  void offlineInMongo(Long userId);
+
+  void onlineInMongo(Long userId);
 
   boolean isOnlineInRedis(Long userId);
+
+  Long getUserIdBySessionInRedis(String session);
 }

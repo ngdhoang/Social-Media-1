@@ -10,10 +10,15 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "reaction_post")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "reaction_post", indexes = {
+        @Index(name = "idx_post_id", columnList = "post_id"),
+        @Index(name = "idx_user_id", columnList = "user_id"),
+        @Index(name = "idx_post_user", columnList = "post_id, user_id"),
+        @Index(name = "idx_reaction_type", columnList = "reaction_type")
+})
 public class ReactionPostEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

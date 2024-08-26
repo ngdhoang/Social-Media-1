@@ -8,11 +8,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "tag_user")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "tag_user", indexes = {
+        @Index(name = "idx_post_id", columnList = "post_id"),
+        @Index(name = "idx_user_id", columnList = "user_id"),
+        @Index(name = "idx_post_user", columnList = "post_id, user_id")
+})
 public class TagUserEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
