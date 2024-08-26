@@ -1,0 +1,13 @@
+package com.GHTK.Social_Network.application.port.output;
+
+import com.GHTK.Social_Network.domain.model.user.User;
+import com.GHTK.Social_Network.infrastructure.payload.requests.SearchUserRequest;
+import com.GHTK.Social_Network.infrastructure.payload.requests.relationship.GetFriendShipRequest;
+
+import java.util.List;
+
+public interface SearchPort {
+  List<User> searchUserInPage(String keyword);
+
+  List<Long> searchUser(SearchUserRequest searchUserRequest, Long userId);
+}

@@ -1,0 +1,36 @@
+// Get list friend
+// Get list request friend
+// Get send request friend
+// Get list block GET
+[
+	{
+		"user": {
+			"userId":
+			"firstName":
+			"lastName":
+			"userEmail":
+			"avatar":
+		}
+		"mutualFriendsQuantity":
+		"status":
+	}
+]
+
+// create send request friend POST api/v1/relationships
+// update PUT api/v1/relationships/status
+{
+	"userId":
+	"status":
+}
+
+// delete (unfriend) send request friend DELETE api/v1/relationships/{userId}
+
+// accept PUT api/v1/relationships/accept
+{
+	"userId"
+	"status":
+}
+
+// POST block api/v1/relationships/block/{userID}
+// DELETE unBlock api/v1/relationships/block/{userID}
+
